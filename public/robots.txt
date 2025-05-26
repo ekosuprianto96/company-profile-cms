@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /admin
+Disallow: /*?*
+Allow: /blog/
+Allow: /galeri/
+Allow: /layanan/
+
+Sitemap: https://the-partners.test/sitemap.xml

@@ -1,0 +1,337 @@
+[
+    {
+        "id": "header-title",
+        "order": 1,
+        "title": "Header Title",
+        "view": "header-title",
+        "collection": null,
+        "action": {
+            "label": "",
+            "type": "modal",
+            "link": ""
+        },
+        "forms": {
+            "title": {
+                "id": "title",
+                "label": "Title",
+                "type": "text",
+                "value": "Tentang Kami",
+                "name": "title",
+                "validation": {
+                    "rules": [
+                        "required",
+                        "string",
+                        "max:150"
+                    ],
+                    "errors": {
+                        "title.required": "Title harus diisi",
+                        "title.string": "Title harus berupa string yang valid",
+                        "title.max": "Title tidak boleh lebih dari 150 karakter"
+                    }
+                }
+            },
+            "sub_title": {
+                "id": "sub_title",
+                "label": "Sub Title",
+                "notice": {
+                    "position": "bottom",
+                    "text": "Kosongkan jika tidak perlu"
+                },
+                "type": "textarea",
+                "value": null,
+                "name": "sub_title"
+            }
+        }
+    },
+    {
+        "id": "input-search",
+        "order": 1,
+        "title": "Input Search",
+        "view": "input-search",
+        "collection": null,
+        "action": {
+            "label": "",
+            "type": "modal",
+            "link": ""
+        },
+        "forms": {
+            "placeholder": {
+                "id": "placeholder",
+                "label": "Placeholder Input Search",
+                "type": "text",
+                "value": "Cari artikel disini...",
+                "placeholder": "Masukkan text placeholder...",
+                "name": "placeholder",
+                "validation": {
+                    "rules": [
+                        "string",
+                        "max:50"
+                    ],
+                    "errors": {
+                        "placeholder.string": "Placeholder harus berupa string yang valid",
+                        "placeholder.max": "Placeholder maximal 50 karakter"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "id": "list-kategori",
+        "order": 1,
+        "title": "List Kategori",
+        "view": "list-kategori",
+        "collection": "\\App\\Models\\KategoriBlog",
+        "action": {
+            "label": "Tambah Kategori",
+            "type": "modal-with-list",
+            "link": "admin\/blogs\/kategori"
+        },
+        "forms": {
+            "kategori": {
+                "id": "kategori",
+                "placeholder": "Kategori",
+                "label": "Pilih Kategori",
+                "type": "list-selection",
+                "option": {
+                    "value": "slug",
+                    "text": "name"
+                },
+                "value": [
+                    {
+                        "id": "infrastruktur",
+                        "text": "Infrastruktur"
+                    },
+                    {
+                        "id": "development",
+                        "text": "Development"
+                    },
+                    {
+                        "id": "teknologi",
+                        "text": "Teknologi"
+                    }
+                ],
+                "params": {
+                    "an": 1
+                },
+                "name": "kategori",
+                "validation": {
+                    "rules": [
+                        "required",
+                        "array"
+                    ],
+                    "errors": {
+                        "kategori.required": "Kategori harus diisi",
+                        "kategori.array": "Kategori harus berupa array"
+                    }
+                },
+                "model": "\\App\\Models\\KategoriBlog"
+            }
+        }
+    },
+    {
+        "id": "list-latest-post",
+        "order": 1,
+        "title": "List Postingan Terbaru",
+        "view": "list-latest-post",
+        "collection": "\\App\\Models\\Blog",
+        "action": {
+            "label": "",
+            "type": "modal",
+            "link": ""
+        },
+        "forms": {
+            "title": {
+                "id": "title",
+                "label": "Title",
+                "type": "text",
+                "value": "Postingan Terbaru",
+                "name": "title",
+                "validation": {
+                    "rules": [
+                        "required",
+                        "string",
+                        "max:150"
+                    ],
+                    "errors": {
+                        "title.required": "Title harus diisi",
+                        "title.string": "Title harus berupa string yang valid",
+                        "title.max": "Title tidak boleh lebih dari 150 karakter"
+                    }
+                }
+            },
+            "max_show": {
+                "id": "max_show",
+                "label": "Max Show",
+                "type": "number",
+                "value": "6",
+                "placeholder": "Max Show",
+                "name": "max_show",
+                "max": "500",
+                "min": "1",
+                "validation": {
+                    "rules": [
+                        "required",
+                        "numeric",
+                        "min:1"
+                    ],
+                    "errors": {
+                        "max_show.required": "Max Show harus diisi",
+                        "max_show.numeric": "Max Show harus berupa angka",
+                        "max_show.min": "Max Show minimal 1"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "id": "detail-post",
+        "order": 1,
+        "title": "Detail Postingan",
+        "view": "detail-post",
+        "collection": null,
+        "action": null,
+        "forms": {
+            "max_show": {
+                "id": "max_show",
+                "label": "Max Show",
+                "type": "number",
+                "value": "6",
+                "placeholder": "Max Show",
+                "name": "max_show",
+                "max": "500",
+                "min": "1",
+                "validation": {
+                    "rules": [
+                        "required",
+                        "numeric",
+                        "min:1"
+                    ],
+                    "errors": {
+                        "max_show.required": "Max Show harus diisi",
+                        "max_show.numeric": "Max Show harus berupa angka",
+                        "max_show.min": "Max Show minimal 1"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "id": "detail-layanan",
+        "order": 1,
+        "title": "Detail Layanan",
+        "view": "detail-layanan",
+        "collection": null,
+        "action": null,
+        "forms": null
+    },
+    {
+        "id": "detail-gallery",
+        "order": 1,
+        "title": "Detail Layanan",
+        "view": "detail-gallery",
+        "collection": null,
+        "action": null,
+        "forms": null
+    },
+    {
+        "id": "list-sidebar-layanan",
+        "order": 1,
+        "title": "List Sidebar Layanan",
+        "view": "list-sidebar-layanan",
+        "collection": "\\App\\Models\\Layanan",
+        "action": {
+            "label": "Tambah Layanan",
+            "type": "modal",
+            "link": "admin\/layanan"
+        },
+        "forms": null
+    },
+    {
+        "id": "contact-us-sidebar",
+        "order": 1,
+        "title": "Contact Us Sidebar",
+        "view": "contact-us-sidebar",
+        "collection": "\\App\\Models\\Layanan",
+        "action": {
+            "label": "Tambah Layanan",
+            "type": "modal",
+            "link": ""
+        },
+        "forms": {
+            "action_text_color": {
+                "id": "action_text_color",
+                "label": "Text Color",
+                "type": "color",
+                "value": "#fcfcfc",
+                "placeholder": "Masukkan text color...",
+                "name": "action_text_color",
+                "validation": {
+                    "rules": [
+                        "required",
+                        "string"
+                    ],
+                    "errors": {
+                        "action_text_color.required": "Text color harus diisi",
+                        "action_text_color.string": "Text color harus berupa string"
+                    }
+                }
+            },
+            "background_color": {
+                "id": "background_color",
+                "label": "Background Color",
+                "type": "color",
+                "value": "#ff756b",
+                "placeholder": "Masukkan background color...",
+                "name": "background_color",
+                "validation": {
+                    "rules": [
+                        "required",
+                        "string"
+                    ],
+                    "errors": {
+                        "background_color.required": "Background color harus diisi",
+                        "background_color.string": "Background color harus berupa string"
+                    }
+                }
+            },
+            "action_text": {
+                "id": "action_text",
+                "label": "Action Text",
+                "type": "textarea",
+                "value": "Hubungi Kami Untuk Info Lebih Lanjut\r\n+6281341439895 Testing",
+                "placeholder": "Masukkan text action...",
+                "name": "action_text",
+                "validation": {
+                    "rules": [
+                        "required",
+                        "string"
+                    ],
+                    "errors": {
+                        "action_text.required": "Action Text harus diisi",
+                        "action_text.string": "Action Text harus berupa string"
+                    }
+                }
+            },
+            "link_redirect": {
+                "id": "link_redirect",
+                "label": "Link Redirect",
+                "type": "url",
+                "value": "https:\/\/wa.me\/6281341439895",
+                "placeholder": "Masukkan link redirect...",
+                "name": "link_redirect",
+                "validation": {
+                    "rules": [
+                        "required",
+                        "string",
+                        "url"
+                    ],
+                    "errors": {
+                        "link_redirect.required": "Link Redirect harus diisi",
+                        "link_redirect.string": "Link Redirect harus berupa string",
+                        "link_redirect.url": "Link Redirect harus berupa URL"
+                    }
+                }
+            }
+        }
+    }
+]

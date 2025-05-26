@@ -1,0 +1,36 @@
+<?php
+
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Response;
+use App\Http\Controllers\Admin\Auth\AuthenticateController;
+use App\Http\Controllers\Frontend\DevelController;
+use App\Http\Controllers\Frontend\Pages\Home\HomeController;
+use App\Http\Controllers\Frontend\Pages\Blogs\BlogController;
+use App\Http\Controllers\Frontend\Pages\GalleryController;
+use App\Http\Controllers\Frontend\Pages\KontakController;
+use App\Http\Controllers\Frontend\Pages\TentangKamiController;
+use App\Http\Controllers\Frontend\Pages\Layanan\LayananController;
+
+Route::get('/sitemap', function () {
+    $path = public_path('sitemap.xml');
+
+    if (!File::exists($path)) {
+        abort(404);
+    }
+
+    return Response::file($path, ['Content-Type' => 'application/xml']);
+});
+
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/layanan', [LayananController::class, 'index'])->name('layanan');
+Route::get('/layanan/{slug}', [LayananController::class, 'show'])->name('layanan.show');
+Route::get('/tentang-kami', [TentangKamiController::class, 'index'])->name('tentang_kami');
+Route::get('/galeri', [GalleryController::class, 'index'])->name('galeri');
+Route::get('/galeri/{show}', [GalleryController::class, 'show'])->name('galeri.show');
+Route::get('/blog', [BlogController::class, 'index'])->name('blog');
+Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
+Route::get('/kontak-kami', [KontakController::class, 'index'])->name('kontak');
+Route::post('/kontak-kami/send', [KontakController::class, 'sendingEmail'])->name('kontak.send_email');
+Route::post('/kontak-kami/inquiry', [KontakController::class, 'sendingInquiry'])->name('kontak.send_inquiry');
+// Route::get('/devel', [DevelController::class, 'devel'])->name('devel');

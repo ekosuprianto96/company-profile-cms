@@ -1,0 +1,41 @@
+<?php
+
+namespace {{ namespace }};
+
+use App\Models\{{ model }};
+
+class {{ class }} extends BaseRepositori
+{
+    protected $fillable = [];
+
+    public function __construct(
+        public {{ model }} $model
+    ) {
+        parent::__construct($model);
+    }
+
+    public function all()
+    {
+        //
+    }
+
+    public function find($id)
+    {
+        //
+    }
+
+    public function create(array $param = [])
+    {
+        //
+    }
+
+    public function update($id, array $param = [])
+    {
+        //
+    }
+
+    public function delete($id)
+    {
+        //
+    }
+}
