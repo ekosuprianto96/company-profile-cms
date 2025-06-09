@@ -18,6 +18,11 @@ class BlogService
         return $this->blog->all();
     }
 
+    public function getCount()
+    {
+        return $this->blog->count();
+    }
+
     public function findBlog($id)
     {
         return $this->blog->find($id);

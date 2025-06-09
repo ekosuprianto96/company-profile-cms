@@ -4,6 +4,9 @@
 
     $icon = public_path('assets/images/informasi/' . ($informasi->value->favicon->file ?? ''));
     $existsFileIcon = !empty($informasi->value->favicon->file) && file_exists($icon);
+
+    $logoFooter = public_path('assets/images/informasi/' . ($informasi->value->app_logo_footer->file ?? ''));
+    $existsFileFooter = !empty($informasi->value->app_logo_footer->file) && file_exists($logoFooter);
 @endphp
 <style>
     .ck-editor__editable {min-height: 250px;}
@@ -47,27 +50,46 @@
             </div>
         </div>
     </div>
-    <div class="form-group">
-        <x-admin.forms.image-upload 
-            :edit="true"
-            :image="$existsFileIcon ? image_url('informasi', $informasi->value->favicon->file) : null"
-            :label="'Favicon Website'"
-            :notice="'Rekomendasi: 512px x 512px'"
-            :id_input="'input_edit_image_upload_favicon'"
-        />
-        <input type="hidden" name="file_name_input_edit_image_upload_favicon" id="file_name_input_edit_image_upload_favicon">
-        <input type="hidden" name="path_file_input_edit_image_upload_favicon" id="path_file_input_edit_image_upload_favicon" value="{{ $existsFileIcon ? 'assets/images/informasi/'. $informasi->value->favicon->file : '' }}">
-    </div>
-    <div class="form-group">
-        <x-admin.forms.image-upload 
-            :edit="true"
-            :image="$existsFile ? image_url('informasi', $informasi->value->app_logo->file) : null"
-            :label="'Logo Aplikasi'"
-            :notice="'Rekomendasi: 512px x 512px'"
-            :id_input="'input_edit_image_upload'"
-        />
-        <input type="hidden" name="file_name_input_edit_image_upload" id="file_name_input_edit_image_upload">
-        <input type="hidden" name="path_file_input_edit_image_upload" id="path_file_input_edit_image_upload" value="{{ $existsFile ? 'assets/images/informasi/'. $informasi->value->app_logo->file : '' }}">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <x-admin.forms.image-upload 
+                    :edit="true"
+                    :image="$existsFileIcon ? image_url('informasi', $informasi->value->favicon->file) : null"
+                    :label="'Favicon Website'"
+                    :notice="'Rekomendasi: 512px x 512px'"
+                    :id_input="'input_edit_image_upload_favicon'"
+                />
+                <input type="hidden" name="file_name_input_edit_image_upload_favicon" id="file_name_input_edit_image_upload_favicon">
+                <input type="hidden" name="path_file_input_edit_image_upload_favicon" id="path_file_input_edit_image_upload_favicon" value="{{ $existsFileIcon ? 'assets/images/informasi/'. $informasi->value->favicon->file : '' }}">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <x-admin.forms.image-upload 
+                    :edit="true"
+                    :image="$existsFile ? image_url('informasi', $informasi->value->app_logo->file) : null"
+                    :label="'Logo Aplikasi'"
+                    :notice="'Rekomendasi: 512px x 512px'"
+                    :id_input="'input_edit_image_upload'"
+                />
+                <input type="hidden" name="file_name_input_edit_image_upload" id="file_name_input_edit_image_upload">
+                <input type="hidden" name="path_file_input_edit_image_upload" id="path_file_input_edit_image_upload" value="{{ $existsFile ? 'assets/images/informasi/'. $informasi->value->app_logo->file : '' }}">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <x-admin.forms.image-upload 
+                    :edit="true"
+                    :image="$existsFileFooter ? image_url('informasi', $informasi->value->app_logo_footer->file) : null"
+                    :label="'Logo Footer'"
+                    :notice="'Rekomendasi: 512px x 512px'"
+                    :id_input="'input_edit_image_upload_footer'"
+                />
+                <input type="hidden" name="file_name_input_edit_image_upload_footer" id="file_name_input_edit_image_upload_footer">
+                <input type="hidden" name="path_file_input_edit_image_upload_footer" id="path_file_input_edit_image_upload_footer" value="{{ $existsFileFooter ? 'assets/images/informasi/'. $informasi->value->app_logo_footer->file : '' }}">
+            </div>
+        </div>
     </div>
     <div class="d-flex justify-content-end">
         <button type="button" id="buttonUpdate" class="btn btn-primary me-2">Submit</button>
@@ -97,6 +119,7 @@
                 text_menu_header: $('[name=text_menu_header]').val(),
                 text_hover_menu_header: $('[name=text_hover_menu_header]').val(),
                 app_logo: $('[name=file_name_input_edit_image_upload]').val(),
+                app_logo_footer: $('[name=file_name_input_edit_image_upload_footer]').val(),
                 favicon: $('[name=file_name_input_edit_image_upload_favicon]').val(),
                 _token: '{{ csrf_token() }}'
             }).done(function(response) {

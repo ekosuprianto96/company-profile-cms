@@ -2,13 +2,25 @@
     'collection' => [],
     'forms' => null,
     'height_section' => '120px',
-    'kategori_slug' => null
+    'kategori_slug' => null,
+    'search' => null
 ])
 
 @if(!empty($kategori_slug))
     @php
         $collection = $collection->whereHas('kategori', function($query) use($kategori_slug) {
             $query->where('slug', $kategori_slug);
+        });
+    @endphp
+@endif
+
+@if(!empty($search))
+    @php
+        $collection = $collection
+        ->where('title', 'like', '%' . $search . '%')
+        ->orWhere('slug', 'like', '%' . $search . '%')
+        ->orWhereHas('kategori', function($query) use($search) {
+            $query->where('kategori_blog.name', 'like', '%' . $search . '%');
         });
     @endphp
 @endif
@@ -34,13 +46,14 @@
                     @foreach($collection->where('an', 1)->latest()->limit($forms->max_show['value'] ?? 500)->get() as $key => $value)
                         <article itemscope itemtype="https://schema.org/Article">
                             <div class="w-full text-slate-600 h-[420px] border bg-white p-3 overflow-hidden rounded-lg">
-                                <div class="h-[60%] w-full bg-slate-100 rounded-lg overflow-hidden">
+                                <div class="h-[60%] relative w-full bg-slate-100 rounded-lg overflow-hidden">
                                     <img 
                                         class="object-cover w-full h-full" 
                                         src="{{ image_url('blogs', $value->thumbnail) }}" 
                                         alt="{{ $value->title }}" 
                                         itemprop="image"
                                     >
+                                    <span class="absolute top-2 left-2 bg-blue-500 text-white text-sm px-3 py-1 rounded-lg">{{ $value->kategori->name ?? '-' }}</span>
                                 </div>
                                 <div class="h-[40%] w-full">
                                     <div class="flex my-2 text-sm justify-between items-center">

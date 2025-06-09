@@ -24,6 +24,10 @@ class BlogController extends Controller
             $data['kategori_slug'] = $request->kategori;
         }
 
+        if (!empty($request->search ?? '')) {
+            $data['search'] = $request->search;
+        }
+
         $data['page'] = PageFacade::page('blog');
         return $this->view('blog', $data);
     }

@@ -479,5 +479,15 @@ return [
         473 => 'ri-delete-bin-line',
         474 => 'ri-flow-chart',
         475 => 'ri-mail-send-line',
+        476 => 'ri-youtube-line',
+        477 => 'ri-twitter-x-line',
+        478 => 'ri-facebook-fill',
+        479 => 'ri-facebook-circle-fill',
+        480 => 'ri-twitter-fill',
+        481 => 'ri-youtube-fill',
+        482 => 'ri-instagram-fill',
+        483 => 'ri-linkedin-fill',
+        484 => 'ri-whatsapp-fill',
+        485 => 'ri-linkedin-box-fill',
     ]
 ];

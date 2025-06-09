@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Validation\Rules\Email;
 use Illuminate\Support\ServiceProvider;
 use App\Repositories\InformasiRepository;
+use App\Repositories\SocialMediaRepository;
+use App\Services\SocialMediaService;
 use Illuminate\Support\Facades\Validator;
 use Mockery\Generator\StringManipulation\Pass\Pass;
 
@@ -48,9 +50,23 @@ class AppServiceProvider extends ServiceProvider
                 ->get();
         });
 
+        $footer = cache()->rememberForever('footer_settings', function () {
+            return (new InformasiService(new InformasiRepository))
+                ->findByKey('footer')
+                ->decode(true, false)
+                ->get();
+        });
+
         $settingsEmail = cache()->rememberForever('email_config', function () {
             return (new EmailSettingService(new EmailSettingRepository))
                 ->getAllSettings();
+        });
+
+        $socialMedia = cache()->rememberForever('social_media', function () {
+            return (new SocialMediaService(new SocialMediaRepository))
+                ->getAll(function ($collection) {
+                    return $collection->where('an', 1);
+                });
         });
 
         config([
@@ -60,6 +76,8 @@ class AppServiceProvider extends ServiceProvider
         ]);
 
         config()->set('settings', $settings);
+        config()->set('social_media', $socialMedia);
+        config()->set('footer_settings', $footer);
 
         // set config mail
         setConfigMail(

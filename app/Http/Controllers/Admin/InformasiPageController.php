@@ -41,6 +41,7 @@ class InformasiPageController extends Controller
                 ->update();
 
             cache()->forget('app_settings');
+            cache()->forget('footer_settings');
 
             return response()->json(['message' => 'Berhasil mengubah informasi'], 200);
         } catch (\Exception $error) {

@@ -36,7 +36,7 @@ class EmailMessageSendingService
 
         if ($closure) $query = $closure($this->emailMessageSending);
 
-        return $query->get();
+        return $query->orderBy('created_at', 'desc')->get();
     }
 
     public function deleteMessage(int $id)

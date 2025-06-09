@@ -38,12 +38,16 @@
             <div class="grid grid-cols-12 gap-4">
                 <div class="lg:col-span-8 col-span-12 order-2 lg:order-1">
                     @foreach(($sections->where('id', 'list-all-post') ?? []) as $key => $value)
-                        {!! $value['view']->with('height_section', '80px')->with('kategori_slug', $kategori_slug ?? null) !!}
+                        {!! $value['view']->with('height_section', '80px')
+                            ->with([
+                                'kategori_slug' => $kategori_slug ?? null,
+                                'search' => $search ?? null
+                        ]) !!}
                     @endforeach
                 </div>
                 <div class="lg:col-span-4 col-span-12 order-1 lg:order-2">
                     @foreach(($sections->whereNotIn('id', ['header-title', 'list-all-post']) ?? []) as $key => $value)
-                        {!! $value['view']->with('height_section', '80px') !!}
+                        {!! $value['view']->with('height_section', '80px')->with('value', $search ?? '') !!}
                     @endforeach
                 </div>
             </div>

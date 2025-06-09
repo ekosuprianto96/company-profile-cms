@@ -1,5 +1,6 @@
 <?php
 
+use App\Charts\AnalitycVisitorChart;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\RobotsController;
 use App\Http\Controllers\Admin\CKEditorController;
@@ -27,6 +28,10 @@ use App\Http\Controllers\Admin\Auth\AuthenticateController;
 use App\Http\Controllers\Admin\Editor\EditorPageController;
 use App\Http\Controllers\Admin\Email\ContactEmailController;
 use App\Http\Controllers\Admin\Email\EmailManagementController;
+use App\Http\Controllers\Admin\SocialMedia\SocialMediaController;
+use App\Models\User;
+use App\Services\BlogService;
+use App\Services\EmailMessageService;
 
 Route::middleware(['guest'])->name('auth.')->group(function () {
     Route::get('/login', [AuthenticateController::class, 'login'])->name('login');
@@ -38,8 +43,23 @@ Route::middleware(['auth'])->group(function () {
         return redirect()->route('admin.dashboard');
     });
 
-    Route::get('dashboard', function () {
-        return view('admin.pages.dashboard.index');
+    Route::get('dashboard', function (
+        AnalitycVisitorChart $chart,
+        BlogService $blog,
+        EmailMessageService $message
+    ) {
+        $countPost = $blog->getCount();
+        $userCount = User::count();
+        $unreadMessages = $message->getAllMessage(function ($query) {
+            return $query->where('is_read', 0);
+        });
+
+        return view('admin.pages.dashboard.index', [
+            'chart' => $chart->build(),
+            'countPost' => $countPost,
+            'userCount' => $userCount,
+            'unreadMessages' => $unreadMessages
+        ]);
     })->name('dashboard');
 
     Route::prefix('modules/')->name('modules.')->group(function () {
@@ -237,6 +257,17 @@ Route::middleware(['auth'])->group(function () {
         Route::post('update/{id}', [PackageController::class, 'update'])->name('update');
         Route::post('destroy', [PackageController::class, 'destroy'])->name('destroy');
         Route::get('edit/{id}', [PackageController::class, 'edit'])->name('edit');
+    });
+
+    // social media
+    Route::prefix('social-media/')->name('social_media.')->group(function () {
+        Route::get('', [SocialMediaController::class, 'index'])->name('index');
+        Route::get('data', [SocialMediaController::class, 'data'])->name('data');
+        Route::get('create', [SocialMediaController::class, 'create'])->name('create');
+        Route::post('store', [SocialMediaController::class, 'store'])->name('store');
+        Route::post('update/{id}', [SocialMediaController::class, 'update'])->name('update');
+        Route::post('destroy', [SocialMediaController::class, 'destroy'])->name('destroy');
+        Route::get('edit/{id}', [SocialMediaController::class, 'edit'])->name('edit');
     });
 
     Route::post('logout', [AuthenticateController::class, 'logout'])->name('auth.logout');

@@ -47,8 +47,9 @@ class EmailMessageService
 
     public function getAllMessage(?callable $callback = null)
     {
-        if ($callback) $this->emailMessage = $callback($this->emailMessage);
-        return $this->emailMessage->all();
+        $model = $this->emailMessage->with(['inBoundmail']);
+        if ($callback) $model = $callback($model);
+        return $model->latest()->get();
     }
 
     public function setIsRead(int $id, int $status = 0)
