@@ -49,7 +49,7 @@
                             </div>
                             <div class="col-md-6 text-end">
                                 <span class="d-block mb-3" style="font-size: 15px">Total Pengunjung</span>
-                                <span class="d-block" style="font-size: 25px;font-weight: bold">300</span>
+                                <span class="d-block" style="font-size: 25px;font-weight: bold">{{ $visitorCount }}</span>
                             </div>
                         </div>
                     </div>
@@ -110,6 +110,31 @@
         </div>
         </div>
     </div>
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h5>Aktifitas Pengunjung</h5>
+                <hr>
+                <div class="table-responsive">
+                    <table class="table table-striped" id="tableVisitor">
+                        <thead>
+                            <tr>
+                                <th>IP</th>
+                                <th>Tanggal</th>
+                                <th>Waktu</th>
+                                <th>URL</th>
+                                <th>Halaman</th>
+                                <th>Browser</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script src="{{ $chart->cdn() }}"></script>
@@ -122,6 +147,25 @@
 
     $(function() {
         'use strict';
+
+        $table = $('#tableVisitor').DataTable({
+            processing: true,
+            pageLength: 50,
+            serverSide: true,
+            paginate: true,
+            ajax: {
+                method: 'get',
+                url: '{{ route("admin.visitor.data") }}'
+            },
+            columns: [
+                {data: 'ip_address', name: 'ip_address', search: true},
+                {data: 'tanggal', name: 'tanggal', search: true},
+                {data: 'waktu', name: 'waktu', search: true},
+                {data: 'url', name: 'url'},
+                {data: 'page', name: 'page', search: true},
+                {data: 'user_agent', name: 'user_agent', search: true}
+            ]
+        });
     })
 </script>
 @endsection

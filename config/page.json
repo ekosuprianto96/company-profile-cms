@@ -564,6 +564,26 @@
                     "link": "admin\/layanan"
                 },
                 "forms": {
+                    "background": {
+                        "id": "background",
+                        "label": "Background",
+                        "type": "image",
+                        "value": "250613-b00f228e-7736-4af8-acfe-68b314d31c4f.jpg",
+                        "name": "background",
+                        "path": "forms",
+                        "validation": {
+                            "rules": [
+                                "image",
+                                "max:2000",
+                                "mimes:jpg,png,jpeg,svg,webp"
+                            ],
+                            "errors": {
+                                "background.image": "Background harus berupa file gambar",
+                                "background.mimes": "Format gambar yang diperbolehkan: JPG, PNG, JPEG, SVG, atau WEBP.",
+                                "background.max": "Background maximal 2MB"
+                            }
+                        }
+                    },
                     "title": {
                         "id": "title",
                         "label": "Title",
@@ -718,6 +738,26 @@
                     "link": ""
                 },
                 "forms": {
+                    "background": {
+                        "id": "background",
+                        "label": "Background",
+                        "type": "image",
+                        "value": "250613-ec966940-eae3-4e44-ae59-b0c54fb75c29.jpg",
+                        "name": "background",
+                        "path": "forms",
+                        "validation": {
+                            "rules": [
+                                "image",
+                                "max:2000",
+                                "mimes:jpg,png,jpeg,svg,webp"
+                            ],
+                            "errors": {
+                                "background.image": "Background harus berupa file gambar",
+                                "background.mimes": "Format gambar yang diperbolehkan: JPG, PNG, JPEG, SVG, atau WEBP.",
+                                "background.max": "Background maximal 2MB"
+                            }
+                        }
+                    },
                     "title": {
                         "id": "title",
                         "label": "Title",
@@ -792,6 +832,26 @@
                     "link": ""
                 },
                 "forms": {
+                    "background": {
+                        "id": "background",
+                        "label": "Background",
+                        "type": "image",
+                        "value": "250613-4ca00ce6-c13b-4f4e-b3cd-06cb08778fce.jpg",
+                        "name": "background",
+                        "path": "forms",
+                        "validation": {
+                            "rules": [
+                                "image",
+                                "max:2000",
+                                "mimes:jpg,png,jpeg,svg,webp"
+                            ],
+                            "errors": {
+                                "background.image": "Background harus berupa file gambar",
+                                "background.mimes": "Format gambar yang diperbolehkan: JPG, PNG, JPEG, SVG, atau WEBP.",
+                                "background.max": "Background maximal 2MB"
+                            }
+                        }
+                    },
                     "title": {
                         "id": "title",
                         "label": "Title",
@@ -819,7 +879,7 @@
                             "text": "Kosongkan jika tidak perlu"
                         },
                         "type": "textarea",
-                        "value": "Lorem, ipsum dolor sit amet consectetur adipisicing elit. Facere est quod corporis repellendus magni veritatis laboriosam nisi soluta nam molestias.",
+                        "value": null,
                         "name": "sub_title"
                     }
                 }
@@ -1086,6 +1146,26 @@
                     "link": ""
                 },
                 "forms": {
+                    "background": {
+                        "id": "background",
+                        "label": "Background",
+                        "type": "image",
+                        "value": "250613-7a126509-e93a-472e-8935-519aede2be35.jpg",
+                        "name": "background",
+                        "path": "forms",
+                        "validation": {
+                            "rules": [
+                                "image",
+                                "max:2000",
+                                "mimes:jpg,png,jpeg,svg,webp"
+                            ],
+                            "errors": {
+                                "background.image": "Background harus berupa file gambar",
+                                "background.mimes": "Format gambar yang diperbolehkan: JPG, PNG, JPEG, SVG, atau WEBP.",
+                                "background.max": "Background maximal 2MB"
+                            }
+                        }
+                    },
                     "title": {
                         "id": "title",
                         "label": "Title",
@@ -1113,7 +1193,7 @@
                             "text": "Kosongkan jika tidak perlu"
                         },
                         "type": "textarea",
-                        "value": "Lorem, ipsum dolor sit amet consectetur adipisicing elit. Facere est quod corporis repellendus magni veritatis laboriosam nisi soluta nam molestias.",
+                        "value": null,
                         "name": "sub_title"
                     }
                 }
@@ -1344,6 +1424,26 @@
                     "link": ""
                 },
                 "forms": {
+                    "background": {
+                        "id": "background",
+                        "label": "Background",
+                        "type": "image",
+                        "value": "250613-59276d69-9384-45f9-a2cb-1b7a5a344afb.jpg",
+                        "name": "background",
+                        "path": "forms",
+                        "validation": {
+                            "rules": [
+                                "image",
+                                "max:2000",
+                                "mimes:jpg,png,jpeg,svg,webp"
+                            ],
+                            "errors": {
+                                "background.image": "Background harus berupa file gambar",
+                                "background.mimes": "Format gambar yang diperbolehkan: JPG, PNG, JPEG, SVG, atau WEBP.",
+                                "background.max": "Background maximal 2MB"
+                            }
+                        }
+                    },
                     "title": {
                         "id": "title",
                         "label": "Title",

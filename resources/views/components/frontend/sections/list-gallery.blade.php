@@ -56,6 +56,9 @@
                             class="w-full h-full object-cover"
                             src="{{ asset('assets/images/galleries/'.$gallery->image) }}" 
                             alt="{{ $gallery->title }}"
+                            decoding="async"
+                            loading="lazy"
+                            fetchpriority="high"
                         >
                         <div class="absolute w-full bottom-4 px-4">
                             <h4 class="text-white font-semibold lg:text-md text-sm">{{ $gallery->title }}</h4>

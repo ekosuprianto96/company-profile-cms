@@ -41,13 +41,16 @@
     @endif
     <x-slot name="content">
         <div class="w-full lg:mt-8">
-            <div class="grid lg:grid-cols-2 grid-cols-1 aut-rows-[420px] lg:gap-4 gap-3 grid-flow-dense">
+            <div class="grid lg:grid-cols-2 grid-cols-1 aut-rows-[300px] lg:gap-4 gap-3 grid-flow-dense">
                 @if($collection->count() > 0)
                     @foreach($collection->where('an', 1)->latest()->limit($forms->max_show['value'] ?? 500)->get() as $key => $value)
                         <article itemscope itemtype="https://schema.org/Article">
-                            <div class="w-full text-slate-600 h-[420px] border bg-white p-3 overflow-hidden rounded-lg">
+                            <div class="w-full text-slate-600 h-[300px] border bg-white p-3 overflow-hidden rounded-lg">
                                 <div class="h-[60%] relative w-full bg-slate-100 rounded-lg overflow-hidden">
                                     <img 
+                                        decoding="async"
+                                        loading="lazy"
+                                        fetchpriority="high"
                                         class="object-cover w-full h-full" 
                                         src="{{ image_url('blogs', $value->thumbnail) }}" 
                                         alt="{{ $value->title }}" 
@@ -76,20 +79,6 @@
                                             {{ cutTextByWords($value->title ?? '-', 7) }}
                                         </h2>
                                     </a>
-                                    <div class="flex text-sm justify-end items-center gap-2">
-                                        <a href="#" class="flex gap-2 items-center">
-                                            <span>400</span>
-                                            <i class="ri-thumb-up-line"></i>
-                                        </a>
-                                        <a href="#" class="flex gap-2 items-center">
-                                            <span>400</span>
-                                            <i class="ri-chat-3-line"></i>
-                                        </a>
-                                        <a href="#" class="flex gap-2 items-center">
-                                            <span>400</span>
-                                            <i class="ri-eye-line"></i>
-                                        </a>
-                                    </div>
                                 </div>
                             </div>
                         </article>

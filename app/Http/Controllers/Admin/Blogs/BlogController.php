@@ -110,6 +110,7 @@ class BlogController extends Controller
                 ->addColumn('slug', function ($list) {
                     return '<span title="' . $list->slug . '" class="d-block text-truncate" style="max-width: 200px;">' . $list->slug . '</span>';
                 })
+                ->addColumn('total_view', fn($item) => $item->views ?? 0)
                 ->addColumn('created_by', function ($list) {
                     return $list->createdBy->account->nama_lengkap ?? '-';
                 })

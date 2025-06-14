@@ -38,6 +38,10 @@ class BlogController extends Controller
 
             $blog = $this->blogService->findBySlug($slug);
 
+            if ($blog) {
+                $this->blogService->incerementViews($slug);
+            }
+
             $data['page'] = PageFacade::createPage([
                 'id' => 'single-post',
                 'meta' => [

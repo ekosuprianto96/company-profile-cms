@@ -121,4 +121,17 @@ class BlogService
         $this->removeIfExistsImage($blog);
         return $this->blog->delete($slug);
     }
+
+    public function incerementViews($slug): void
+    {
+        $request = request();
+        $cookieName = 'blog_views_' . str_replace('.', '', $request->ip()) . '_' . str_replace('-', '_', $slug);
+
+        if (!$request->hasCookie($cookieName) && !auth()->check()) {
+            // Cookie hanya bertahan untuk sesi browser saja
+            $this->blog->incerementViews($slug);
+            // Cookie hanya bertahan untuk sesi browser saja
+            cookie()->queue(cookie()->make($cookieName, true, 0)); // 0 = expire saat browser ditutup
+        }
+    }
 }

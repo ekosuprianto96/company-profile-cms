@@ -29,7 +29,7 @@
                 </div>
             </div>
             <div class="w-full col-span-12">
-                <div class="prose w-full -mx-auto max-w-none text-slate-600 prose-a:text-blue-500 prose-headings:text-blue-500 prose-p:text-slate-600" id="post_layanan">
+                <div class="lg:prose prose-sm w-full -mx-auto max-w-none text-slate-600 prose-a:text-blue-500 prose-headings:text-blue-500 prose-p:text-slate-600" id="post_layanan">
                     {!! $collection->content ?? '-' !!}
                 </div>
             </div>

@@ -23,6 +23,7 @@
                       <th>Title</th>
                       <th>Kategori</th>
                       <th>Slug</th>
+                      <th>Total View</th>
                       <th>Created By</th>
                       <th>Updated By</th>
                       <th>Status</th>
@@ -55,6 +56,7 @@
                 {data: 'title', name: 'title', search: true},
                 {data: 'kategori', name: 'kategori', search: true},
                 {data: 'slug', name: 'slug', search: true},
+                {data: 'total_view', name: 'total_view'},
                 {data: 'created_by', name: 'created_by', search: true},
                 {data: 'updated_by', name: 'updated_by', search: true},
                 {data: 'status', name: 'status', search: true},

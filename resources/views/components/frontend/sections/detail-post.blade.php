@@ -26,6 +26,12 @@
         font-size: 2em;
         color: rgb(29, 113, 223);
     }
+
+    @media screen and (max-width: 768px) {
+        #social-links ul li {
+            font-size: 1.5em;
+        }
+    }
 </style>
 
 <x-frontend.templates.m-section
@@ -45,7 +51,7 @@
                 <div class="mb-4">
                     <span class="bg-blue-500 text-white text-sm px-3 py-1 rounded-lg">{{ $collection->kategori->name ?? '-' }}</span>
                 </div>
-                <div class="prose w-full -mx-auto max-w-none text-slate-600 prose-a:text-blue-500 prose-headings:text-blue-500 prose-p:text-slate-600" id="post_blog">
+                <div class="lg:prose prose-sm w-full -mx-auto max-w-none text-slate-600 prose-a:text-blue-500 prose-headings:text-blue-500 prose-p:text-slate-600" id="post_blog">
                     {!! $collection->content ?? '-' !!}
                 </div>
             </div>

@@ -22,15 +22,15 @@ Route::get('/sitemap', function () {
     return Response::file($path, ['Content-Type' => 'application/xml']);
 });
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/layanan', [LayananController::class, 'index'])->name('layanan');
-Route::get('/layanan/{slug}', [LayananController::class, 'show'])->name('layanan.show');
-Route::get('/tentang-kami', [TentangKamiController::class, 'index'])->name('tentang_kami');
-Route::get('/galeri', [GalleryController::class, 'index'])->name('galeri');
-Route::get('/galeri/{show}', [GalleryController::class, 'show'])->name('galeri.show');
-Route::get('/blog', [BlogController::class, 'index'])->name('blog');
-Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
-Route::get('/kontak-kami', [KontakController::class, 'index'])->name('kontak');
-Route::post('/kontak-kami/send', [KontakController::class, 'sendingEmail'])->name('kontak.send_email');
-Route::post('/kontak-kami/inquiry', [KontakController::class, 'sendingInquiry'])->name('kontak.send_inquiry');
-// Route::get('/devel', [DevelController::class, 'devel'])->name('devel');
+Route::get('/', [HomeController::class, 'index'])->middleware(['track-visitor'])->name('home');
+Route::get('/layanan', [LayananController::class, 'index'])->middleware(['track-visitor'])->name('layanan');
+Route::get('/layanan/{slug}', [LayananController::class, 'show'])->middleware(['track-visitor'])->name('layanan.show');
+Route::get('/tentang-kami', [TentangKamiController::class, 'index'])->middleware(['track-visitor'])->name('tentang_kami');
+Route::get('/galeri', [GalleryController::class, 'index'])->middleware(['track-visitor'])->name('galeri');
+Route::get('/galeri/{show}', [GalleryController::class, 'show'])->middleware(['track-visitor'])->name('galeri.show');
+Route::get('/blog', [BlogController::class, 'index'])->middleware(['track-visitor'])->name('blog');
+Route::get('/blog/{slug}', [BlogController::class, 'show'])->middleware(['track-visitor'])->name('blog.show');
+Route::get('/kontak-kami', [KontakController::class, 'index'])->middleware(['track-visitor'])->name('kontak');
+Route::post('/kontak-kami/send', [KontakController::class, 'sendingEmail'])->middleware(['track-visitor'])->name('kontak.send_email');
+Route::post('/kontak-kami/inquiry', [KontakController::class, 'sendingInquiry'])->middleware(['track-visitor'])->name('kontak.send_inquiry');
+// Route::get('/devel', [DevelController::class, 'devel'])->middleware(['track-visitor'])->name('devel');

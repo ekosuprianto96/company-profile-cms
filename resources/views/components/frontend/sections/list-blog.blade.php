@@ -26,12 +26,15 @@
     </x-slot>
     <x-slot name="content">
         <div class="w-full lg:mt-8 mt-4">
-            <div class="grid grid-cols-12 gap-6 auto-rows-[420px] grid-flow-dense">
+            <div class="grid grid-cols-12 gap-6 auto-rows-[300px] grid-flow-dense">
                 @foreach($sorted as $key => $value)
                     <article class="lg:col-span-4 col-span-12" itemscope itemtype="https://schema.org/Article">
-                        <div class="w-full text-slate-600 h-[420px] border bg-white p-3 overflow-hidden rounded-lg">
+                        <div class="w-full text-slate-600 h-[300px] border bg-white p-3 overflow-hidden rounded-lg">
                             <div class="h-[60%] w-full bg-slate-100 rounded-lg overflow-hidden">
                                 <img 
+                                    decoding="async"
+                                    loading="lazy"
+                                    fetchpriority="high"
                                     class="object-cover w-full h-full" 
                                     src="{{ image_url('blogs', $value->thumbnail) }}" 
                                     alt="{{ $value->title }}" 
@@ -59,20 +62,6 @@
                                         {{ cutTextByWords($value->title ?? '-', 7) }}
                                     </h2>
                                 </a>
-                                <div class="flex text-sm justify-end items-center gap-2">
-                                    <a href="#" class="flex gap-2 items-center">
-                                        <span>400</span>
-                                        <i class="ri-thumb-up-line"></i>
-                                    </a>
-                                    <a href="#" class="flex gap-2 items-center">
-                                        <span>400</span>
-                                        <i class="ri-chat-3-line"></i>
-                                    </a>
-                                    <a href="#" class="flex gap-2 items-center">
-                                        <span>400</span>
-                                        <i class="ri-eye-line"></i>
-                                    </a>
-                                </div>
                             </div>
                         </div>
                     </article>

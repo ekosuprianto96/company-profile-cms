@@ -11,11 +11,31 @@
             "link": ""
         },
         "forms": {
+            "background": {
+                "id": "background",
+                "label": "Background",
+                "type": "image",
+                "value": "250613-59276d69-9384-45f9-a2cb-1b7a5a344afb.jpg",
+                "name": "background",
+                "path": "forms",
+                "validation": {
+                    "rules": [
+                        "image",
+                        "max:2000",
+                        "mimes:jpg,png,jpeg,svg,webp"
+                    ],
+                    "errors": {
+                        "background.image": "Background harus berupa file gambar",
+                        "background.mimes": "Format gambar yang diperbolehkan: JPG, PNG, JPEG, SVG, atau WEBP.",
+                        "background.max": "Background maximal 2MB"
+                    }
+                }
+            },
             "title": {
                 "id": "title",
                 "label": "Title",
                 "type": "text",
-                "value": "Tentang Kami",
+                "value": "Galeri Kami",
                 "name": "title",
                 "validation": {
                     "rules": [

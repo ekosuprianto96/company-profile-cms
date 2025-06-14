@@ -37,7 +37,7 @@
                 </div>
             </div>
             <div class="w-full {{ ($informasi->style ?? 'horizonntal-column') == 'vertical-column' ? 'lg:col-span-7 col-span-12' : 'col-span-12'}}">
-                <div class="prose w-full -mx-auto mt-4 lg:mt-0 max-w-none text-slate-600 prose-headings:text-blue-500 prose-p:text-slate-600" id="tentang__kami">
+                <div class="lg:prose prose-sm w-full -mx-auto mt-4 lg:mt-0 max-w-none text-slate-600 prose-headings:text-blue-500 prose-p:text-slate-600" id="tentang__kami">
                     {!! $informasi->content ?? '-' !!}
                 </div>
             </div>

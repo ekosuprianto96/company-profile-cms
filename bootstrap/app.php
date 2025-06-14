@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Visitor;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Application;
@@ -7,6 +8,7 @@ use App\Http\Middleware\ModuleMiddleware;
 use App\Http\Middleware\ShareGroupModules;
 use App\Http\Middleware\PermissionMiddleware;
 use App\Http\Middleware\RedirectIfAuthenticated;
+use App\Http\Middleware\VisitorTrackingMiddleware;
 use App\Http\Middleware\RedirectIfNotAuthenticated;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -28,7 +30,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'share-modules' => ShareGroupModules::class,
-            'permission' => PermissionMiddleware::class
+            'permission' => PermissionMiddleware::class,
+            'track-visitor' => VisitorTrackingMiddleware::class
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

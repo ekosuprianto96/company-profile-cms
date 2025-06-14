@@ -25,7 +25,7 @@
         <div class="w-full mt-8">
             <!-- Navigation Tabs -->
             <div class="flex justify-center items-center">
-                <ul class="relative overflow-hidden rounded-full p-3 gap-3 flex justify-between items-center bg-gradient-to-r from-blue-600 to-blue-500 min-w-[40%] max-w-[60%] shadow-lg">
+                <ul class="relative overflow-hidden rounded-full p-3 gap-3 flex justify-between items-center bg-gradient-to-r from-blue-600 to-blue-500 lg:min-w-[40%] w-full lg:max-w-[60%] shadow-lg">
                     <li id="tab-permintaan" class=" bg-white text-blue-600 relative z-[50] w-[50%] font-semibold text-sm rounded-full p-3 text-center transition-all duration-300 hover:bg-white hover:text-blue-600">
                         <button class="w-full h-full">{{ $forms->button_text_1['value'] ?? 'Buat Permintaan' }}</button>
                     </li>
@@ -39,7 +39,7 @@
             <!-- Contact Form Section with Overlay -->
             <div class="relative mt-12 rounded-xl overflow-hidden">
                 <!-- Background image and overlay -->
-                <img class="border z-[30] absolute -left-6 -bottom-8" style="min-width: 1400px" src="{{ asset('assets/frontend/images/el1.svg') }}" alt="">
+                <img class="border z-[30] absolute -left-6 lg:-bottom-8 -bottom-3 lg:min-w-[1400px] min-w-[1500px]" src="{{ asset('assets/frontend/images/el1.svg') }}" alt="">
                 <div class="absolute inset-0 bg-cover bg-center">
                     <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-500"></div>
                     {{-- <!-- SVG Overlay Pemanis -->
@@ -49,7 +49,7 @@
                 </div>
 
                 <!-- Form Content -->
-                <div id="tab__kontak__form" class="relative z-50 px-12 py-16">
+                <div id="tab__kontak__form" class="relative z-50 lg:px-12 px-4 lg:py-16 py-4">
                     <form id="send__email" method="POST" action="{{ route('kontak.send_email') }}" class="space-y-6">
                         @csrf
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">

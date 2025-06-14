@@ -1,8 +1,13 @@
 <?php
 
+use App\Models\User;
+use App\Models\Visitor;
+use App\Services\BlogService;
 use App\Charts\AnalitycVisitorChart;
+use App\Services\EmailMessageService;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\RobotsController;
+use App\Http\Controllers\Admin\VisitorController;
 use App\Http\Controllers\Admin\CKEditorController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\Blogs\BlogController;
@@ -29,9 +34,6 @@ use App\Http\Controllers\Admin\Editor\EditorPageController;
 use App\Http\Controllers\Admin\Email\ContactEmailController;
 use App\Http\Controllers\Admin\Email\EmailManagementController;
 use App\Http\Controllers\Admin\SocialMedia\SocialMediaController;
-use App\Models\User;
-use App\Services\BlogService;
-use App\Services\EmailMessageService;
 
 Route::middleware(['guest'])->name('auth.')->group(function () {
     Route::get('/login', [AuthenticateController::class, 'login'])->name('login');
@@ -50,6 +52,7 @@ Route::middleware(['auth'])->group(function () {
     ) {
         $countPost = $blog->getCount();
         $userCount = User::count();
+        $visitorCount = Visitor::count();
         $unreadMessages = $message->getAllMessage(function ($query) {
             return $query->where('is_read', 0);
         });
@@ -58,7 +61,8 @@ Route::middleware(['auth'])->group(function () {
             'chart' => $chart->build(),
             'countPost' => $countPost,
             'userCount' => $userCount,
-            'unreadMessages' => $unreadMessages
+            'unreadMessages' => $unreadMessages,
+            'visitorCount' => $visitorCount
         ]);
     })->name('dashboard');
 
@@ -268,6 +272,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('update/{id}', [SocialMediaController::class, 'update'])->name('update');
         Route::post('destroy', [SocialMediaController::class, 'destroy'])->name('destroy');
         Route::get('edit/{id}', [SocialMediaController::class, 'edit'])->name('edit');
+    });
+
+    Route::prefix('visitor/')->name('visitor.')->group(function () {
+        Route::get('data', [VisitorController::class, 'data'])->name('data');
     });
 
     Route::post('logout', [AuthenticateController::class, 'logout'])->name('auth.logout');

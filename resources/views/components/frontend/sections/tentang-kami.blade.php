@@ -18,7 +18,14 @@
                 <div class="lg:col-span-5 col-span-12">
                     <div class="w-full overflow-hidden lg:h-[500px] bg-slate-400 rounded-lg">
                         @if(!empty($informasi->thumbnail->file ?? ''))
-                            <img class="object-cover w-full h-full" src="{{ image_url('informasi', $informasi->thumbnail->file ?? '') }}" alt="{{ $informasi->title ?? '' }}">
+                            <img  
+                                decoding="async"
+                                loading="lazy"
+                                fetchpriority="high"
+                                class="object-cover w-full h-full" 
+                                src="{{ image_url('informasi', $informasi->thumbnail->file ?? '') }}" 
+                                alt="{{ $informasi->title ?? '' }}"
+                            >
                         @endif
                     </div>
                 </div>

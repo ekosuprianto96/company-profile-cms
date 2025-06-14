@@ -2,19 +2,20 @@
 
 namespace App\Providers;
 
-use App\Repositories\EmailSettingRepository;
 use App\Services\PageService;
+use Illuminate\Support\Carbon;
 use App\Rules\ExistEmailInformasi;
 use App\Rules\ExistPhoneInformasi;
 use App\Services\InformasiService;
+use App\Services\SocialMediaService;
 use App\Services\EmailSettingService;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Validation\Rules\Email;
 use Illuminate\Support\ServiceProvider;
 use App\Repositories\InformasiRepository;
-use App\Repositories\SocialMediaRepository;
-use App\Services\SocialMediaService;
 use Illuminate\Support\Facades\Validator;
+use App\Repositories\SocialMediaRepository;
+use App\Repositories\EmailSettingRepository;
 use Mockery\Generator\StringManipulation\Pass\Pass;
 
 class AppServiceProvider extends ServiceProvider

@@ -32,4 +32,15 @@ class BlogRepository extends BaseRepositori
         if (!$blog) throw new \Exception('Data tidak ditemukan', 404);
         return $blog->delete();
     }
+
+    public function incerementViews($slug)
+    {
+        $blog = $this->model->where('slug', $slug)->first();
+
+        if ($blog) {
+            return $blog->increment('views');
+        }
+
+        return false;
+    }
 }
