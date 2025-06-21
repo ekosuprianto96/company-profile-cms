@@ -41,7 +41,7 @@
     <x-slot name="content">
         <div class="grid items-start grid-cols-12 gap-6 mt-14">
             <div class="w-full col-span-12">
-                <div class="w-full lg:h-[400px] h-max overflow-hidden rounded-lg">
+                <div class="w-full h-max overflow-hidden rounded-lg">
                     @if(!empty($collection->thumbnail ?? ''))
                         <img class="object-cover w-full h-full" src="{{ image_url('blogs', $collection->thumbnail ?? '') }}" alt="{{ $collection->title ?? '' }}">
                     @endif

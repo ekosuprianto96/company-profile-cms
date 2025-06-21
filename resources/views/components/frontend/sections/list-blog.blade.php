@@ -26,10 +26,10 @@
     </x-slot>
     <x-slot name="content">
         <div class="w-full lg:mt-8 mt-4">
-            <div class="grid grid-cols-12 gap-6 auto-rows-[300px] grid-flow-dense">
+            <div class="grid grid-cols-12 gap-6 auto-rows-[400px] grid-flow-dense">
                 @foreach($sorted as $key => $value)
                     <article class="lg:col-span-4 col-span-12" itemscope itemtype="https://schema.org/Article">
-                        <div class="w-full text-slate-600 h-[300px] border bg-white p-3 overflow-hidden rounded-lg">
+                        <div class="w-full text-slate-600 h-[400px] border bg-white p-3 overflow-hidden rounded-lg">
                             <div class="h-[60%] w-full bg-slate-100 rounded-lg overflow-hidden">
                                 <img 
                                     decoding="async"

@@ -118,7 +118,7 @@ class BlogController extends Controller
                     return $list->updatedBy->account->nama_lengkap ?? '-';
                 })
                 ->addColumn('status', function ($list) {
-                    if ($list->an === 1) {
+                    if ($list->an == 1) {
                         return '<span class="badge badge-success badge-sm">' . (Status::PUBLISH->text()) . '</span>';
                     }
 
