@@ -88,7 +88,10 @@ class LayananController extends Controller
                     return '<span class="d-block text-truncate" style="max-width: 150px;">' . $list->slug . '</span>';
                 })
                 ->addColumn('icon', function ($list) {
-                    return '<i class="' . $list->icon . '"></i>';
+                    return match ($list->type) {
+                        'icon' => '<i class="' . $list->icon . '"></i>',
+                        'image' => '<img src="' . (image_url('services', $list->url_image)) . '" alt="' . $list->title . '" style="width: 30px;">'
+                    };
                 })
                 ->addColumn('created_by', function ($list) {
                     return $list->createdBy->account->nama_lengkap ?? '-';

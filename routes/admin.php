@@ -34,6 +34,7 @@ use App\Http\Controllers\Admin\Editor\EditorPageController;
 use App\Http\Controllers\Admin\Email\ContactEmailController;
 use App\Http\Controllers\Admin\Email\EmailManagementController;
 use App\Http\Controllers\Admin\SocialMedia\SocialMediaController;
+use App\Http\Controllers\Admin\Themes\ThemeController;
 
 Route::middleware(['guest'])->name('auth.')->group(function () {
     Route::get('/login', [AuthenticateController::class, 'login'])->name('login');
@@ -261,6 +262,12 @@ Route::middleware(['auth'])->group(function () {
         Route::post('update/{id}', [PackageController::class, 'update'])->name('update');
         Route::post('destroy', [PackageController::class, 'destroy'])->name('destroy');
         Route::get('edit/{id}', [PackageController::class, 'edit'])->name('edit');
+    });
+
+    // tema
+    Route::prefix('themes')->name('themes.')->group(function () {
+        Route::get('', [ThemeController::class, 'index'])->name('settings');
+        Route::post('update/{id}', [ThemeController::class, 'update'])->name('update');
     });
 
     // social media

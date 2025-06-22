@@ -27,11 +27,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+    <link rel="stylesheet" href="{{ asset('assets/frontend/css/fontawesome.all.min.css') }}"/>
     
     <script src="{{ assetFrontend('js', 'jQuery.min.js') }}"></script>
-    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
-    <script type="text/javascript" src="//cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/frontend/css/slick.css') }}"/>
+    <script type="text/javascript" src="{{ asset('assets/frontend/js/slick.min.js') }}"></script>
 
     <style>
         * {
@@ -46,8 +46,9 @@
             height: 1px;
         }
     </style>
+    <x-frontend.templates.main-style />
 </head>
-<body style="position: relative" class="w-full scroll-smooth bg-gradient-to-b from-slate-50 to-slate-200 overflow-x-hidden">
+<body style="position: relative" class="w-full scroll-smooth dinamic_main_background overflow-x-hidden">
     @include('sweetalert::alert')
     {{-- header --}}
     <x-frontend.templates.header />

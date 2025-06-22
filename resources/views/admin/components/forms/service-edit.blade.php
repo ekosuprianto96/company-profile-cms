@@ -2,6 +2,10 @@
     $image = public_path('assets/images/services/'.$service->image);
     $existsFile = !empty($service->image) && file_exists($image);
 @endphp
+@php
+    $icon = public_path('assets/images/services/'.$service->url_image);
+    $existsFileIcon = !empty($service->url_image) && file_exists($icon) && $service->type == 'image';
+@endphp
 
 <style>
     .ck-editor__editable {min-height: 250px;}
@@ -29,16 +33,49 @@
             </div>
         </div>
     </div>
-    <div class="form-group">
-        <label for="icon">Icon</label>
-        {{-- <input name="icon" type="text" class="form-control" id="icon" placeholder="icon menu"> --}}
-        <select id="iconSelected" class="form-control" name="icon">
-          @foreach(config('styles.icons') as $key => $value)
-              <option {{ $service->icon == $value ? 'selected' : '' }} value="{{ $value }}" data-icon="{{ $value }}">{{ $value }}</option>
-          @endforeach
-        </select>
-        <div data-error="icon" class="invalid-fedback">
-            <span class="text-danger" style="font-size: 0.8em"></span>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="type_icon">Type Icon</label>
+                {{-- <input name="icon" type="text" class="form-control" id="icon" placeholder="icon menu"> --}}
+                <select id="type_icon" class="form-control" name="type_icon">
+                    <option @selected($service->type == 'icon') value="icon">Icon</option>
+                    <option @selected($service->type == 'image') value="image">Image</option>
+                </select>
+                <div data-error="type_icon" class="invalid-fedback">
+                    <span class="text-danger" style="font-size: 0.8em"></span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div id="icon_icon" style="display: {{ $service->type == 'icon' ? 'block' : 'none' }}">
+                <div class="form-group">
+                    <label for="icon">Icon</label>
+                    {{-- <input name="icon" type="text" class="form-control" id="icon" placeholder="icon menu"> --}}
+                    <select id="iconSelected" class="form-control" name="icon">
+                    @foreach(config('styles.icons') as $key => $value)
+                        <option {{ $service->icon == $value ? 'selected' : '' }} value="{{ $value }}" data-icon="{{ $value }}">{{ $value }}</option>
+                    @endforeach
+                    </select>
+                    <div data-error="icon" class="invalid-fedback">
+                        <span class="text-danger" style="font-size: 0.8em"></span>
+                    </div>
+                </div>
+            </div>
+            <div id="image_icon_wrapper" style="display: {{ $service->type == 'image' ? 'block' : 'none' }}">
+                <div class="form-group">
+                    <div style="width: 180px;height: 180px">
+                        <x-admin.forms.image-upload 
+                            :edit="true"
+                            :image="$existsFileIcon ? image_url('services', $service->url_image) : null"
+                            :label="'Upload Icon'"
+                            :id_input="'input_image_icon'"
+                        />
+                    </div>
+                    <input type="hidden" name="file_name_input_image_icon" id="file_name_input_image_icon">
+                    <input type="hidden" name="path_file_input_image_icon" id="path_file_input_image_icon" value="{{ $existsFileIcon ? 'assets/images/services/'. $service->url_image : '' }}">
+                </div>
+            </div>
         </div>
     </div>
     <div class="form-group">
@@ -118,6 +155,19 @@
             tags: true
         });
 
+        $('#type_icon').change(function() {
+            const value = $(this).val();
+
+            if(value === 'icon') {
+                $('#icon_icon').show();
+                $('#image_icon_wrapper').hide();
+                $('#image_icon').val('');
+            }else {
+                $('#icon_icon').hide();
+                $('#image_icon_wrapper').show();
+            }
+        })
+
         const inputForms = $('input, select');
         $.each(inputForms, function(index, value) {
             if(value.tagName === 'INPUT') {
@@ -155,6 +205,8 @@
                 content: editorInstance.getData(),
                 keywords: $('[name=keywords]').val(),
                 icon: $('[name=icon]').val(),
+                type_icon: $('[name=type_icon]').val(),
+                url_icon: $('[name=file_name_input_image_icon]').val(),
                 an: $('[name=an]').val(),
                 file_name: $('[name=file_name_input_edit_image_upload]').val(),
                 _token: '{{ csrf_token() }}'

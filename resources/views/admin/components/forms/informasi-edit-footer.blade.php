@@ -48,6 +48,18 @@
             </div>
         </div>
     </div>
+    <h4 class="card-title mb-5">Pengaturan Logo : </h4>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label for="logo_width_footer">Width (satuan : px)</label>
+                <input name="logo_width_footer" value="{{ $informasi->value->logo_width_footer }}" type="number" class="form-control" id="logo_width_footer">
+                <div data-error="logo_width_footer" class="invalid-fedback">
+                    <span class="text-danger" style="font-size: 0.8em"></span>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="d-flex justify-content-end">
         <button type="button" id="buttonUpdate" class="btn btn-primary me-2">Submit</button>
     </div>
@@ -109,6 +121,7 @@
             tagline: $('[name=tagline]').val(),
             backgroundColor: $('[name=backgroundColor]').val(),
             textColor: $('[name=textColor]').val(),
+            logo_width_footer: $('[name=logo_width_footer]').val(),
             map: {
                 alamat: $('[name="map[alamat]"]').val(),
                 height: $('[name="map[height]"]').val()

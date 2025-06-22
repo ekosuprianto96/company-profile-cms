@@ -16,7 +16,7 @@
         <div class="w-full lg:mt-8">
             <div class="grid grid-cols-12 gap-6">
                 <div class="lg:col-span-5 col-span-12">
-                    <div class="w-full overflow-hidden lg:h-[500px] bg-slate-400 rounded-lg">
+                    <div class="w-full overflow-hidden lg:h-[500px] rounded-lg">
                         @if(!empty($informasi->thumbnail->file ?? ''))
                             <img  
                                 decoding="async"
@@ -29,20 +29,20 @@
                         @endif
                     </div>
                 </div>
-                <div class="lg:col-span-7 col-span-12 text-slate-600" id="tentang__kami">
+                <div class="lg:col-span-7 col-span-12 text-[var(--secondary-color)]" id="tentang__kami">
                     <div class="w-max mb-4">
-                        <h1 class="mb-3 lg:text-3xl text-2xl text-blue-500 font-bold">{{ $informasi->title ?? '-' }}</h1>
-                        <div class="h-[8px] w-[50%] bg-blue-500 rounded-full"></div>
+                        <h1 class="mb-3 dinamic_text_size-h1 text-2xl text-[var(--primary-color)]">{{ $informasi->title ?? '-' }}</h1>
+                        <div class="h-[8px] w-[50%] bg-[var(--primary-color)] rounded-full"></div>
                     </div>
-                    <div class="prose prose-a:text-blue-500 prose-sm">
+                    <div class="prose prose-a:[var(--primary-color)] prose-p:[var(--secondary-color)]">
                         {!! cutTextByWords($informasi->content ?? '-', 70, '...') ?? '-' !!}
                     </div>
                     <div class="mt-6">
-                        <div class="flex justify-start items-center">
-                            @foreach ($counters as $counter)
-                                <div class="flex text-sm justify-center min-w-[130px] items-center text-center flex-col border-r-2 px-6 py-1">
-                                    <span class="mb-2 text-md font-semibold text-blue-500">+{{ $counter['value'] ?? 0 }}</span>
-                                    <span class="text-light text-sm">{{ $counter['label'] ?? '-' }}</span>
+                        <div class="flex lg:justify-start justify-center text-center items-center">
+                            @foreach ($counters as $key => $counter)
+                                <div class="flex text-sm justify-center lg:min-w-[130px] min-w-[120px] items-center text-center flex-col {{ ($key + 1) < count($counters) ? 'border-r-2' : '' }} lg:px-6 px-3 py-1">
+                                    <span class="mb-2 text-md font-semibold text-[var(--primary-color)]">+{{ $counter['value'] ?? 0 }}</span>
+                                    <span class="text-[var(--secondary-color)] text-sm">{{ $counter['label'] ?? '-' }}</span>
                                 </div>
                             @endforeach
                         </div>

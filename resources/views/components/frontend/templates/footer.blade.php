@@ -3,7 +3,7 @@
         <div class="w-full grid lg:grid-cols-4 grid-cols-1 gap-4 min-h-[200px]">
             <div class="col-span-1 h-full">
                 <div class="w-full">
-                    <img class="w-[150px]" src="{{ image_url('informasi', config('settings.value.app_logo_footer.file')) }}" alt="logo">
+                    <img style="width: {{ config('footer_settings.value.logo_width_footer') }}px" src="{{ image_url('informasi', config('settings.value.app_logo_footer.file')) }}" alt="logo">
                 </div>
                 <div class=" mt-3 pr-3">
                     <p class="text-xs">{{ config('footer_settings.value.tagline') }}</p>

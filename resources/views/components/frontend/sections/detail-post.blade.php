@@ -4,7 +4,7 @@
 ])
 
 <style>
-    #post_blog p {
+    /* #post_blog p {
         text-align: justify;
         text-justify: inter-word;
         font-size: 0.9em;
@@ -12,7 +12,7 @@
         -webkit-hyphens: auto;
         -ms-hyphens: auto;
         -moz-hyphens: auto;
-    }
+    } */
     #social-links ul {
         display: flex !important;
         flex-direction: row;
@@ -24,7 +24,7 @@
     #social-links ul li {
         padding: 10px;
         font-size: 2em;
-        color: rgb(29, 113, 223);
+        color: var(--primary-color);
     }
 
     @media screen and (max-width: 768px) {
@@ -49,14 +49,14 @@
             </div>
             <div class="w-full col-span-12">
                 <div class="mb-4">
-                    <span class="bg-blue-500 text-white text-sm px-3 py-1 rounded-lg">{{ $collection->kategori->name ?? '-' }}</span>
+                    <span class="bg-[var(--primary-color)] text-[var(--light-color)] text-sm px-3 py-1 rounded-lg">{{ $collection->kategori->name ?? '-' }}</span>
                 </div>
-                <div class="lg:prose prose-sm w-full -mx-auto max-w-none text-slate-600 prose-a:text-blue-500 prose-headings:text-blue-500 prose-p:text-slate-600" id="post_blog">
+                <div class="prose w-full -mx-auto max-w-none text-[--secondary-color] prose-a:text-[var(--primary-color)] prose-headings:text-[var(--primary-color)] prose-p:text-[var(--secondary-color)]" id="post_blog">
                     {!! $collection->content ?? '-' !!}
                 </div>
             </div>
             <div class="w-full col-span-12">
-                <h5 class="py-4 border-b-2 w-full text-blue-500 border-b-slate-400">Share :</h5>
+                <h5 class="py-4 border-b-2 w-full text-[var(--primary-color)] border-b-slate-400">Share :</h5>
                 {!! 
                     \Share::page(
                         url()->current(),

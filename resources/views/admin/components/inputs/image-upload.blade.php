@@ -8,8 +8,8 @@
         <input type="file" id="input_image_{{ $id }}" accept=".jpg,.jpeg,.png,.svg,.webp" name="{{ $name }}" style="position: absolute;top:0;bottom:0;right:0;left:0;opacity: 0;z-index:80">
         <div id="empty_image_{{ $id }}" style="display: {{ $existsFile ? 'none' : 'flex'  }}" class="{{ $existsFile ? '' : 'd-flex'  }} text-center justify-content-center align-items-center flex-column">
             <i class="ri-image-add-line" style="font-size: 2em"></i>
-            <span class="d-block mt-3 mb-2" style="font-size: 0.8em;">Click atau drag gambar disini.</span>
-            <span class="d-block" style="font-size: 0.6em;">Gambar yang diizinkan hanya (.jpg, .JPEG, .png, .svg, .webp)</span>
+            <span class="d-block mt-3 mb-2 text-center" style="font-size: 0.8em;">Click atau drag gambar disini.</span>
+            <span class="d-block text-center" style="font-size: 0.6em;">Gambar yang diizinkan hanya (.jpg, .JPEG, .png, .svg, .webp)</span>
         </div>
         <div class="{{ $existsFile ? 'd-flex' : ''  }} justify-content-center w-100 align-items-center" style="position: absolute;top:0;bottom:0;right:0;left:0;z-index:100;display: {{ $existsFile ? 'flex' : 'none'  }}" id="image_preview_{{ $id }}">
             <img src="{{ image_url($path, $value ?? '') }}" style="width: 100%">

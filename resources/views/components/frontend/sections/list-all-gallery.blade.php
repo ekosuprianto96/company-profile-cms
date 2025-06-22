@@ -17,9 +17,9 @@
     @if(($forms->show_section_title['value'] ?? 0) == 1)
         <x-slot name="title">
             <div class="w-full flex flex-col overflow-hidden justify-center items-center">
-                <h1 class="lg:text-3xl text-2xl mb-4 font-bold text-blue-500">{{ $forms->title['value'] ?? '-' }}</h1>
+                <h1 class="lg:text-3xl text-2xl mb-4 font-bold text-[var(--primary-color)]">{{ $forms->title['value'] ?? '-' }}</h1>
                 @if(!empty($forms->sub_title['value']))
-                    <p class="lg:w-[40%] w-[80%] lg:text-md text-sm text-center text-slate-600">{{ $forms->sub_title['value'] }}</p>
+                    <p class="lg:w-[40%] w-[80%] lg:text-md text-sm text-center text-[var(--secondary-color)]">{{ $forms->sub_title['value'] }}</p>
                 @endif
             </div>
         </x-slot>
@@ -51,7 +51,7 @@
                             alt="{{ $gallery->title }}"
                         >
                         <div class="absolute w-full bottom-4 px-4">
-                            <h4 class="text-white font-semibold text-md">{{ $gallery->title }}</h4>
+                            <h4 class="text-[var(--light-color)] font-semibold text-md">{{ $gallery->title }}</h4>
                         </div>
                     </a>
                 @endforeach

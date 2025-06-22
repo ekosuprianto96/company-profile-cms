@@ -33,4 +33,5 @@ Route::get('/blog/{slug}', [BlogController::class, 'show'])->middleware(['track-
 Route::get('/kontak-kami', [KontakController::class, 'index'])->middleware(['track-visitor'])->name('kontak');
 Route::post('/kontak-kami/send', [KontakController::class, 'sendingEmail'])->middleware(['track-visitor'])->name('kontak.send_email');
 Route::post('/kontak-kami/inquiry', [KontakController::class, 'sendingInquiry'])->middleware(['track-visitor'])->name('kontak.send_inquiry');
+Route::get('package/{id}', [HomeController::class, 'packageRedirect'])->middleware(['track-visitor'])->name('package.redirect');
 // Route::get('/devel', [DevelController::class, 'devel'])->middleware(['track-visitor'])->name('devel');

@@ -45,7 +45,6 @@ class LayananController extends Controller
         ])
             ->registerSections('detail-layanan', [
                 'detail-layanan',
-                'list-sidebar-layanan',
                 'contact-us-sidebar'
             ])
             ->page('detail-layanan')

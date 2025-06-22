@@ -5,7 +5,7 @@
 ])
 
 <x-frontend.templates.m-section
-    :top="'15px'"
+    :top="$height_section"
     mobileTop="20px"
 >
     <x-slot name="content">

@@ -459,6 +459,54 @@
                         "type": "textarea",
                         "value": "Lorem, ipsum dolor sit amet consectetur adipisicing elit. Facere est quod corporis repellendus magni veritatis laboriosam nisi soluta nam molestias.",
                         "name": "sub_title"
+                    },
+                    "phone": {
+                        "id": "phone",
+                        "placeholder": "-- Pilih Salah Satu Nomor --",
+                        "label": "Nomor Telepon",
+                        "notice": {
+                            "position": "bottom",
+                            "text": "Pilih salah satu nomor untuk diarahkan ke WhatsApp"
+                        },
+                        "options": "\\App\\Services\\InformasiService@getOptionsPhone",
+                        "type": "select-informasi",
+                        "value": "62 819-9985-9726",
+                        "name": "phone",
+                        "validation": {
+                            "rules": [
+                                "string",
+                                "exists_phone"
+                            ],
+                            "errors": {
+                                "phone.string": "Nomor Telepon harus berupa string yang valid",
+                                "phone.exists_phone": "Nomor Telepon tidak valid"
+                            }
+                        }
+                    },
+                    "message_form_whatsapp": {
+                        "id": "message_form_whatsapp",
+                        "label": "Message Form Whatsapp",
+                        "type": "textarea",
+                        "height": "250px",
+                        "notice": {
+                            "position": "bottom",
+                            "text": "Ambil nama paket, deskripsi, harga, id, dan fitur dari data paket lalu tampilkan dengan format, contoh : {{ name }} {{ descriptions }} {{ id }} {{ price }} {{ features }}. <br\/> Lihat referensi format text whatsapp yang bisa kamu gunakan : <a style=\"color:blue\" href=\"https:\/\/faq.whatsapp.com\/539178204879377\/?cms_platform=web&locale=en_US\" target=\"_blank\">Referensi Format Text<\/a>"
+                        },
+                        "placeholder": "Masukkan pesan untuk Whatsapp",
+                        "value": "*Assalamualaikum.*\r\n\r\nSaya ingin tahu info lebih lanjut\r\ntentang paket ini\r\n\r\nNama Paket : *{{ name }}*\r\nDescription: {{ description }}\r\n\r\nList Fitur\r\n{{ features }}\r\n\r\n*Terimakasih.*",
+                        "name": "message_form_whatsapp",
+                        "validation": {
+                            "rules": [
+                                "required",
+                                "string",
+                                "max:255"
+                            ],
+                            "errors": {
+                                "title.required": "Message harus diisi",
+                                "title.string": "Message harus berupa string yang valid",
+                                "title.max": "Message tidak boleh lebih dari 255 karakter"
+                            }
+                        }
                     }
                 }
             },

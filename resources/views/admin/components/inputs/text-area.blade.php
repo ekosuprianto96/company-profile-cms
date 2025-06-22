@@ -1,7 +1,7 @@
 <div class="form-group">
     <label for="{{ $id ?? '-' }}" class="form-label">{{ $label ?? '-' }} @if(isset($notice) && $notice['position'] == 'top') <span class="text-danger" style="font-size: 0.8em">{{ $notice['text'] }}</span> @endif</label>
     @if(isset($notice) && $notice['position'] == 'bottom') 
-        <span class="text-danger d-block mb-2" style="font-size: 0.7em">{{ $notice['text'] }}</span> 
+        <span class="text-danger d-block mb-2" style="font-size: 0.7em">{!! $notice['text'] !!}</span> 
     @endif
     <textarea 
         class="form-control" 

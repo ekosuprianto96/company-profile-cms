@@ -14,7 +14,7 @@ class FileUploadController extends Controller
     public function uploadFile(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:jpg,jpeg,png|max:2048'
+            'file' => 'required|mimes:jpg,jpeg,png,webp|max:5000'
         ], [
             'file.required' => 'File is required',
             'file.mimes' => 'File must be in jpg, jpeg, png format',

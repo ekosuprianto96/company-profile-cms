@@ -32,9 +32,9 @@
     @if(($forms->show_section_title['value'] ?? 0) == 1)
         <x-slot name="title">
             <div class="w-full flex flex-col overflow-hidden justify-center items-center">
-                <h1 class="text-3xl mb-4 font-bold text-blue-500">{{ $forms->title['value'] ?? '-' }}</h1>
+                <h1 class="text-3xl mb-4 font-bold text-[var(--primary-color)]">{{ $forms->title['value'] ?? '-' }}</h1>
                 @if(!empty($forms->sub_title['value']))
-                    <p class="w-[40%] text-md text-center text-slate-600">{{ $forms->sub_title['value'] }}</p>
+                    <p class="w-[40%] text-md text-center text-[var(--secondary-color)]">{{ $forms->sub_title['value'] }}</p>
                 @endif
             </div>
         </x-slot>
@@ -45,7 +45,7 @@
                 @if($collection->count() > 0)
                     @foreach($collection->where('an', 1)->latest()->limit($forms->max_show['value'] ?? 500)->get() as $key => $value)
                         <article itemscope itemtype="https://schema.org/Article">
-                            <div class="w-full text-slate-600 h-[400px] border bg-white p-3 overflow-hidden rounded-lg">
+                            <div class="w-full text-[var(--secondary-color)] h-[400px] border bg-[var(--light-color)] p-3 overflow-hidden rounded-lg">
                                 <div class="h-[60%] relative w-full bg-slate-100 rounded-lg overflow-hidden">
                                     <img 
                                         decoding="async"
@@ -56,7 +56,7 @@
                                         alt="{{ $value->title }}" 
                                         itemprop="image"
                                     >
-                                    <span class="absolute top-2 left-2 bg-blue-500 text-white text-sm px-3 py-1 rounded-lg">{{ $value->kategori->name ?? '-' }}</span>
+                                    <span class="absolute top-2 left-2 bg-[var(--primary-color)] text-[var(--light-color)] text-sm px-3 py-1 rounded-lg">{{ $value->kategori->name ?? '-' }}</span>
                                 </div>
                                 <div class="h-[40%] w-full">
                                     <div class="flex my-2 text-sm justify-between items-center">
@@ -75,7 +75,7 @@
                                         </a>
                                     </div>
                                     <a href="{{ route('blog.show', $value->slug) }}" title="{{ $value->title }}" itemprop="url" rel="bookmark">
-                                        <h2 itemprop="headline" class="font-semibold my-4 lg:text-[20px] text-[16px] text-blue-500">
+                                        <h2 itemprop="headline" class="font-semibold my-4 lg:text-[20px] text-[16px] text-[var(--primary-color)]">
                                             {{ cutTextByWords($value->title ?? '-', 7) }}
                                         </h2>
                                     </a>

@@ -14,6 +14,11 @@ class InformasiService
         protected ?Request $request = null
     ) {}
 
+    public function __destruct()
+    {
+        $this->result = null;
+    }
+
     public function find(int $id): self
     {
         $informasi = $this->informasi->findMany([$id]);
@@ -25,6 +30,7 @@ class InformasiService
     {
         $informasi = $this->informasi->findKey($key);
         $this->result = collect($informasi); // Pastikan jadi Collection
+
         return $this;
     }
 
@@ -107,7 +113,6 @@ class InformasiService
             ->get();
 
         if ($informasi) {
-
 
             $datas = [];
             if (count($informasi->value) > 0) {

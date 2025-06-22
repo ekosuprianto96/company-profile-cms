@@ -1,5 +1,7 @@
 <?php
 
+use App\Services\InformasiService;
+
 if (!function_exists('mStyles')) {
     function mStyles(string $name = '')
     {
@@ -94,6 +96,33 @@ if (! function_exists('merge_tags')) {
         }
 
         return $template;
+    }
+}
+
+if (!function_exists('app_themes')) {
+    function app_themes()
+    {
+        $services = app(InformasiService::class);
+        $themes = $services->findByKey('theme_settings')
+            ->decode(true)
+            ->get();
+        return $themes->value ?? [];
+    }
+}
+
+if (!function_exists('generateGradientColor')) {
+    function generateGradientColor(array $gradientSettings)
+    {
+        $colorsFormat = [];
+        $mergeColors = '';
+        if (count($gradientSettings['colors']) > 0) {
+            foreach ($gradientSettings['colors'] as $value) {
+                $colorsFormat[] = $value['color'] . ' ' . $value['color_stop'] . '%';
+            }
+        }
+
+        $mergeColors = implode(', ', $colorsFormat);
+        return "linear-gradient({$gradientSettings['degre']}deg, {$mergeColors})";
     }
 }
 

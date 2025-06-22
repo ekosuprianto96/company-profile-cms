@@ -74,12 +74,30 @@ class LayananService
             }
         }
 
+        if (isset($request->url_icon) && !empty($request->url_icon)) {
+            if ($request->type_icon == 'image') {
+                $pathTemps = 'assets/images/temps/' . $request->url_icon;
+                $pathIcon = 'assets/images/services/' . $request->url_icon;
+
+                if (!is_dir(public_path('assets/images/services/'))) {
+                    mkdir(public_path('assets/images/services/'), 0777, true);
+                }
+
+                if (file_exists(public_path($pathTemps))) {
+                    rename(public_path($pathTemps), public_path($pathIcon));
+                }
+            }
+        }
+
         return $this->layanan->create([
             'image' => $request->file_name,
+            'type' => $request->type_icon,
+            'url_image' => ($request->type_icon == 'image' && isset($request->url_icon)) ? $request->url_icon : null,
             'title' => Str::title($request->title),
             'slug' => Str::slug($request->title),
             'keywords' => implode(',', $request->keywords),
-            ...$request->only('content', 'an', 'icon')
+            'icon' => $request->icon ?? '',
+            ...$request->only('content', 'an')
         ]);
     }
 
@@ -93,20 +111,64 @@ class LayananService
             if (file_exists(public_path($pathTemps))) {
                 rename(public_path($pathTemps), public_path($pathBanners));
             }
+
+            $this->removeImage($this->findLayanan($id)->image ?? 'xxxxx.jpg');
         } else {
             $request->merge([
                 'file_name' => $this->findLayanan($id)->image ?? null
             ]);
         }
 
+        if (isset($request->url_icon) && !empty($request->url_icon)) {
+            if ($request->type_icon == 'image') {
+                $pathTemps = 'assets/images/temps/' . $request->url_icon;
+                $pathIcon = 'assets/images/services/' . $request->url_icon;
+
+                if (!is_dir(public_path('assets/images/services/'))) {
+                    mkdir(public_path('assets/images/services/'), 0777, true);
+                }
+
+                if (file_exists(public_path($pathTemps))) {
+                    rename(public_path($pathTemps), public_path($pathIcon));
+                }
+            }
+        } else {
+            $request->merge([
+                'url_icon' => $this->findLayanan($id)->url_image ?? null
+            ]);
+        }
+
+
         $update = $this->layanan->find($id);
+
+        if ($request->type == 'icon') {
+            $this->removeImage($update->url_image);
+        } else {
+            if (isset($request->url_icon) && !empty($request->url_icon) && !empty($update->url_image)) {
+                $this->removeImage($update->url_image);
+            }
+        }
+
         return $this->layanan->update($id, [
             'image' => $request->file_name,
+            'type' => $request->type_icon,
+            'url_image' => ($request->type_icon == 'image' && isset($request->url_icon)) ? $request->url_icon : null,
             'title' => Str::title($request->title),
             'slug' => Str::slug($request->title),
             'keywords' => implode(',', $request->keywords),
-            ...$request->only('content', 'an', 'icon')
+            'icon' => $request->icon ?? '',
+            ...$request->only('content', 'an')
         ]);
+    }
+
+    public function removeImage(string $filename)
+    {
+        $existsFile = file_exists(public_path('assets/images/services/' . $filename));
+        if ($existsFile) {
+            unlink(public_path('assets/images/services/' . $filename));
+        }
+
+        return true;
     }
 
     public function delete(int $id)

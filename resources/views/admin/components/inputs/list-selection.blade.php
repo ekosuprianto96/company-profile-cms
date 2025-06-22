@@ -47,7 +47,7 @@
                                 <i class="ri-draggable"></i> {{ $item['text'] ?? '-' }}
                             </span>
                             <span class="float-right">
-                                <a href="javascript:void(0)" class="text-danger" onclick="removeListSelection{{ $name }}({{ $item['id'] }}, {{ $key+1 }})">Hapus</a>
+                                <a href="javascript:void(0)" class="text-danger" onclick="removeListSelection{{ $name }}('{{ $item['id'] }}', {{ $key+1 }})">Hapus</a>
                             </span>
                         </div>
                     </li>
@@ -115,7 +115,7 @@
                                 <i class="ri-draggable"></i> ${text}
                             </span>
                             <span class="float-right">
-                                <a href="javascript:void(0)" class="text-danger" onclick="removeListSelection{{ $name }}(${id}, ${currentLength+1})">Hapus</a>
+                                <a href="javascript:void(0)" class="text-danger" onclick="removeListSelection{{ $name }}('${id}', ${currentLength+1})">Hapus</a>
                             </span>
                         </div>
                     </li>

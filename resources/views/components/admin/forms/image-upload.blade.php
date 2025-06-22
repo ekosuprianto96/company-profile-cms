@@ -31,7 +31,7 @@
     <input type="hidden" name="edit_{{ $id_input }}" value="{{ (int) $edit }}">
     @if($edit && $image)
         <input type="file" accept=".jpg,.jpeg,.png,.svg,.webp" class="position-absolute" id="{{ $id_input }}" style="opacity: 0;top:0;right:0;bottom:0;left:0">
-        <div id="{{ $id_input }}_no_image" class="w-100 h-100 d-none justify-content-center flex-column align-items-center">
+        <div id="{{ $id_input }}_no_image" class="w-100 h-100 text-center d-none justify-content-center flex-column align-items-center">
             <i class="ri-image-add-line" style="font-size: 2em"></i>
             <span class="d-block mt-2" style="font-size: 0.8em;font-weight: 400">Click atau drag file gamba disini Testing.</span>
         </div>
@@ -48,7 +48,7 @@
         </div>
     @else
         <input type="file" accept=".jpg,.jpeg,.png,.svg,.webp" class="position-absolute" id="{{ $id_input }}" style="opacity: 0;top:0;right:0;bottom:0;left:0">
-        <div id="{{ $id_input }}_no_image" class="w-100 h-100 d-flex justify-content-center flex-column align-items-center">
+        <div id="{{ $id_input }}_no_image" class="w-100 text-center h-100 d-flex justify-content-center flex-column align-items-center">
             <i class="ri-image-add-line" style="font-size: 2em"></i>
             <span class="d-block mt-2" style="font-size: 0.8em;font-weight: 400">Click atau drag file gamba disini.</span>
         </div>
