@@ -17,8 +17,10 @@ use App\Http\Controllers\Admin\Pages\PageController;
 use App\Http\Controllers\Admin\Roles\RoleController;
 use App\Http\Controllers\Admin\SectionPageController;
 use App\Http\Controllers\Admin\Groups\GroupController;
+use App\Http\Controllers\Admin\Themes\ThemeController;
 use App\Http\Controllers\Admin\Auth\PenggunaController;
 use App\Http\Controllers\Admin\InformasiPageController;
+use App\Http\Controllers\Admin\Widget\WidgetController;
 use App\Http\Controllers\Admin\Banners\BannerController;
 use App\Http\Controllers\Admin\Blogs\KategoriController;
 use App\Http\Controllers\Admin\Modules\ModuleController;
@@ -34,7 +36,6 @@ use App\Http\Controllers\Admin\Editor\EditorPageController;
 use App\Http\Controllers\Admin\Email\ContactEmailController;
 use App\Http\Controllers\Admin\Email\EmailManagementController;
 use App\Http\Controllers\Admin\SocialMedia\SocialMediaController;
-use App\Http\Controllers\Admin\Themes\ThemeController;
 
 Route::middleware(['guest'])->name('auth.')->group(function () {
     Route::get('/login', [AuthenticateController::class, 'login'])->name('login');
@@ -283,6 +284,12 @@ Route::middleware(['auth'])->group(function () {
 
     Route::prefix('visitor/')->name('visitor.')->group(function () {
         Route::get('data', [VisitorController::class, 'data'])->name('data');
+    });
+
+    // widgets
+    Route::prefix('widgets/')->name('widgets.')->group(function () {
+        Route::get('', [WidgetController::class, 'index'])->middleware('permission:widget:show')->name('index');
+        Route::get('{id}', [WidgetController::class, 'edit'])->middleware('permission:widget:edit')->name('edit');
     });
 
     Route::post('logout', [AuthenticateController::class, 'logout'])->name('auth.logout');

@@ -25,6 +25,7 @@ Route::get('/sitemap', function () {
 Route::get('/', [HomeController::class, 'index'])->middleware(['track-visitor'])->name('home');
 Route::get('/layanan', [LayananController::class, 'index'])->middleware(['track-visitor'])->name('layanan');
 Route::get('/layanan/{slug}', [LayananController::class, 'show'])->middleware(['track-visitor'])->name('layanan.show');
+Route::get('/layanan/{slug}/{widget}', [LayananController::class, 'showWidget'])->middleware(['track-visitor'])->name('layanan.show.widget');
 Route::get('/tentang-kami', [TentangKamiController::class, 'index'])->middleware(['track-visitor'])->name('tentang_kami');
 Route::get('/galeri', [GalleryController::class, 'index'])->middleware(['track-visitor'])->name('galeri');
 Route::get('/galeri/{show}', [GalleryController::class, 'show'])->middleware(['track-visitor'])->name('galeri.show');

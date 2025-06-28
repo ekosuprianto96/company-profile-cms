@@ -3,19 +3,6 @@
     'height_section' => '80px'
 ])
 
-<style>
-    #tentang__kami p {
-        text-align: justify;
-        text-justify: inter-word;
-        font-size: 0.9em;
-        hyphens: auto;
-        -webkit-hyphens: auto;
-        -ms-hyphens: auto;
-        -moz-hyphens: auto;
-        margin-bottom: 1.5rem;
-    }
-</style>
-
 @php($collection = $collection->where('key', 'tentang-kami')->first())
 @php($informasi = json_decode($collection->value ?? '{}'))
 
@@ -37,7 +24,7 @@
                 </div>
             </div>
             <div class="w-full {{ ($informasi->style ?? 'horizonntal-column') == 'vertical-column' ? 'lg:col-span-7 col-span-12' : 'col-span-12'}}">
-                <div class="lg:prose prose-sm w-full -mx-auto mt-4 lg:mt-0 max-w-none text-[var(--secondary-color)] prose-headings:text-[var(--primary-color)] prose-p:text-[var(--secondary-color)]" id="tentang__kami">
+                <div class="prose w-full -mx-auto mt-4 lg:mt-0 max-w-none text-[var(--secondary-color)] prose-headings:text-[var(--primary-color)] prose-p:text-[var(--secondary-color)]" id="tentang__kami">
                     {!! $informasi->content ?? '-' !!}
                 </div>
             </div>

@@ -154,14 +154,14 @@ class EmailManagementController extends Controller
                     return '<span style="width: 130px;" class="text-truncate">' . $message->subject . '</span>';
                 })
                 ->addColumn('status', function ($message) {
-                    $color = match ($message->status) {
+                    $color = match ((int) $message->status) {
                         0 => 'warning',
                         1 => 'success',
                         2 => 'danger',
                         default => 'warning'
                     };
 
-                    $textStatus = match ($message->status) {
+                    $textStatus = match ((int) $message->status) {
                         0 => 'Pending',
                         1 => 'Dikirim',
                         2 => 'Gagal',
@@ -221,13 +221,13 @@ class EmailManagementController extends Controller
                     return '<span style="width: 130px;" class="text-truncate">' . $message->subject . '</span>';
                 })
                 ->addColumn('is_read', function ($message) {
-                    $color = match ($message->is_read) {
+                    $color = match ((int) $message->is_read) {
                         0 => 'warning',
                         1 => 'success',
                         default => 'warning'
                     };
 
-                    $textStatus = match ($message->is_read) {
+                    $textStatus = match ((int) $message->is_read) {
                         0 => 'Belum Dibaca',
                         1 => 'Sudah Dibaca',
                         default => 'Belum Dibaca'
