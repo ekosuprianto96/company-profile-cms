@@ -32,6 +32,13 @@ export default {
             }
         },
     },
+    safelist: [
+        'slick-slide',
+        'slick-prev',
+        'slick-next',
+        'slick-dots',
+        // tambahkan class lain jika diperlukan
+    ],
     plugins: [
         require('@tailwindcss/typography'),
     ],

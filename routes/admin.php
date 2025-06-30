@@ -35,6 +35,7 @@ use App\Http\Controllers\Admin\Auth\AuthenticateController;
 use App\Http\Controllers\Admin\Editor\EditorPageController;
 use App\Http\Controllers\Admin\Email\ContactEmailController;
 use App\Http\Controllers\Admin\Email\EmailManagementController;
+use App\Http\Controllers\Admin\Rekomendasi\RekomendasiKavlingController;
 use App\Http\Controllers\Admin\SocialMedia\SocialMediaController;
 
 Route::middleware(['guest'])->name('auth.')->group(function () {
@@ -286,10 +287,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('data', [VisitorController::class, 'data'])->name('data');
     });
 
-    // widgets
-    Route::prefix('widgets/')->name('widgets.')->group(function () {
-        Route::get('', [WidgetController::class, 'index'])->middleware('permission:widget:show')->name('index');
-        Route::get('{id}', [WidgetController::class, 'edit'])->middleware('permission:widget:edit')->name('edit');
+    // rekomendasi
+    Route::prefix('rekomendasi/')->name('rekomendasi_kavling.')->group(function () {
+        Route::get('', [RekomendasiKavlingController::class, 'index'])->middleware('permission:rekomendasi:show')->name('index');
+        Route::get('data', [RekomendasiKavlingController::class, 'data'])->middleware('permission:rekomendasi:show')->name('data');
+        Route::get('create', [RekomendasiKavlingController::class, 'create'])->middleware('permission:rekomendasi:create')->name('create');
+        Route::get('{id}', [RekomendasiKavlingController::class, 'edit'])->middleware('permission:rekomendasi:edit')->name('edit');
+        Route::post('update/{id}', [RekomendasiKavlingController::class, 'update'])->middleware('permission:rekomendasi:update')->name('update');
+        Route::post('store', [RekomendasiKavlingController::class, 'store'])->middleware('permission:rekomendasi:store')->name('store');
+        Route::post('destroy', [RekomendasiKavlingController::class, 'destroy'])->middleware('permission:rekomendasi:destroy')->name('destroy');
     });
 
     Route::post('logout', [AuthenticateController::class, 'logout'])->name('auth.logout');

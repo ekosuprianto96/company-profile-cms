@@ -353,5 +353,112 @@
                 }
             }
         }
+    },
+    {
+        "id": "list-rekomedasi-kavling",
+        "order": 1,
+        "title": "List Rekomendasi Kavling",
+        "view": "list-rekomedasi-kavling",
+        "collection": "\\App\\Models\\RekomendasiKavling",
+        "action": {
+            "label": "Tambah Rekomendasi Kavling",
+            "type": "modal",
+            "link": "admin\/rekomendasi"
+        },
+        "forms": {
+            "title": {
+                "id": "title",
+                "label": "Title",
+                "type": "text",
+                "value": "Rekomendasi Kavling",
+                "placeholder": "Masukkan title...",
+                "name": "title",
+                "validation": {
+                    "rules": [
+                        "required",
+                        "string",
+                        "max:150"
+                    ],
+                    "errors": {
+                        "title.required": "Title harus diisi",
+                        "title.string": "Title harus berupa string yang valid",
+                        "title.max": "Title tidak boleh lebih dari 150 karakter"
+                    }
+                }
+            },
+            "list_rekomedasi": {
+                "id": "list-rekomedasi",
+                "placeholder": "-- Pilih Kavling --",
+                "label": "Pilih Kavling",
+                "type": "list-selection",
+                "option": {
+                    "value": "id",
+                    "text": "title"
+                },
+                "value": [
+                    {
+                        "id": "4",
+                        "text": "Testing Aja"
+                    }
+                ],
+                "params": null,
+                "name": "list_rekomedasi",
+                "validation": {
+                    "rules": [
+                        "required",
+                        "array"
+                    ],
+                    "errors": {
+                        "list_rekomedasi.required": "Rekomendasi kavling harus diisi",
+                        "list_rekomedasi.array": "Rekomendasi kavling harus berupa array"
+                    }
+                },
+                "model": "\\App\\Models\\RekomendasiKavling"
+            },
+            "show_in_layanan": {
+                "id": "show-in-layanan",
+                "placeholder": "-- Pilih Layanan --",
+                "label": "Tampilkan Di Layanan",
+                "type": "list-selection",
+                "option": {
+                    "value": "id",
+                    "text": "title"
+                },
+                "value": [
+                    {
+                        "id": "2",
+                        "text": "Renovasi"
+                    },
+                    {
+                        "id": "3",
+                        "text": "Bangun Rumah"
+                    }
+                ],
+                "params": null,
+                "name": "show_in_layanan",
+                "validation": {
+                    "rules": [
+                        "array"
+                    ],
+                    "errors": {
+                        "show_in_layanan.array": "Layanan harus berupa array"
+                    }
+                },
+                "model": "\\App\\Models\\Layanan"
+            }
+        }
+    },
+    {
+        "id": "detail-widget",
+        "order": 1,
+        "title": "Detail Widget",
+        "view": "detail-widget",
+        "collection": null,
+        "action": {
+            "label": "",
+            "type": "modal",
+            "link": ""
+        },
+        "forms": null
     }
 ]

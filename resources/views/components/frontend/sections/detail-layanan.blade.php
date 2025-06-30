@@ -1,19 +1,9 @@
 @props([
     'collection' => [],
+    'widget' => null,
+    'forms' => [],
     'height_section' => '80px'
 ])
-
-<style>
-    /* #post_layanan p {
-        text-align: justify;
-        text-justify: inter-word;
-        font-size: 0.9em;
-        hyphens: auto;
-        -webkit-hyphens: auto;
-        -ms-hyphens: auto;
-        -moz-hyphens: auto;
-    } */
-</style>
 
 <x-frontend.templates.m-section
     :top="$height_section"

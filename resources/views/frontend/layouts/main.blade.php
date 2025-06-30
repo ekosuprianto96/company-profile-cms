@@ -8,6 +8,7 @@
     <meta name="description" content="{{ $meta->description ?? '-' }}">
     <meta name="keywords" content="{{ $meta->keywords ?? '-' }}">
     <meta name="image" content="{{ $meta->image ?? '-' }}">
+    <meta name="og:image" content="{{ $meta->image ?? '-' }}">
 
     {{-- favicon --}}
     <link rel="icon" href="{{ image_url('informasi', config('settings.value.favicon.file')) }}" type="image/x-icon">
@@ -30,12 +31,21 @@
     <link rel="stylesheet" href="{{ asset('assets/frontend/css/all.min.css') }}"/>
     
     <script src="{{ assetFrontend('js', 'jQuery.min.js') }}"></script>
-    <link rel="stylesheet" type="text/css" href="{{ asset('assets/frontend/css/slick.css') }}"/>
-    <script type="text/javascript" src="{{ asset('assets/frontend/js/slick.min.js') }}"></script>
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/frontend/slick-caraousel/slick.css') }}"/>
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/frontend/slick-caraousel/slick-theme.css') }}"/>
+    <script type="text/javascript" src="{{ asset('assets/frontend/slick-caraousel/slick.min.js') }}"></script>
 
     <style>
         * {
             font-family: 'Inter', sans-serif;
+        }
+
+        .slick-next.slick-arrow::before {
+            color: var(--primary-color) !important;
+        }
+
+        .slick-prev.slick-arrow::before {
+            color: var(--primary-color) !important;
         }
 
         .prose .page-break {
@@ -44,6 +54,10 @@
             page-break-after: always;
             display: block;
             height: 1px;
+        }
+
+        .slick-slide {
+            display: block !important;
         }
     </style>
     <x-frontend.templates.main-style />
