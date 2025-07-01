@@ -26,6 +26,15 @@
                 <div class="prose w-full -mx-auto max-w-none text-[var(--secondary-color)] prose-a:text-blue-500 prose-headings:text-[var(--primary-color)] prose-p:text-[var(--secondary-color)]" id="post_layanan">
                     {!! $collection->content ?? '-' !!}
                 </div>
+                <div class="w-full border mt-8">
+                    <a 
+                        href="{{ route('widget.redirect_link', ['slug' => $collection->slug, 'page' => 'detail-widget']) }}" 
+                        style="color: {{ $forms['button_text_color']['value'] ?? '' }};background-color: {{ $forms['button_background_color']['value'] ?? '' }}" 
+                        class="w-full block rounded-lg text-center py-4 lg:text-lg text-md font-semibold"
+                    >
+                        <i class="ri-whatsapp-line me-2 text-xl"></i> {{ $forms['button_text']['value'] ?? '' }}
+                    </a>
+                </div>
             </div>
         </div>
     </x-slot>
@@ -33,16 +42,6 @@
 
 <script>
     $(document).ready(function(){
-        // $('.single-slider').slick({
-        //     slidesToShow: 1,
-        //     slidesToScroll: 1,
-        //     arrows: true,
-        //     dots: true,
-        //     infinite: true,
-        //     autoplay: true,
-        //     autoplaySpeed: 3000
-        // });
-
         $('#multiSlider').slick({
             dots: true,
             infinite: false,

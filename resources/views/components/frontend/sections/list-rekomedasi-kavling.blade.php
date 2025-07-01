@@ -24,7 +24,7 @@
                             <img title="{{  $value->title }}" class="w-full h-full object-cover" src="{{ image_url('rekomendasi-kavling', $images[0] ?? '') }}" alt="{{ $value->title }}">
                         </div>
                         <div class="w-full text-md font-semibold px-2 py-3 h-[30%]">
-                            <h6 title="{{  $value->title }}" class="text-[var(--primary-color)] line-clamp-2">{{  $value->title }}</h6>
+                            <h6 title="{{  $value->title }}" class="text-[var(--primary-color)] text-sm line-clamp-2">{{  $value->title }}</h6>
                         </div>
                     </a>
                 </div>

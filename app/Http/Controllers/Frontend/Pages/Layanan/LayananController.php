@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Services\LayananService;
+use App\Services\PageService;
 use App\Services\RekomendasiKavlingService;
 
 class LayananController extends Controller
@@ -33,6 +34,10 @@ class LayananController extends Controller
             abort(404);
         }
 
+        $pageLayanan  = app(PageService::class)->page('detail-layanan');
+        $sectionPage = $pageLayanan->sections()->where('id', 'list-rekomedasi-kavling')->first();
+        $formSections = $sectionPage['forms'] ?? [];
+     
         $data['page'] = PageFacade::createPage([
             'id' => 'detail-widget',
             'meta' => [
@@ -53,8 +58,9 @@ class LayananController extends Controller
                 'detail-widget'
             ])
             ->page('detail-widget')
-            ->setCollectionSection('detail-widget', $widget);
-        
+            ->setCollectionSection('detail-widget', $widget)
+            ->setForms('detail-widget', collect($formSections));
+
         return $this->view('detail-widget', $data);
     }
 

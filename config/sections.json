@@ -386,34 +386,97 @@
                     }
                 }
             },
-            "list_rekomedasi": {
-                "id": "list-rekomedasi",
-                "placeholder": "-- Pilih Kavling --",
-                "label": "Pilih Kavling",
-                "type": "list-selection",
-                "option": {
-                    "value": "id",
-                    "text": "title"
+            "phone": {
+                "id": "phone",
+                "placeholder": "-- Pilih Salah Satu Nomor --",
+                "label": "Nomor Telepon",
+                "notice": {
+                    "position": "bottom",
+                    "text": "Pilih salah satu nomor untuk diarahkan ke WhatsApp"
                 },
-                "value": [
-                    {
-                        "id": "4",
-                        "text": "Testing Aja"
+                "options": "\\App\\Services\\InformasiService@getOptionsPhone",
+                "type": "select-informasi",
+                "value": "62 819-9985-9726",
+                "name": "phone",
+                "validation": {
+                    "rules": [
+                        "string",
+                        "exists_phone"
+                    ],
+                    "errors": {
+                        "phone.string": "Nomor Telepon harus berupa string yang valid",
+                        "phone.exists_phone": "Nomor Telepon tidak valid"
                     }
-                ],
-                "params": null,
-                "name": "list_rekomedasi",
+                }
+            },
+            "message_form_whatsapp": {
+                "id": "message_form_whatsapp",
+                "label": "Message Form Whatsapp",
+                "type": "textarea",
+                "height": "250px",
+                "notice": {
+                    "position": "bottom",
+                    "text": "Ambil title, dari data kavling lalu tampilkan dengan format, contoh : {{ title }}"
+                },
+                "placeholder": "Masukkan pesan untuk Whatsapp",
+                "value": "Assalamualikum!,\r\n\r\nSaya ingin info lebih lanjut\r\ntentang kavling yang dijual\r\n\r\nNama Kavling : {{ title }}\r\n\r\nTerimakasih \ud83d\ude0a.",
+                "name": "message_form_whatsapp",
                 "validation": {
                     "rules": [
                         "required",
-                        "array"
+                        "string",
+                        "max:250"
                     ],
                     "errors": {
-                        "list_rekomedasi.required": "Rekomendasi kavling harus diisi",
-                        "list_rekomedasi.array": "Rekomendasi kavling harus berupa array"
+                        "title.required": "Message harus diisi",
+                        "title.string": "Message harus berupa string yang valid",
+                        "title.max": "Message tidak boleh lebih dari 50 karakter"
                     }
-                },
-                "model": "\\App\\Models\\RekomendasiKavling"
+                }
+            },
+            "button_text": {
+                "id": "button_text",
+                "placeholder": "Text Button...",
+                "label": "Text Button",
+                "type": "text",
+                "value": "Hubungi Kami",
+                "name": "button_text"
+            },
+            "button_text_color": {
+                "id": "button_text_color",
+                "label": "Text Color",
+                "type": "color",
+                "value": "#ffffff",
+                "placeholder": "...",
+                "name": "button_text_color",
+                "validation": {
+                    "rules": [
+                        "required",
+                        "string"
+                    ],
+                    "errors": {
+                        "button_text_color.required": "Text color harus diisi",
+                        "button_text_color.string": "Text color harus berupa string"
+                    }
+                }
+            },
+            "button_background_color": {
+                "id": "button_background_color",
+                "label": "Button Background Color",
+                "type": "color",
+                "value": "#1ac765",
+                "placeholder": "...",
+                "name": "button_background_color",
+                "validation": {
+                    "rules": [
+                        "required",
+                        "string"
+                    ],
+                    "errors": {
+                        "button_background_color.required": "Text color harus diisi",
+                        "button_background_color.string": "Text color harus berupa string"
+                    }
+                }
             },
             "show_in_layanan": {
                 "id": "show-in-layanan",
@@ -453,6 +516,19 @@
         "order": 1,
         "title": "Detail Widget",
         "view": "detail-widget",
+        "collection": null,
+        "action": {
+            "label": "",
+            "type": "modal",
+            "link": ""
+        },
+        "forms": null
+    },
+    {
+        "id": "action-button",
+        "order": 1,
+        "title": "Action Button Widget",
+        "view": "action-button",
         "collection": null,
         "action": {
             "label": "",

@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Response;
 use App\Http\Controllers\Admin\Auth\AuthenticateController;
 use App\Http\Controllers\Frontend\DevelController;
+use App\Http\Controllers\Frontend\InfoWidgetController;
 use App\Http\Controllers\Frontend\Pages\Home\HomeController;
 use App\Http\Controllers\Frontend\Pages\Blogs\BlogController;
 use App\Http\Controllers\Frontend\Pages\GalleryController;
@@ -23,6 +24,7 @@ Route::get('/sitemap', function () {
 });
 
 Route::get('/', [HomeController::class, 'index'])->middleware(['track-visitor'])->name('home');
+Route::get('/info/{slug}', [InfoWidgetController::class, 'redirectLink'])->middleware(['track-visitor'])->name('widget.redirect_link');
 Route::get('/layanan', [LayananController::class, 'index'])->middleware(['track-visitor'])->name('layanan');
 Route::get('/layanan/{slug}', [LayananController::class, 'show'])->middleware(['track-visitor'])->name('layanan.show');
 Route::get('/layanan/{slug}/{widget}', [LayananController::class, 'showWidget'])->middleware(['track-visitor'])->name('layanan.show.widget');
