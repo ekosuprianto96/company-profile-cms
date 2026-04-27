@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Frontend\Pages\Layanan;
 use App\Traits\FrontView;
 use App\Facades\PageFacade;
 use Illuminate\Support\Str;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Services\LayananService;
 use App\Services\PageService;
