@@ -37,11 +37,7 @@
                         "value": "Hubungi Kami",
                         "name": "button",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:20"
-                            ],
+                            "rules": ["required", "string", "max:20"],
                             "errors": {
                                 "button.required": "Text Button harus diisi",
                                 "button.string": "Text Button harus berupa string yang valid",
@@ -57,12 +53,7 @@
                         "value": "https:\/\/wa.me\/6281932134000",
                         "name": "redirect_url",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "url",
-                                "max:150"
-                            ],
+                            "rules": ["required", "string", "url", "max:150"],
                             "errors": {
                                 "redirect_url.required": "Action URL harus diisi",
                                 "redirect_url.string": "Action URL harus berupa string yang valid",
@@ -79,10 +70,7 @@
                         "value": "ri-whatsapp-line",
                         "name": "icon",
                         "validation": {
-                            "rules": [
-                                "string",
-                                "max:150"
-                            ],
+                            "rules": ["string", "max:150"],
                             "errors": {
                                 "redirect_url.string": "Icon harus berupa string yang valid",
                                 "redirect_url.max": "Icon maximal 150 karakter"
@@ -119,9 +107,7 @@
                         "value": "_blank",
                         "name": "action_target",
                         "validation": {
-                            "rules": [
-                                "string"
-                            ],
+                            "rules": ["string"],
                             "errors": {
                                 "redirect_url.string": "Action Target harus berupa string yang valid"
                             }
@@ -153,10 +139,7 @@
                         "value": "[+60, Project Selesai], [+6, Tahun Pengalaman], [+100, Client Kami]",
                         "name": "counter_section",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string"
-                            ],
+                            "rules": ["required", "string"],
                             "errors": {
                                 "counter.required": "Counter Section harus diisi",
                                 "counter.string": "Counter Section harus berupa string yang valid"
@@ -171,11 +154,7 @@
                         "value": "Lihat Selengkapnya",
                         "name": "text_button",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:20"
-                            ],
+                            "rules": ["required", "string", "max:20"],
                             "errors": {
                                 "text_button.required": "Text Button harus diisi",
                                 "text_button.string": "Text Button harus berupa string yang valid",
@@ -191,10 +170,7 @@
                         "value": "ri-arrow-right-line",
                         "name": "icon",
                         "validation": {
-                            "rules": [
-                                "string",
-                                "max:150"
-                            ],
+                            "rules": ["string", "max:150"],
                             "errors": {
                                 "redirect_url.string": "Icon harus berupa string yang valid",
                                 "redirect_url.max": "Icon maximal 150 karakter"
@@ -231,9 +207,7 @@
                         "value": "_self",
                         "name": "action_target",
                         "validation": {
-                            "rules": [
-                                "string"
-                            ],
+                            "rules": ["string"],
                             "errors": {
                                 "redirect_url.string": "Icon harus berupa string yang valid"
                             }
@@ -261,11 +235,7 @@
                         "value": "Layanan Kami",
                         "name": "title",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:150"
-                            ],
+                            "rules": ["required", "string", "max:150"],
                             "errors": {
                                 "title.required": "Title harus diisi",
                                 "title.string": "Title harus berupa string yang valid",
@@ -325,10 +295,7 @@
                         },
                         "name": "layanan",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "array"
-                            ],
+                            "rules": ["required", "array"],
                             "errors": {
                                 "layanan.required": "Layanan harus diisi",
                                 "layanan.array": "Layanan harus berupa array"
@@ -418,10 +385,7 @@
                         },
                         "name": "gallery",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "array"
-                            ],
+                            "rules": ["required", "array"],
                             "errors": {
                                 "gallery.required": "Galeri belum dipilih",
                                 "gallery.array": "Galeri harus sama atau lebih dari 1 yang dipilih"
@@ -476,10 +440,7 @@
                         "value": "6281932134000",
                         "name": "phone",
                         "validation": {
-                            "rules": [
-                                "string",
-                                "exists_phone"
-                            ],
+                            "rules": ["string", "exists_phone"],
                             "errors": {
                                 "phone.string": "Nomor Telepon harus berupa string yang valid",
                                 "phone.exists_phone": "Nomor Telepon tidak valid"
@@ -499,11 +460,7 @@
                         "value": "*Assalamualaikum.*\r\n\r\nSaya ingin tahu info lebih lanjut\r\ntentang paket ini\r\n\r\nNama Paket : *{{ name }}*\r\nDescription: {{ description }}\r\n\r\nList Fitur\r\n{{ features }}\r\n\r\n*Terimakasih.*",
                         "name": "message_form_whatsapp",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:255"
-                            ],
+                            "rules": ["required", "string", "max:255"],
                             "errors": {
                                 "title.required": "Message harus diisi",
                                 "title.string": "Message harus berupa string yang valid",
@@ -581,10 +538,7 @@
                         },
                         "name": "article",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "array"
-                            ],
+                            "rules": ["required", "array"],
                             "errors": {
                                 "article.required": "Artikel belum dipilih.",
                                 "article.array": "Artikel harus sama atau lebih dari 1 yang dipilih"
@@ -653,11 +607,7 @@
                         "value": "Layanan Kami",
                         "name": "title",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:150"
-                            ],
+                            "rules": ["required", "string", "max:150"],
                             "errors": {
                                 "title.required": "Title harus diisi",
                                 "title.string": "Title harus berupa string yang valid",
@@ -708,10 +658,7 @@
                         "value": "0",
                         "name": "show_section_title",
                         "validation": {
-                            "rules": [
-                                "string",
-                                "required"
-                            ],
+                            "rules": ["string", "required"],
                             "errors": {
                                 "show_section_title.string": "Action Target harus berupa string yang valid"
                             }
@@ -725,11 +672,7 @@
                         "placeholder": "Title",
                         "name": "title",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:150"
-                            ],
+                            "rules": ["required", "string", "max:150"],
                             "errors": {
                                 "title.required": "Title harus diisi",
                                 "title.string": "Title harus berupa string yang valid",
@@ -757,11 +700,7 @@
                         "placeholder": "Max Show",
                         "name": "max_show",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "numeric",
-                                "min:1"
-                            ],
+                            "rules": ["required", "numeric", "min:1"],
                             "errors": {
                                 "max_show.required": "Max Show harus diisi",
                                 "max_show.numeric": "Max Show harus berupa angka",
@@ -830,11 +769,7 @@
                         "value": "Tentang Kami",
                         "name": "title",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:150"
-                            ],
+                            "rules": ["required", "string", "max:150"],
                             "errors": {
                                 "title.required": "Title harus diisi",
                                 "title.string": "Title harus berupa string yang valid",
@@ -927,11 +862,7 @@
                         "value": "Blog",
                         "name": "title",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:150"
-                            ],
+                            "rules": ["required", "string", "max:150"],
                             "errors": {
                                 "title.required": "Title harus diisi",
                                 "title.string": "Title harus berupa string yang valid",
@@ -1016,10 +947,7 @@
                         "value": "0",
                         "name": "show_section_title",
                         "validation": {
-                            "rules": [
-                                "string",
-                                "required"
-                            ],
+                            "rules": ["string", "required"],
                             "errors": {
                                 "show_section_title.string": "Action Target harus berupa string yang valid"
                             }
@@ -1032,11 +960,7 @@
                         "value": "List Artikel Terbaru Kami",
                         "name": "title",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:150"
-                            ],
+                            "rules": ["required", "string", "max:150"],
                             "errors": {
                                 "title.required": "Title harus diisi",
                                 "title.string": "Title harus berupa string yang valid",
@@ -1065,11 +989,7 @@
                         "max": "500",
                         "min": "1",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "numeric",
-                                "min:1"
-                            ],
+                            "rules": ["required", "numeric", "min:1"],
                             "errors": {
                                 "max_show.required": "Max Show harus diisi",
                                 "max_show.numeric": "Max Show harus berupa angka",
@@ -1099,10 +1019,7 @@
                         "placeholder": "Masukkan text placeholder...",
                         "name": "placeholder",
                         "validation": {
-                            "rules": [
-                                "string",
-                                "max:50"
-                            ],
+                            "rules": ["string", "max:50"],
                             "errors": {
                                 "placeholder.string": "Placeholder harus berupa string yang valid",
                                 "placeholder.max": "Placeholder maximal 50 karakter"
@@ -1163,10 +1080,7 @@
                         },
                         "name": "kategori",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "array"
-                            ],
+                            "rules": ["required", "array"],
                             "errors": {
                                 "kategori.required": "Kategori harus diisi",
                                 "kategori.array": "Kategori harus berupa array"
@@ -1195,11 +1109,7 @@
                         "value": "Postingan Terbaru",
                         "name": "title",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:150"
-                            ],
+                            "rules": ["required", "string", "max:150"],
                             "errors": {
                                 "title.required": "Title harus diisi",
                                 "title.string": "Title harus berupa string yang valid",
@@ -1217,11 +1127,7 @@
                         "max": "500",
                         "min": "1",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "numeric",
-                                "min:1"
-                            ],
+                            "rules": ["required", "numeric", "min:1"],
                             "errors": {
                                 "max_show.required": "Max Show harus diisi",
                                 "max_show.numeric": "Max Show harus berupa angka",
@@ -1290,11 +1196,7 @@
                         "value": "Kontak",
                         "name": "title",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:150"
-                            ],
+                            "rules": ["required", "string", "max:150"],
                             "errors": {
                                 "title.required": "Title harus diisi",
                                 "title.string": "Title harus berupa string yang valid",
@@ -1334,11 +1236,7 @@
                         "value": "Kontak kami",
                         "name": "title",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:150"
-                            ],
+                            "rules": ["required", "string", "max:150"],
                             "errors": {
                                 "title.required": "Title harus diisi",
                                 "title.string": "Title harus berupa string yang valid",
@@ -1373,11 +1271,7 @@
                         "value": "<p>Golden eight residence No. 7<\/p><p>Jl. Raya dr. Ratna, Jatiasih - Bekasi.<\/p><p><a href=\"https:\/\/wa.me\/6281219789088\"><strong>+ 62 812 1978 9088<\/strong><\/a><strong> (phone).<\/strong><\/p><p><a href=\"https:\/\/wa.me\/6281932134000\"><strong>+ 62 819 3213 4000<\/strong><\/a><strong> (wa).<\/strong><\/p><p>email : admin@maninjausembalun.com<\/p><p>&nbsp;<\/p>",
                         "name": "content",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:2000"
-                            ],
+                            "rules": ["required", "string", "max:2000"],
                             "errors": {
                                 "content.required": "Informasi Kontak harus diisi",
                                 "content.string": "Informasi Kontak harus berupa string yang valid",
@@ -1406,11 +1300,7 @@
                         "value": "Buat Permintaan",
                         "name": "button_text_1",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:50"
-                            ],
+                            "rules": ["required", "string", "max:50"],
                             "errors": {
                                 "title.required": "Button Text 1 harus diisi",
                                 "title.string": "Button Text 1 harus berupa string yang valid",
@@ -1425,11 +1315,7 @@
                         "value": "Hubungi Kami",
                         "name": "button_text_2",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:50"
-                            ],
+                            "rules": ["required", "string", "max:50"],
                             "errors": {
                                 "title.required": "Button Text 2 harus diisi",
                                 "title.string": "Button Text 2 harus berupa string yang valid",
@@ -1450,10 +1336,7 @@
                         "value": "6281932134000",
                         "name": "phone",
                         "validation": {
-                            "rules": [
-                                "string",
-                                "exists_phone"
-                            ],
+                            "rules": ["string", "exists_phone"],
                             "errors": {
                                 "phone.string": "Nomor Telepon harus berupa string yang valid",
                                 "phone.exists_phone": "Nomor Telepon tidak valid"
@@ -1473,11 +1356,7 @@
                         "value": "admin@maninjausembalun.com",
                         "name": "email",
                         "validation": {
-                            "rules": [
-                                "string",
-                                "exists_email",
-                                "email"
-                            ],
+                            "rules": ["string", "exists_email", "email"],
                             "errors": {
                                 "phone.string": "Email harus berupa string yang valid",
                                 "phone.exists_email": "Email tidak valid",
@@ -1498,11 +1377,7 @@
                         "value": "Hallo maninjau sembalun STUDIO team!\r\nNama :  *{{ name }}*, \r\nAlamat : *{{ alamat }}*,\r\nEmail : *{{ email }}*\r\n\r\nsaya ingin bertanya tentang paket ini, nama paket *{{ paket }}*, \r\nluas tanah saya _{{ luas_tanah }}_",
                         "name": "message_form_whatsapp",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:250"
-                            ],
+                            "rules": ["required", "string", "max:250"],
                             "errors": {
                                 "title.required": "Message harus diisi",
                                 "title.string": "Message harus berupa string yang valid",
@@ -1571,11 +1446,7 @@
                         "value": "Galeri Kami",
                         "name": "title",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:150"
-                            ],
+                            "rules": ["required", "string", "max:150"],
                             "errors": {
                                 "title.required": "Title harus diisi",
                                 "title.string": "Title harus berupa string yang valid",
@@ -1660,10 +1531,7 @@
                         "value": "0",
                         "name": "show_section_title",
                         "validation": {
-                            "rules": [
-                                "string",
-                                "required"
-                            ],
+                            "rules": ["string", "required"],
                             "errors": {
                                 "show_section_title.string": "Action Target harus berupa string yang valid"
                             }
@@ -1775,10 +1643,7 @@
                         "placeholder": "Masukkan text color...",
                         "name": "action_text_color",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string"
-                            ],
+                            "rules": ["required", "string"],
                             "errors": {
                                 "action_text_color.required": "Text color harus diisi",
                                 "action_text_color.string": "Text color harus berupa string"
@@ -1793,10 +1658,7 @@
                         "placeholder": "Masukkan background color...",
                         "name": "background_color",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string"
-                            ],
+                            "rules": ["required", "string"],
                             "errors": {
                                 "background_color.required": "Background color harus diisi",
                                 "background_color.string": "Background color harus berupa string"
@@ -1811,10 +1673,7 @@
                         "placeholder": "Masukkan text action...",
                         "name": "action_text",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string"
-                            ],
+                            "rules": ["required", "string"],
                             "errors": {
                                 "action_text.required": "Action Text harus diisi",
                                 "action_text.string": "Action Text harus berupa string"
@@ -1829,11 +1688,7 @@
                         "placeholder": "Masukkan link redirect...",
                         "name": "link_redirect",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "url"
-                            ],
+                            "rules": ["required", "string", "url"],
                             "errors": {
                                 "link_redirect.required": "Link Redirect harus diisi",
                                 "link_redirect.string": "Link Redirect harus berupa string",
@@ -1863,11 +1718,7 @@
                         "placeholder": "Masukkan title...",
                         "name": "title",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:150"
-                            ],
+                            "rules": ["required", "string", "max:150"],
                             "errors": {
                                 "title.required": "Title harus diisi",
                                 "title.string": "Title harus berupa string yang valid",
@@ -1888,10 +1739,7 @@
                         "value": "6281932134000",
                         "name": "phone",
                         "validation": {
-                            "rules": [
-                                "string",
-                                "exists_phone"
-                            ],
+                            "rules": ["string", "exists_phone"],
                             "errors": {
                                 "phone.string": "Nomor Telepon harus berupa string yang valid",
                                 "phone.exists_phone": "Nomor Telepon tidak valid"
@@ -1911,11 +1759,7 @@
                         "value": "Assalamualikum!,\r\n\r\nSaya ingin info lebih lanjut\r\ntentang kavling yang dijual\r\n\r\nNama Kavling : {{ title }}\r\n\r\nTerimakasih \ud83d\ude0a.",
                         "name": "message_form_whatsapp",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string",
-                                "max:250"
-                            ],
+                            "rules": ["required", "string", "max:250"],
                             "errors": {
                                 "title.required": "Message harus diisi",
                                 "title.string": "Message harus berupa string yang valid",
@@ -1939,10 +1783,7 @@
                         "placeholder": "...",
                         "name": "button_text_color",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string"
-                            ],
+                            "rules": ["required", "string"],
                             "errors": {
                                 "button_text_color.required": "Text color harus diisi",
                                 "button_text_color.string": "Text color harus berupa string"
@@ -1957,10 +1798,7 @@
                         "placeholder": "...",
                         "name": "button_background_color",
                         "validation": {
-                            "rules": [
-                                "required",
-                                "string"
-                            ],
+                            "rules": ["required", "string"],
                             "errors": {
                                 "button_background_color.required": "Text color harus diisi",
                                 "button_background_color.string": "Text color harus berupa string"
@@ -1985,9 +1823,7 @@
                         "params": null,
                         "name": "show_in_layanan",
                         "validation": {
-                            "rules": [
-                                "array"
-                            ],
+                            "rules": ["array"],
                             "errors": {
                                 "show_in_layanan.array": "Layanan harus berupa array"
                             }

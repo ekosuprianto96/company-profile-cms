@@ -92,7 +92,7 @@ class LayananController extends Controller
             ])
             ->page('detail-layanan')
             ->setCollectionSection('detail-layanan', $layanan);
-       
+        
         return $this->view('detail-layanan', $data);
     }
 }

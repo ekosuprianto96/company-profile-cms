@@ -140,11 +140,7 @@
                 "value": "Blog",
                 "name": "title",
                 "validation": {
-                    "rules": [
-                        "required",
-                        "string",
-                        "max:150"
-                    ],
+                    "rules": ["required", "string", "max:150"],
                     "errors": {
                         "title.required": "Title harus diisi",
                         "title.string": "Title harus berupa string yang valid",
@@ -185,10 +181,7 @@
                 "placeholder": "Masukkan text placeholder...",
                 "name": "placeholder",
                 "validation": {
-                    "rules": [
-                        "string",
-                        "max:50"
-                    ],
+                    "rules": ["string", "max:50"],
                     "errors": {
                         "placeholder.string": "Placeholder harus berupa string yang valid",
                         "placeholder.max": "Placeholder maximal 50 karakter"
@@ -249,10 +242,7 @@
                 },
                 "name": "kategori",
                 "validation": {
-                    "rules": [
-                        "required",
-                        "array"
-                    ],
+                    "rules": ["required", "array"],
                     "errors": {
                         "kategori.required": "Kategori harus diisi",
                         "kategori.array": "Kategori harus berupa array"
@@ -281,11 +271,7 @@
                 "value": "Postingan Terbaru",
                 "name": "title",
                 "validation": {
-                    "rules": [
-                        "required",
-                        "string",
-                        "max:150"
-                    ],
+                    "rules": ["required", "string", "max:150"],
                     "errors": {
                         "title.required": "Title harus diisi",
                         "title.string": "Title harus berupa string yang valid",
@@ -303,11 +289,7 @@
                 "max": "500",
                 "min": "1",
                 "validation": {
-                    "rules": [
-                        "required",
-                        "numeric",
-                        "min:1"
-                    ],
+                    "rules": ["required", "numeric", "min:1"],
                     "errors": {
                         "max_show.required": "Max Show harus diisi",
                         "max_show.numeric": "Max Show harus berupa angka",
@@ -335,11 +317,7 @@
                 "max": "500",
                 "min": "1",
                 "validation": {
-                    "rules": [
-                        "required",
-                        "numeric",
-                        "min:1"
-                    ],
+                    "rules": ["required", "numeric", "min:1"],
                     "errors": {
                         "max_show.required": "Max Show harus diisi",
                         "max_show.numeric": "Max Show harus berupa angka",
@@ -400,10 +378,7 @@
                 "placeholder": "Masukkan text color...",
                 "name": "action_text_color",
                 "validation": {
-                    "rules": [
-                        "required",
-                        "string"
-                    ],
+                    "rules": ["required", "string"],
                     "errors": {
                         "action_text_color.required": "Text color harus diisi",
                         "action_text_color.string": "Text color harus berupa string"
@@ -418,10 +393,7 @@
                 "placeholder": "Masukkan background color...",
                 "name": "background_color",
                 "validation": {
-                    "rules": [
-                        "required",
-                        "string"
-                    ],
+                    "rules": ["required", "string"],
                     "errors": {
                         "background_color.required": "Background color harus diisi",
                         "background_color.string": "Background color harus berupa string"
@@ -436,10 +408,7 @@
                 "placeholder": "Masukkan text action...",
                 "name": "action_text",
                 "validation": {
-                    "rules": [
-                        "required",
-                        "string"
-                    ],
+                    "rules": ["required", "string"],
                     "errors": {
                         "action_text.required": "Action Text harus diisi",
                         "action_text.string": "Action Text harus berupa string"
@@ -454,11 +423,7 @@
                 "placeholder": "Masukkan link redirect...",
                 "name": "link_redirect",
                 "validation": {
-                    "rules": [
-                        "required",
-                        "string",
-                        "url"
-                    ],
+                    "rules": ["required", "string", "url"],
                     "errors": {
                         "link_redirect.required": "Link Redirect harus diisi",
                         "link_redirect.string": "Link Redirect harus berupa string",
@@ -488,11 +453,7 @@
                 "placeholder": "Masukkan title...",
                 "name": "title",
                 "validation": {
-                    "rules": [
-                        "required",
-                        "string",
-                        "max:150"
-                    ],
+                    "rules": ["required", "string", "max:150"],
                     "errors": {
                         "title.required": "Title harus diisi",
                         "title.string": "Title harus berupa string yang valid",
@@ -513,10 +474,7 @@
                 "value": "6281932134000",
                 "name": "phone",
                 "validation": {
-                    "rules": [
-                        "string",
-                        "exists_phone"
-                    ],
+                    "rules": ["string", "exists_phone"],
                     "errors": {
                         "phone.string": "Nomor Telepon harus berupa string yang valid",
                         "phone.exists_phone": "Nomor Telepon tidak valid"
@@ -536,11 +494,7 @@
                 "value": "Assalamualikum!,\r\n\r\nSaya ingin info lebih lanjut\r\ntentang kavling yang dijual\r\n\r\nNama Kavling : {{ title }}\r\n\r\nTerimakasih \ud83d\ude0a.",
                 "name": "message_form_whatsapp",
                 "validation": {
-                    "rules": [
-                        "required",
-                        "string",
-                        "max:250"
-                    ],
+                    "rules": ["required", "string", "max:250"],
                     "errors": {
                         "title.required": "Message harus diisi",
                         "title.string": "Message harus berupa string yang valid",
@@ -564,10 +518,7 @@
                 "placeholder": "...",
                 "name": "button_text_color",
                 "validation": {
-                    "rules": [
-                        "required",
-                        "string"
-                    ],
+                    "rules": ["required", "string"],
                     "errors": {
                         "button_text_color.required": "Text color harus diisi",
                         "button_text_color.string": "Text color harus berupa string"
@@ -582,10 +533,7 @@
                 "placeholder": "...",
                 "name": "button_background_color",
                 "validation": {
-                    "rules": [
-                        "required",
-                        "string"
-                    ],
+                    "rules": ["required", "string"],
                     "errors": {
                         "button_background_color.required": "Text color harus diisi",
                         "button_background_color.string": "Text color harus berupa string"
@@ -610,9 +558,7 @@
                 "params": null,
                 "name": "show_in_layanan",
                 "validation": {
-                    "rules": [
-                        "array"
-                    ],
+                    "rules": ["array"],
                     "errors": {
                         "show_in_layanan.array": "Layanan harus berupa array"
                     }
