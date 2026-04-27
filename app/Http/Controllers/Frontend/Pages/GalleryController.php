@@ -44,6 +44,7 @@ class GalleryController extends Controller
             'sections' => []
         ])
             ->registerSections('detail-gallery', [
+                'header-detail-gallery',
                 'detail-gallery'
             ])
             ->page('detail-gallery')

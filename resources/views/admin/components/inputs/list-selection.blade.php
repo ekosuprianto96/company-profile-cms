@@ -60,7 +60,7 @@
         $(document).ready(function() {
             $('#{{ $id }}').select2({
                 width: '100%',
-                dropdownParent: $('#{{ $id }}').closest('.modal')
+                dropdownParent: $('#{{ $id }}').closest('.modal-body')
             });
 
             $('#btn_add__list_{{ $name }}').click(function() {

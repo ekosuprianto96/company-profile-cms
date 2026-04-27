@@ -21,7 +21,7 @@
             witdh: '100%',
             templateResult: formatIcon,  // Tampilkan ikon di dropdown
             templateSelection: formatIcon, // Tampilkan ikon saat dipilih,
-            dropdownParent: $('#{{ $id }}').closest('.modal')
+            dropdownParent: $('#{{ $id }}').closest('.modal-body')
         });
 
         function formatIcon(option) {

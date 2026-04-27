@@ -30,9 +30,9 @@
                     </div>
                 </div>
                 <div class="lg:col-span-7 col-span-12 text-[var(--secondary-color)]" id="tentang__kami">
-                    <div class="w-max mb-4">
+                    <div class="w-max">
                         <h1 class="mb-3 dinamic_text_size-h1 text-2xl text-[var(--primary-color)]">{{ $informasi->title ?? '-' }}</h1>
-                        <div class="h-[8px] w-[50%] bg-[var(--primary-color)] rounded-full"></div>
+                        <!--<div class="h-[8px] w-[50%] bg-[var(--primary-color)] rounded-full"></div>-->
                     </div>
                     <div class="prose prose-a:[var(--primary-color)] prose-p:[var(--secondary-color)]">
                         {!! cutTextByWords($informasi->content ?? '-', 70, '...') ?? '-' !!}

@@ -5,4 +5,4 @@ Allow: /blog/
 Allow: /galeri/
 Allow: /layanan/
 
-Sitemap: https://the-partners.test/sitemap.xml
+Sitemap: https://maninjausembalun.com/sitemap.xml

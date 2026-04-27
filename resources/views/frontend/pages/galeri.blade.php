@@ -34,7 +34,7 @@
 
     @if($page->existsSection())
         <x-frontend.templates.container>
-            @foreach(($sections->whereNotIn('id', ['header-title']) ?? []) as $key => $value)
+            @foreach(($sections->whereNotIn('id', ['header-title', 'header-detail-gallery']) ?? []) as $key => $value)
                 {!! $value['view']->with('height_section', '80px') !!}
             @endforeach
         </x-frontend.templates.container>

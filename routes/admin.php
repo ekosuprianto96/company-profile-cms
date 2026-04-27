@@ -17,8 +17,17 @@ use App\Http\Controllers\Admin\Pages\PageController;
 use App\Http\Controllers\Admin\Roles\RoleController;
 use App\Http\Controllers\Admin\SectionPageController;
 use App\Http\Controllers\Admin\Groups\GroupController;
+use App\Http\Controllers\Admin\Themes\ThemeController;
 use App\Http\Controllers\Admin\Auth\PenggunaController;
 use App\Http\Controllers\Admin\InformasiPageController;
+use App\Http\Controllers\Admin\Mobile\MobileController;
+use App\Http\Controllers\Admin\Mobile\ChatController as MobileChatController;
+use App\Http\Controllers\Admin\Mobile\InspireController as MobileInspireController;
+use App\Http\Controllers\Admin\Mobile\MobileBudgetOptionController;
+use App\Http\Controllers\Admin\Mobile\MobileServiceRequestController;
+use App\Http\Controllers\Admin\Mobile\MobileServiceController;
+use App\Http\Controllers\Admin\Mobile\MobileServiceNeedTypeController;
+use App\Http\Controllers\Admin\Widget\WidgetController;
 use App\Http\Controllers\Admin\Banners\BannerController;
 use App\Http\Controllers\Admin\Blogs\KategoriController;
 use App\Http\Controllers\Admin\Modules\ModuleController;
@@ -33,8 +42,8 @@ use App\Http\Controllers\Admin\Auth\AuthenticateController;
 use App\Http\Controllers\Admin\Editor\EditorPageController;
 use App\Http\Controllers\Admin\Email\ContactEmailController;
 use App\Http\Controllers\Admin\Email\EmailManagementController;
+use App\Http\Controllers\Admin\Rekomendasi\RekomendasiKavlingController;
 use App\Http\Controllers\Admin\SocialMedia\SocialMediaController;
-use App\Http\Controllers\Admin\Themes\ThemeController;
 
 Route::middleware(['guest'])->name('auth.')->group(function () {
     Route::get('/login', [AuthenticateController::class, 'login'])->name('login');
@@ -223,6 +232,69 @@ Route::middleware(['auth'])->group(function () {
         Route::post('update', [SettingsController::class, 'update'])->name('update');
     });
 
+    Route::prefix('mobile/')->name('mobile.')->group(function () {
+        Route::get('', [MobileController::class, 'index'])->name('index');
+        Route::get('users', [MobileController::class, 'users'])->name('users');
+        Route::get('users/data', [MobileController::class, 'usersData'])->name('users.data');
+        Route::post('users/{id}/toggle-status', [MobileController::class, 'toggleUserStatus'])->name('users.toggle_status');
+        Route::post('users/{id}/revoke-tokens', [MobileController::class, 'revokeUserTokens'])->name('users.revoke_tokens');
+        Route::get('otp-logs', [MobileController::class, 'otpLogs'])->name('otp_logs');
+        Route::get('otp-logs/data', [MobileController::class, 'otpLogsData'])->name('otp_logs.data');
+        Route::get('services', [MobileServiceController::class, 'index'])->name('services');
+        Route::get('services/data', [MobileServiceController::class, 'data'])->name('services.data');
+        Route::get('services/forms', [MobileServiceController::class, 'forms'])->name('services.forms');
+        Route::post('services/store', [MobileServiceController::class, 'store'])->name('services.store');
+        Route::post('services/update/{id}', [MobileServiceController::class, 'update'])->name('services.update');
+        Route::post('services/destroy', [MobileServiceController::class, 'destroy'])->name('services.destroy');
+        Route::get('service-need-types', [MobileServiceNeedTypeController::class, 'index'])->name('service_need_types');
+        Route::get('service-need-types/data', [MobileServiceNeedTypeController::class, 'data'])->name('service_need_types.data');
+        Route::get('service-need-types/forms', [MobileServiceNeedTypeController::class, 'forms'])->name('service_need_types.forms');
+        Route::post('service-need-types/store', [MobileServiceNeedTypeController::class, 'store'])->name('service_need_types.store');
+        Route::post('service-need-types/update/{id}', [MobileServiceNeedTypeController::class, 'update'])->name('service_need_types.update');
+        Route::post('service-need-types/destroy', [MobileServiceNeedTypeController::class, 'destroy'])->name('service_need_types.destroy');
+        Route::get('budget-options', [MobileBudgetOptionController::class, 'index'])->name('budget_options');
+        Route::get('budget-options/data', [MobileBudgetOptionController::class, 'data'])->name('budget_options.data');
+        Route::get('budget-options/forms', [MobileBudgetOptionController::class, 'forms'])->name('budget_options.forms');
+        Route::post('budget-options/store', [MobileBudgetOptionController::class, 'store'])->name('budget_options.store');
+        Route::post('budget-options/update/{id}', [MobileBudgetOptionController::class, 'update'])->name('budget_options.update');
+        Route::post('budget-options/destroy', [MobileBudgetOptionController::class, 'destroy'])->name('budget_options.destroy');
+        Route::get('service-requests', [MobileServiceRequestController::class, 'index'])->name('service_requests.index');
+        Route::get('service-requests/data', [MobileServiceRequestController::class, 'data'])->name('service_requests.data');
+        Route::get('service-requests/export', [MobileServiceRequestController::class, 'exportExcel'])->name('service_requests.export');
+        Route::get('service-requests/export-pdf', [MobileServiceRequestController::class, 'exportPdf'])->name('service_requests.export_pdf');
+        Route::get('service-requests/{id}/download', [MobileServiceRequestController::class, 'download'])->whereNumber('id')->name('service_requests.download');
+        Route::get('service-requests/photos/{file}', [MobileServiceRequestController::class, 'photo'])->where('file', '.+')->name('service_requests.photo');
+        Route::post('service-requests/{id}/approve', [MobileServiceRequestController::class, 'approve'])->whereNumber('id')->name('service_requests.approve');
+        Route::post('service-requests/{id}/complete', [MobileServiceRequestController::class, 'complete'])->whereNumber('id')->name('service_requests.complete');
+        Route::post('service-requests/{id}/reject', [MobileServiceRequestController::class, 'reject'])->whereNumber('id')->name('service_requests.reject');
+        Route::post('service-requests/{id}/status', [MobileServiceRequestController::class, 'updateStatus'])->whereNumber('id')->name('service_requests.update_status');
+        Route::get('service-requests/{id}/chat-user', [MobileServiceRequestController::class, 'chatUser'])->whereNumber('id')->name('service_requests.chat_user');
+        Route::get('service-requests/{id}', [MobileServiceRequestController::class, 'show'])->whereNumber('id')->name('service_requests.show');
+        Route::get('banners', [MobileController::class, 'banners'])->name('banners');
+        Route::get('furniture', [MobileController::class, 'furniture'])->name('furniture');
+        Route::get('home-layout', [MobileController::class, 'homeLayout'])->name('home_layout');
+        Route::get('notifications', [MobileController::class, 'notifications'])->name('notifications');
+        Route::get('notifications/send', [MobileController::class, 'sendNotificationForm'])->name('notifications.create');
+        Route::post('notifications/send', [MobileController::class, 'sendNotification'])->name('notifications.send');
+        Route::prefix('inspirasi')->name('inspirasi.')->group(function () {
+            Route::get('', [MobileInspireController::class, 'index'])->name('index');
+            Route::get('data', [MobileInspireController::class, 'data'])->name('data');
+            Route::get('create', [MobileInspireController::class, 'create'])->name('create');
+            Route::post('store', [MobileInspireController::class, 'store'])->name('store');
+            Route::get('edit/{slug}', [MobileInspireController::class, 'edit'])->name('edit');
+            Route::post('update/{slug}', [MobileInspireController::class, 'update'])->name('update');
+            Route::post('destroy', [MobileInspireController::class, 'destroy'])->name('destroy');
+        });
+        Route::get('live-chat/{conversation?}', [MobileChatController::class, 'index'])->whereNumber('conversation')->name('live_chat');
+        Route::post('live-chat/{conversation}/messages', [MobileChatController::class, 'store'])->whereNumber('conversation')->name('live_chat.messages');
+        Route::get('settings', [MobileController::class, 'settings'])->name('settings');
+        Route::post('settings/update', [MobileController::class, 'updateSettings'])->name('settings.update');
+        Route::get('regions/provinces', [MobileController::class, 'regionsProvinces'])->name('regions.provinces');
+        Route::get('regions/regencies', [MobileController::class, 'regionsRegencies'])->name('regions.regencies');
+        Route::get('regions/districts', [MobileController::class, 'regionsDistricts'])->name('regions.districts');
+        Route::get('regions/villages', [MobileController::class, 'regionsVillages'])->name('regions.villages');
+    });
+
     // email management
     Route::prefix('email/')->name('email.')->group(function () {
         Route::get('', [EmailManagementController::class, 'index'])->name('index');
@@ -283,6 +355,17 @@ Route::middleware(['auth'])->group(function () {
 
     Route::prefix('visitor/')->name('visitor.')->group(function () {
         Route::get('data', [VisitorController::class, 'data'])->name('data');
+    });
+
+    // rekomendasi
+    Route::prefix('rekomendasi/')->name('rekomendasi_kavling.')->group(function () {
+        Route::get('', [RekomendasiKavlingController::class, 'index'])->middleware('permission:rekomendasi:show')->name('index');
+        Route::get('data', [RekomendasiKavlingController::class, 'data'])->middleware('permission:rekomendasi:show')->name('data');
+        Route::get('create', [RekomendasiKavlingController::class, 'create'])->middleware('permission:rekomendasi:create')->name('create');
+        Route::get('{id}', [RekomendasiKavlingController::class, 'edit'])->middleware('permission:rekomendasi:edit')->name('edit');
+        Route::post('update/{id}', [RekomendasiKavlingController::class, 'update'])->middleware('permission:rekomendasi:update')->name('update');
+        Route::post('store', [RekomendasiKavlingController::class, 'store'])->middleware('permission:rekomendasi:store')->name('store');
+        Route::post('destroy', [RekomendasiKavlingController::class, 'destroy'])->middleware('permission:rekomendasi:destroy')->name('destroy');
     });
 
     Route::post('logout', [AuthenticateController::class, 'logout'])->name('auth.logout');

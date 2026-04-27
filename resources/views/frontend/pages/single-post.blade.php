@@ -2,10 +2,13 @@
 
 @php($sections = $page->sections() ?? [])
 @php($not_in = $sections->where('id', 'detail-post')->first()['collection']?->slug ?? [])
+@php($header = $page->sections()->where('id', 'header-detail-post')->first() ?? null)
 
 @section('content')
 
-    <x-frontend.sections.header-title :forms="(object)['title' => ['value' => $page->title()]]" />
+    @if(isset($header))
+        {!! $header['view']->with('title', $page->title()) !!}
+    @endif
 
     @if($page->existsSection())
         <x-frontend.templates.container>
@@ -16,7 +19,7 @@
                     @endforeach
                 </div>
                 <div class="lg:col-span-4 col-span-12">
-                    @foreach(($sections->whereNotIn('id', ['header-title', 'detail-post']) ?? []) as $key => $value)
+                    @foreach(($sections->whereNotIn('id', ['detail-post', 'header-detail-post']) ?? []) as $key => $value)
                         @if($value['id'] != 'list-latest-post')
                             {!! $value['view']->with('height_section', '80px') !!}
                         @else

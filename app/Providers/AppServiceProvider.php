@@ -2,12 +2,16 @@
 
 namespace App\Providers;
 
+use App\Models\MobileUserOtp;
+use App\Observers\MobileUserOtpObserver;
 use App\Services\PageService;
+use App\Services\MobileAppSettingService;
 use Illuminate\Support\Carbon;
 use App\Rules\ExistEmailInformasi;
 use App\Rules\ExistPhoneInformasi;
 use App\Services\InformasiService;
 use App\Services\SocialMediaService;
+use Illuminate\Support\Facades\URL;
 use App\Services\EmailSettingService;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Validation\Rules\Email;
@@ -35,6 +39,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (str_starts_with((string) config('app.url'), 'https://')) {
+            URL::forceScheme('https');
+        }
+
+        MobileUserOtp::observe(MobileUserOtpObserver::class);
 
         Validator::extend('exists_email', function ($attribute, $value, $parameters, $validator) {
             return (new ExistEmailInformasi())->validate($attribute, $value, function () {});
@@ -70,10 +79,18 @@ class AppServiceProvider extends ServiceProvider
                 });
         });
 
+        $mobileAppSettings = cache()->rememberForever('mobile_app_settings_bootstrap', function () {
+            return (new MobileAppSettingService(
+                new \App\Repositories\MobileAppSettingRepository()
+            ))->getSettings();
+        });
+
         config([
             'app.name' => $settings->value['app_name'],
             'app.timezone' => $settings->value['timezone'] ?? 'Asia/Jakarta',
             'app.logo' => $settings->value['app_logo'] ?? '',
+            'mobile_request.survey_fee' => $mobileAppSettings['survey_fee'] ?? config('mobile_request.survey_fee'),
+            'mobile_request.tax_percentage' => $mobileAppSettings['tax_percentage'] ?? 0,
         ]);
 
         config()->set('settings', $settings);

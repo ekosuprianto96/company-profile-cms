@@ -6,6 +6,28 @@
         <span class="menu-title">Beranda</span>
       </a>
     </li>
+    <li class="nav-item nav-category">App</li>
+    <li class="nav-item">
+      <a class="nav-link" data-bs-toggle="collapse" href="#mobile_app_module" aria-expanded="false" aria-controls="mobile_app_module">
+        <i class="ri-smartphone-line menu-icon"></i>
+        <span class="menu-title">Mobile App</span>
+        <i class="menu-arrow"></i>
+      </a>
+      <div class="collapse" id="mobile_app_module">
+        <ul class="nav flex-column sub-menu">
+          <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.index') }}">Overview</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.users') }}">Users</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.otp_logs') }}">OTP Logs</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.service_requests.index') }}">Service Requests</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.services') }}">Services</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.banners') }}">Banners</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.furniture') }}">Furniture</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.home_layout') }}">Home Layout</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.notifications') }}">Notifications</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.live_chat') }}">Live Chat</a></li>
+        </ul>
+      </div>
+    </li>
     @foreach ($groupModules as $key => $modules)
       @php
         $group = '';

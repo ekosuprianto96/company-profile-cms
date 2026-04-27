@@ -7,7 +7,7 @@ class SectionPageService
     public function __construct(
         protected array $sections = [],
         protected array $result = [],
-        private string $pathJSON = 'config\\sections.json'
+        private string $pathJSON = 'config/sections.json'
     ) {}
 
     public function getFile()

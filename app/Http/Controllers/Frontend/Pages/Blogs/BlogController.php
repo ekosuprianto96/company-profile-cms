@@ -59,6 +59,7 @@ class BlogController extends Controller
                 'sections' => []
             ])
                 ->registerSections('single-post', [
+                    'header-detail-post',
                     'detail-post',
                     'input-search',
                     'list-kategori',
@@ -66,7 +67,7 @@ class BlogController extends Controller
                 ])
                 ->page('single-post')
                 ->setCollectionSection('detail-post', $blog);
-
+            
             return $this->view('single-post', $data);
         } catch (\Exception $e) {
             Alert::error('Error', $e->getMessage());

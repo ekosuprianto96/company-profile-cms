@@ -1,5 +1,16 @@
 <?php
 
+$mailHost = (string) env('MAIL_HOST', '127.0.0.1');
+$mailScheme = env('MAIL_SCHEME', env('MAIL_ENCRYPTION'));
+
+if (preg_match('/^(ssl|tls):\/\/?(.+)$/i', $mailHost, $matches)) {
+    $mailHost = $matches[2];
+
+    if (empty($mailScheme)) {
+        $mailScheme = strtolower($matches[1]) === 'ssl' ? 'smtps' : 'tls';
+    }
+}
+
 return [
 
     /*
@@ -38,11 +49,11 @@ return [
     'mailers' => [
         'smtp' => [
             'transport' => 'smtp',
-            'scheme' => '',
-            'host' => '',
-            'port' => '',
-            'username' => '',
-            'password' => '',
+            'scheme' => $mailScheme,
+            'host' => $mailHost,
+            'port' => env('MAIL_PORT', 2525),
+            'username' => env('MAIL_USERNAME'),
+            'password' => env('MAIL_PASSWORD'),
             'timeout' => null,
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url(env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
@@ -107,8 +118,8 @@ return [
     */
 
     'from' => [
-        'address' => '',
-        'name' => '',
+        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+        'name' => env('MAIL_FROM_NAME', 'Example'),
     ],
 
     /*

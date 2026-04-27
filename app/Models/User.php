@@ -52,6 +52,11 @@ class User extends Authenticatable
         return $this->hasOne(DetailAccount::class, 'user_id', 'id');
     }
 
+    public function assignedChatConversations()
+    {
+        return $this->hasMany(ChatConversation::class, 'assigned_admin_user_id');
+    }
+
     public function role()
     {
         return $this->belongsTo(Role::class, 'id_role', 'id_role');

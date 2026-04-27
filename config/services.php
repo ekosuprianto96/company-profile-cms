@@ -35,4 +35,19 @@ return [
         ],
     ],
 
+    'twilio' => [
+        'account_sid' => env('TWILIO_ACCOUNT_SID'),
+        'auth_token' => env('TWILIO_AUTH_TOKEN'),
+        'verify_service_sid' => env('TWILIO_VERIFY_SERVICE_SID'),
+    ],
+
+    'midtrans' => [
+        'is_production' => env('MIDTRANS_IS_PRODUCTION', false),
+        'server_key' => env('MIDTRANS_SERVER_KEY'),
+        'client_key' => env('MIDTRANS_CLIENT_KEY'),
+        'merchant_id' => env('MIDTRANS_MERCHANT_ID'),
+        'finish_url' => env('MIDTRANS_FINISH_URL', 'https://maninjausembalun.test/mobile/midtrans/finish'),
+        'callback_url' => env('MIDTRANS_CALLBACK_URL', 'https://maninjausembalun.test/api/v1/mobile/midtrans/notification'),
+    ],
+
 ];

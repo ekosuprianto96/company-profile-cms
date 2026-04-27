@@ -3,18 +3,6 @@
     'height_section' => '80px'
 ])
 
-<style>
-    #post_gallery p {
-        text-align: justify;
-        text-justify: inter-word;
-        font-size: 0.9em;
-        hyphens: auto;
-        -webkit-hyphens: auto;
-        -ms-hyphens: auto;
-        -moz-hyphens: auto;
-    }
-</style>
-
 <x-frontend.templates.m-section
     :top="$height_section"
     mobileTop="40px"
@@ -29,8 +17,8 @@
                 </div>
             </div>
             <div class="w-full lg:col-span-6 col-span-12">
-                <div class="prose w-full -mx-auto max-w-none text-slate-600 prose-a:text-[var(--primary-color)] prose-headings:text-[var(--primary-color)] prose-p:text-[var(--secondary-color)]" id="post_gallery">
-                    <h1>{{ $collection->title ?? '-' }}</h1>
+                <div class="prose w-full -mx-auto max-w-none text-[var(--secondary-color)] prose-a:text-[var(--primary-color)] prose-headings:text-[var(--primary-color)] prose-p:text-[var(--secondary-color)]" id="post_gallery">
+                    <h1 class="font-bold text-[var(--primary-color)]">{{ $collection->title ?? '-' }}</h1>
                     {!! $collection->content ?? '-' !!}
                 </div>
             </div>

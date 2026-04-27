@@ -19,7 +19,7 @@
 
         $('#{{ $id }}').select2({
             witdh: '100%',
-            dropdownParent: $('#{{ $id }}').closest('.modal')
+            dropdownParent: $('#{{ $id }}').closest('.modal-body')
         });
     })(jQuery)
 </script>

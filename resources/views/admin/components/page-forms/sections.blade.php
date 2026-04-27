@@ -60,7 +60,10 @@
                 modal: '#modalUpdateSection',
                 options: {
                     title: 'Edit Section',
-                    bind: 'section'
+                    bind: 'section',
+                    keyboard: false,
+                    focus: false,
+                    show: false
                 }
             });
 

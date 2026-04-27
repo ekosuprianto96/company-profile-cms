@@ -186,6 +186,17 @@ class PageService
         return $this;
     }
 
+    public function setForms($idSection, mixed $value)
+    {
+        collect($this->config['sections'])->map(function ($item, $key) use ($value, $idSection) {
+            if ($item['id'] === $idSection) {
+                $this->config['sections'][$key]['forms'] = $value;
+            }
+        });
+
+        return $this;
+    }
+
     public function registerSections($idPage, array $value = [])
     {
         $this->config->transform(function ($item) use ($value, $idPage) {

@@ -1,9 +1,12 @@
 @extends('frontend.layouts.main', ['title' => $page->title(), 'meta' => $page->meta() ?? []])
 @php($sections = $page->sections() ?? [])
+@php($header = $sections->where('id', 'header-detail-gallery')->first() ?? null)
 
 @section('content')
 
-    <x-frontend.sections.header-title :forms="(object)['title' => ['value' => $page->title()]]" />
+    @if(isset($header))
+        {!! $header['view']->with('title', $page->title()) !!}
+    @endif
 
     @if($page->existsSection())
         <x-frontend.templates.container>

@@ -109,7 +109,7 @@ class KontakController extends Controller
 
             // Kirim email ke email kantor
             $test = Mail::to($email['value'])
-                ->send(new ContactFormMail($validatedData, $messageID));
+                ->queue(new ContactFormMail($validatedData, $messageID));
 
             DB::transaction(function () use ($request, $customerContactService, $emailService, $email, $messageID) {
 

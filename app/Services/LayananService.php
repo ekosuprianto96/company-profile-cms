@@ -103,7 +103,8 @@ class LayananService
 
     public function update(LayananUpdateRequest $request, int $id)
     {
-
+        $update = $this->layanan->find($id);
+        
         if (isset($request->file_name)) {
             $pathTemps = 'assets/images/temps/' . $request->file_name;
             $pathBanners = 'assets/images/services/' . $request->file_name;
@@ -118,7 +119,7 @@ class LayananService
                 'file_name' => $this->findLayanan($id)->image ?? null
             ]);
         }
-
+        
         if (isset($request->url_icon) && !empty($request->url_icon)) {
             if ($request->type_icon == 'image') {
                 $pathTemps = 'assets/images/temps/' . $request->url_icon;
@@ -131,6 +132,10 @@ class LayananService
                 if (file_exists(public_path($pathTemps))) {
                     rename(public_path($pathTemps), public_path($pathIcon));
                 }
+                
+                if(!empty($update->url_image ?? '')) {
+                    $this->removeImage($update->url_image);
+                }
             }
         } else {
             $request->merge([
@@ -138,15 +143,8 @@ class LayananService
             ]);
         }
 
-
-        $update = $this->layanan->find($id);
-
         if ($request->type == 'icon') {
             $this->removeImage($update->url_image);
-        } else {
-            if (isset($request->url_icon) && !empty($request->url_icon) && !empty($update->url_image)) {
-                $this->removeImage($update->url_image);
-            }
         }
 
         return $this->layanan->update($id, [

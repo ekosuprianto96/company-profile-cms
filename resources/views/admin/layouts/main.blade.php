@@ -61,6 +61,25 @@
           --ck-z-default: 100;
           --ck-z-panel: calc( var(--ck-z-default) + 999 );
       }
+      body {
+          font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+          line-height: 1.5;
+          text-rendering: optimizeLegibility;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+      }
+      .form-control,
+      .btn,
+      .badge,
+      .card-title,
+      .modal-title,
+      .table,
+      .nav-link {
+          font-family: inherit;
+      }
+      .form-control {
+          line-height: 1.45;
+      }
       .ck-editor__editable {min-height: 250px;}
       .ck.ck-balloon-panel {
           z-index: 1200 !important; /* Lebih tinggi dari modal Bootstrap */
@@ -147,5 +166,32 @@
         @endif
       });
     </script>
+
+    @php
+      $adminUser = auth()->user();
+      $browserNotificationsConfig = $adminUser ? [
+          'adminId' => $adminUser->id,
+          'adminName' => $adminUser->name,
+          'authEndpoint' => url('/broadcasting/auth'),
+          'csrfToken' => csrf_token(),
+          'reverbKey' => config('broadcasting.connections.reverb.key'),
+          'reverbHost' => config('broadcasting.connections.reverb.options.host', request()->getHost()),
+          'reverbScheme' => config('broadcasting.connections.reverb.options.scheme', 'http'),
+          'reverbPort' => config('broadcasting.connections.reverb.options.port', 8080),
+          'reverbTlsPort' => config('broadcasting.connections.reverb.options.tls_port', 443),
+          'pusherCluster' => config('broadcasting.connections.pusher.options.cluster', 'mt1'),
+          'notificationIcon' => image_url('informasi', config('settings.value.favicon.file')),
+      ] : null;
+    @endphp
+
+    @if ($browserNotificationsConfig)
+      <script>
+        window.__MANINJAU_ADMIN_BROWSER_NOTIFICATIONS__ = @json($browserNotificationsConfig);
+      </script>
+    @endif
+
+    @vite(['resources/js/admin/browser-notifications.js'])
+
+    @stack('admin-scripts')
   </body>
 </html>

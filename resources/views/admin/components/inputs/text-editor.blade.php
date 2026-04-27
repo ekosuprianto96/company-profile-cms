@@ -12,13 +12,39 @@
     >{{ $value ?? '' }}</textarea>
 </div>
 <script src="{{ asset('assets/admin/assets/js/ckeditor5.js') }}"></script>
+<script src="{{ asset('assets/admin/assets/js/texteditor.js') }}"></script>
 <script>
-    var textEditorInput;
+    var editorInstance;
     ClassicEditor
-    .create( document.querySelector( '#{{ $id }}'), {
+    .create( document.querySelector( '#content'), {
+        extraPlugins: [
+            function(editor) {
+                createCustomUploadAdapterPlugin({
+                    url: '{{ route('admin.ckeditor.upload') }}',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })(editor);
+
+                new ImageRemovePlugin(editor);
+            }
+        ],
         removePlugins: ['Markdown'], // Matikan plugin Markdown
     })
     .then( editor => {
-        textEditorInput = editor;
+        editorInstance = editor;
+
+        editor.on('image:removed', (event, {imageRemoved}) => {
+            fetch('{{ route('admin.ckeditor.cleanup') }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    images: imageRemoved
+                })
+            });
+        });
     });
 </script>
