@@ -173,13 +173,19 @@
         </thead>
         <tbody>
             @forelse ($records as $record)
+                @php
+                    $isEventProject = ($record->request_flow_type ?? 'standard') === 'event_project';
+                    $serviceSubtitle = $isEventProject
+                        ? trim(($record->eventProjectType?->name ?? '-') . ' / ' . ($record->eventProjectNeed?->name ?? '-'), ' /')
+                        : ($record->needType?->name ?? '-');
+                @endphp
                 <tr>
                     <td>{{ $record->transaction_code_label }}</td>
                     <td>
                         <strong>{{ $record->user?->name ?? '-' }}</strong><br>
                         <span class="small muted">{{ $record->user?->phone ?? $record->user?->email ?? '-' }}</span>
                     </td>
-                    <td>{{ $record->service?->title ?? '-' }}<br><span class="small muted">{{ $record->needType?->name ?? '-' }}</span></td>
+                    <td>{{ $record->service?->title ?? '-' }}<br><span class="small muted">{{ $serviceSubtitle ?: '-' }}</span></td>
                     <td>{{ optional($record->survey_date)?->format('d M Y') ?? '-' }}<br><span class="small muted">{{ $record->survey_address ?? '-' }}</span></td>
                     <td>{{ $formatRegion($record->survey_region ?? data_get($record->draft_payload, 'surveyRegion')) }}</td>
                     <td>{{ str_replace('_', ' ', ucfirst((string) $record->status)) }}</td>

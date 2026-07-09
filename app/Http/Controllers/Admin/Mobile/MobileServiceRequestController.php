@@ -92,9 +92,13 @@ class MobileServiceRequestController extends Controller
                 </div>';
             })
             ->addColumn('service', function ($request) {
+                $secondary = ($request->request_flow_type ?? 'standard') === 'event_project'
+                    ? ($request->eventProjectType?->name . ' / ' . $request->eventProjectNeed?->name)
+                    : ($request->needType?->name ?? '-');
+
                 return '<div class="small service-request-cell" style="line-height: 1.35;">
                     <div class="fw-semibold text-dark service-request-clamp-1">' . e($request->service?->title ?? '-') . '</div>
-                    <div class="text-muted service-request-clamp-1">' . e($request->needType?->name ?? '-') . '</div>
+                    <div class="text-muted service-request-clamp-1">' . e(trim($secondary, ' /') ?: '-') . '</div>
                 </div>';
             })
             ->addColumn('schedule', function ($request) {
@@ -408,6 +412,12 @@ class MobileServiceRequestController extends Controller
                 'route' => route('admin.mobile.budget_options'),
                 'icon' => 'ri-money-dollar-circle-line',
                 'description' => 'Master pilihan perkiraan anggaran pengajuan.',
+            ],
+            [
+                'title' => 'Event Projects',
+                'route' => route('admin.mobile.event_projects'),
+                'icon' => 'ri-calendar-event-line',
+                'description' => 'Master jenis project, kebutuhan, paket, dan anggaran event.',
             ],
             [
                 'title' => 'Banners',

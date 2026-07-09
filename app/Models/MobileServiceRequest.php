@@ -20,6 +20,12 @@ class MobileServiceRequest extends Model
         'mobile_service_id',
         'mobile_service_need_type_id',
         'mobile_budget_option_id',
+        'request_flow_type',
+        'mobile_event_project_type_id',
+        'mobile_event_project_need_id',
+        'mobile_event_package_id',
+        'mobile_event_budget_option_id',
+        'event_date',
         'transaction_code',
         'building_key',
         'building_label',
@@ -66,6 +72,7 @@ class MobileServiceRequest extends Model
             'draft_payload' => 'array',
             'survey_region' => 'array',
             'survey_date' => 'date',
+            'event_date' => 'date',
             'drafted_at' => 'datetime',
             'submitted_at' => 'datetime',
             'reviewed_at' => 'datetime',
@@ -111,6 +118,26 @@ class MobileServiceRequest extends Model
     public function budgetOption(): BelongsTo
     {
         return $this->belongsTo(MobileBudgetOption::class, 'mobile_budget_option_id');
+    }
+
+    public function eventProjectType(): BelongsTo
+    {
+        return $this->belongsTo(MobileEventProjectType::class, 'mobile_event_project_type_id');
+    }
+
+    public function eventProjectNeed(): BelongsTo
+    {
+        return $this->belongsTo(MobileEventProjectNeed::class, 'mobile_event_project_need_id');
+    }
+
+    public function eventPackage(): BelongsTo
+    {
+        return $this->belongsTo(MobileEventPackage::class, 'mobile_event_package_id');
+    }
+
+    public function eventBudgetOption(): BelongsTo
+    {
+        return $this->belongsTo(MobileEventBudgetOption::class, 'mobile_event_budget_option_id');
     }
 
     public function handledBy(): BelongsTo

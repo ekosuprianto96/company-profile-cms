@@ -33,6 +33,11 @@ class MobileAppSettingService
         return (int) $this->getSettings()['survey_fee'];
     }
 
+    public function eventConsultationFee(): int
+    {
+        return (int) $this->getSettings()['event_consultation_fee'];
+    }
+
     public function taxPercentage(): float
     {
         return (float) $this->getSettings()['tax_percentage'];
@@ -49,6 +54,16 @@ class MobileAppSettingService
     public function totalAmount(): int
     {
         return $this->surveyFee() + $this->taxAmount();
+    }
+
+    public function eventConsultationTaxAmount(): int
+    {
+        return (int) round($this->eventConsultationFee() * ($this->taxPercentage() / 100));
+    }
+
+    public function eventConsultationTotalAmount(): int
+    {
+        return $this->eventConsultationFee() + $this->eventConsultationTaxAmount();
     }
 
     public function surveyCoverage(): array
@@ -193,6 +208,7 @@ class MobileAppSettingService
     {
         return [
             'survey_fee' => 150000,
+            'event_consultation_fee' => 150000,
             'tax_percentage' => 0,
             'payment_gateway' => [
                 'enabled' => true,

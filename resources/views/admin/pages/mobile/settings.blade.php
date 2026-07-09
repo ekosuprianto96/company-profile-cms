@@ -22,7 +22,7 @@
                 <form id="mobile-settings-form" method="POST" action="{{ route('admin.mobile.settings.update') }}" class="row">
                     @csrf
 
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-4 mb-3">
                         <label class="form-label">Harga Survey</label>
                         <input type="number" min="0" name="survey_fee" class="form-control @error('survey_fee') is-invalid @enderror" value="{{ old('survey_fee', $settings['survey_fee'] ?? 150000) }}">
                         @error('survey_fee')
@@ -30,7 +30,15 @@
                         @enderror
                     </div>
 
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Biaya Konsultasi Event</label>
+                        <input type="number" min="0" name="event_consultation_fee" class="form-control @error('event_consultation_fee') is-invalid @enderror" value="{{ old('event_consultation_fee', $settings['event_consultation_fee'] ?? 150000) }}">
+                        @error('event_consultation_fee')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="col-md-4 mb-3">
                         <label class="form-label">Pajak (%)</label>
                         <input type="number" min="0" max="100" name="tax_percentage" class="form-control @error('tax_percentage') is-invalid @enderror" value="{{ old('tax_percentage', $settings['tax_percentage'] ?? 0) }}">
                         @error('tax_percentage')
@@ -199,6 +207,7 @@
                 </div>
                 <div class="d-flex flex-wrap gap-2">
                     <span class="badge bg-light text-dark border px-3 py-2">Survey: Rp{{ number_format((int) ($settings['survey_fee'] ?? 150000), 0, ',', '.') }}</span>
+                    <span class="badge bg-light text-dark border px-3 py-2">Konsultasi Event: Rp{{ number_format((int) ($settings['event_consultation_fee'] ?? 150000), 0, ',', '.') }}</span>
                     <span class="badge bg-light text-dark border px-3 py-2">Pajak: {{ (int) ($settings['tax_percentage'] ?? 0) }}%</span>
                     <span class="badge bg-light text-dark border px-3 py-2">Gateway: {{ data_get($settings, 'payment_gateway.provider', 'midtrans') }}</span>
                     <span class="badge bg-light text-dark border px-3 py-2">Cakupan Area: {{ data_get($surveyCoverage, 'enabled', false) ? 'Aktif' : 'Nonaktif' }}</span>

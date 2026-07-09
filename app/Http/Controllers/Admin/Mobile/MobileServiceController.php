@@ -39,6 +39,7 @@ class MobileServiceController extends Controller
                         <div class="d-flex flex-column">
                             <span class="fw-semibold">' . e($service->title) . '</span>
                             <small class="text-muted">' . e($service->slug) . '</small>
+                            <span class="badge badge-sm ' . (($service->request_flow_type ?? 'standard') === 'event_project' ? 'badge-info' : 'badge-light') . '">' . e($service->request_flow_type ?? 'standard') . '</span>
                         </div>
                     ';
                 })

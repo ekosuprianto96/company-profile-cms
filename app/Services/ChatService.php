@@ -13,6 +13,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -272,10 +273,20 @@ class ChatService
             return;
         }
 
-        event(new ChatMessageCreated(
-            $this->conversationSummary($freshMessage->conversation),
-            $this->messagePayload($freshMessage)
-        ));
+        try {
+            event(new ChatMessageCreated(
+                $this->conversationSummary($freshMessage->conversation),
+                $this->messagePayload($freshMessage)
+            ));
+        } catch (\Throwable $th) {
+            report($th);
+
+            Log::warning('Chat realtime broadcast failed; message was saved without live update.', [
+                'chat_message_id' => $freshMessage->id,
+                'chat_conversation_id' => $freshMessage->chat_conversation_id,
+                'error' => $th->getMessage(),
+            ]);
+        }
     }
 
     protected function notifyChatParticipant(ChatMessage $message, ?ChatConversation $conversation, User|MobileUser $sender): void

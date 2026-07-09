@@ -12,6 +12,12 @@ class MobileServiceRequestRepository extends BaseRepositori
         'mobile_service_id',
         'mobile_service_need_type_id',
         'mobile_budget_option_id',
+        'request_flow_type',
+        'mobile_event_project_type_id',
+        'mobile_event_project_need_id',
+        'mobile_event_package_id',
+        'mobile_event_budget_option_id',
+        'event_date',
         'transaction_code',
         'building_key',
         'building_label',
@@ -91,14 +97,14 @@ class MobileServiceRequestRepository extends BaseRepositori
     public function adminQuery()
     {
         return $this->model
-            ->with(['user', 'service', 'needType', 'budgetOption', 'handledBy'])
+            ->with(['user', 'service', 'needType', 'budgetOption', 'eventProjectType', 'eventProjectNeed', 'eventPackage', 'eventBudgetOption', 'handledBy'])
             ->latest('id');
     }
 
     public function findForAdmin(int $id): ?MobileServiceRequest
     {
         return $this->model
-            ->with(['user', 'service', 'needType', 'budgetOption', 'handledBy'])
+            ->with(['user', 'service', 'needType', 'budgetOption', 'eventProjectType', 'eventProjectNeed', 'eventPackage', 'eventBudgetOption', 'handledBy'])
             ->find($id);
     }
 

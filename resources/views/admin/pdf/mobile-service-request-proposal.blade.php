@@ -1,6 +1,7 @@
 @php
     $statusLabel = ucfirst(str_replace('_', ' ', (string) $serviceRequest->status));
     $paymentLabel = ucfirst(str_replace('_', ' ', (string) $serviceRequest->payment_status));
+    $isEventProject = ($serviceRequest->request_flow_type ?? 'standard') === 'event_project';
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -144,8 +145,8 @@
         <table class="brand-row">
             <tr>
                 <td>
-                    <div class="brand-title">Proposal Pengajuan Survey</div>
-                    <p class="brand-subtitle">Dokumen ringkasan pengajuan layanan mobile order kontraktor</p>
+                    <div class="brand-title">{{ $isEventProject ? 'Proposal Konsultasi Event' : 'Proposal Pengajuan Survey' }}</div>
+                    <p class="brand-subtitle">Dokumen ringkasan pengajuan layanan mobile</p>
                 </td>
                 <td style="text-align: right;">
                     <div class="meta-badge badge-secondary">{{ $proposalNumber }}</div><br><br>
@@ -191,8 +192,8 @@
                             <td class="info-value">{{ $serviceRequest->service?->title ?? '-' }}</td>
                         </tr>
                         <tr>
-                            <td class="info-label">Jenis Kebutuhan</td>
-                            <td class="info-value">{{ $serviceRequest->needType?->name ?? '-' }}</td>
+                            <td class="info-label">{{ $isEventProject ? 'Jenis Project' : 'Jenis Kebutuhan' }}</td>
+                            <td class="info-value">{{ $isEventProject ? ($serviceRequest->eventProjectType?->name ?? '-') : ($serviceRequest->needType?->name ?? '-') }}</td>
                         </tr>
                         <tr>
                             <td class="info-label">Tanggal</td>
@@ -207,21 +208,36 @@
     <div class="section-title">Rincian Pengajuan</div>
     <div class="box">
         <table class="info-table">
+            @if($isEventProject)
+                <tr>
+                    <td class="info-label">Kebutuhan Project</td>
+                    <td class="info-value">{{ $serviceRequest->eventProjectNeed?->name ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="info-label">Tanggal Event</td>
+                    <td class="info-value">{{ optional($serviceRequest->event_date)?->format('d M Y') ?? '-' }}</td>
+                </tr>
+                <tr>
+                    <td class="info-label">Paket Event</td>
+                    <td class="info-value">{{ $serviceRequest->eventPackage?->name ?? '-' }}</td>
+                </tr>
+            @else
+                <tr>
+                    <td class="info-label">Jenis Bangunan</td>
+                    <td class="info-value">{{ $serviceRequest->building_label ?? '-' }}</td>
+                </tr>
+            @endif
             <tr>
-                <td class="info-label">Jenis Bangunan</td>
-                <td class="info-value">{{ $serviceRequest->building_label ?? '-' }}</td>
-            </tr>
-            <tr>
-                <td class="info-label">Lokasi Survey</td>
+                <td class="info-label">{{ $isEventProject ? 'Lokasi Meeting' : 'Lokasi Survey' }}</td>
                 <td class="info-value">{{ $serviceRequest->survey_address ?? '-' }}</td>
             </tr>
             <tr>
-                <td class="info-label">Tanggal Survey</td>
+                <td class="info-label">{{ $isEventProject ? 'Tanggal Meeting' : 'Tanggal Survey' }}</td>
                 <td class="info-value">{{ optional($serviceRequest->survey_date)?->format('d M Y') ?? '-' }}</td>
             </tr>
             <tr>
                 <td class="info-label">Perkiraan Anggaran</td>
-                <td class="info-value">{{ $serviceRequest->budgetOption?->name ?? '-' }}</td>
+                <td class="info-value">{{ $isEventProject ? ($serviceRequest->eventBudgetOption?->name ?? '-') : ($serviceRequest->budgetOption?->name ?? '-') }}</td>
             </tr>
         </table>
     </div>
@@ -230,7 +246,7 @@
     <div class="box">
         <table class="cost-table">
             <tr>
-                <td>Biaya Survey</td>
+                <td>{{ $isEventProject ? 'Biaya Konsultasi Event' : 'Biaya Survey' }}</td>
                 <td style="text-align: right;">Rp{{ number_format((int) $serviceRequest->survey_fee, 0, ',', '.') }}</td>
             </tr>
             <tr>
@@ -244,10 +260,12 @@
         </table>
     </div>
 
-    <div class="section-title">Catatan Masalah</div>
-    <div class="note-box">
-        {{ $serviceRequest->description ?: '-' }}
-    </div>
+    @unless($isEventProject)
+        <div class="section-title">Catatan Masalah</div>
+        <div class="note-box">
+            {{ $serviceRequest->description ?: '-' }}
+        </div>
+    @endunless
 
     @if ($serviceRequest->admin_note)
         <div class="section-title">Catatan Admin</div>

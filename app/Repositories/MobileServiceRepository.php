@@ -11,6 +11,7 @@ class MobileServiceRepository extends BaseRepositori
     protected $fillable = [
         'title',
         'slug',
+        'request_flow_type',
         'summary',
         'description',
         'icon_type',

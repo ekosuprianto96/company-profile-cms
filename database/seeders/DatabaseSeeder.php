@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             MobileAppSettingsSeeder::class,
             MobileServiceNeedTypeSeeder::class,
             MobileBudgetOptionSeeder::class,
+            MobileEventProjectSeeder::class,
             MobileServiceSeeder::class,
             InspirePostSeeder::class,
         ]);

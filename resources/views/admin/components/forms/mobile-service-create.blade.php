@@ -24,6 +24,16 @@
     </div>
 
     <div class="form-group">
+        <label for="request_flow_type">Tipe Flow Pengajuan</label>
+        <select name="request_flow_type" id="request_flow_type" class="form-control">
+            <option value="standard">Standard</option>
+            <option value="event_project">Event Project</option>
+        </select>
+        <div data-error="request_flow_type" class="invalid-fedback"><span class="text-danger" style="font-size: 0.8em"></span></div>
+        <small class="text-muted">Pilih Event Project untuk layanan seperti Wedding Organizer.</small>
+    </div>
+
+    <div class="form-group">
         <label for="need_types">Jenis Kebutuhan Layanan</label>
         <select name="need_types[]" id="need_types" class="form-control" multiple="multiple">
             @foreach($needTypes as $needType)
@@ -217,6 +227,7 @@
         $('#buttonAddMobileService').click(function() {
             $.post('{{ route('admin.mobile.services.store') }}', {
                 title: $('[name=title]').val(),
+                request_flow_type: $('[name=request_flow_type]').val(),
                 summary: $('[name=summary]').val(),
                 description: $('[name=description]').val(),
                 icon_type: $('[name=icon_type]').val(),

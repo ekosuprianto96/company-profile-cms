@@ -413,6 +413,7 @@ class MobileController extends Controller
     {
         $validated = $request->validate([
             'survey_fee' => 'required|integer|min:0',
+            'event_consultation_fee' => 'required|integer|min:0',
             'tax_percentage' => 'required|integer|min:0|max:100',
             'payment_gateway_enabled' => 'nullable|boolean',
             'payment_gateway_provider' => 'nullable|string|max:50',
@@ -503,6 +504,7 @@ class MobileController extends Controller
 
         $mobileAppSettingService->update([
             'survey_fee' => (int) $validated['survey_fee'],
+            'event_consultation_fee' => (int) $validated['event_consultation_fee'],
             'tax_percentage' => (int) $validated['tax_percentage'],
             'payment_gateway' => [
                 'enabled' => $request->boolean('payment_gateway_enabled'),
@@ -598,6 +600,12 @@ class MobileController extends Controller
                 'route' => route('admin.mobile.budget_options'),
                 'icon' => 'ri-money-dollar-circle-line',
                 'description' => 'Master pilihan perkiraan anggaran pengajuan.',
+            ],
+            [
+                'title' => 'Event Projects',
+                'route' => route('admin.mobile.event_projects'),
+                'icon' => 'ri-calendar-event-line',
+                'description' => 'Master jenis project, kebutuhan, paket, dan anggaran event.',
             ],
             [
                 'title' => 'Banners',

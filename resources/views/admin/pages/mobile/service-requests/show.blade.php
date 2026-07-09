@@ -127,6 +127,7 @@
         ->map(fn ($photo) => $resolvePhotoUrl($photo))
         ->filter(fn ($photo) => is_array($photo) && ! empty($photo['uri']))
         ->values();
+    $isEventProject = ($serviceRequest->request_flow_type ?? 'standard') === 'event_project';
 @endphp
 
 <div class="row align-items-start">
@@ -159,9 +160,10 @@
                     <div>
                         <div class="text-muted text-uppercase mb-1" style="font-size: 12px; letter-spacing: 1px;">Ringkasan Pengajuan</div>
                         <h4 class="mb-1">{{ $serviceRequest->service?->title ?? '-' }}</h4>
-                        <p class="mb-0 text-muted">{{ $serviceRequest->needType?->name ?? '-' }}</p>
+                        <p class="mb-0 text-muted">{{ $isEventProject ? ($serviceRequest->eventProjectType?->name ?? '-') : ($serviceRequest->needType?->name ?? '-') }}</p>
                         <div class="mt-2">
                             <span class="badge badge-sm badge-secondary">{{ $serviceRequest->transaction_code_label }}</span>
+                            <span class="badge badge-sm badge-info">{{ $isEventProject ? 'event_project' : 'standard' }}</span>
                         </div>
                     </div>
                     <div class="d-flex flex-column align-items-end" style="gap: 8px;">
@@ -183,16 +185,35 @@
                         <label class="form-label">Email</label>
                         <input type="text" class="form-control" value="{{ $serviceRequest->user?->email ?? '-' }}" readonly>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Jenis Bangunan</label>
-                        <input type="text" class="form-control" value="{{ $serviceRequest->building_label ?? '-' }}" readonly>
-                    </div>
+                    @if($isEventProject)
+                        <div class="col-md-6">
+                            <label class="form-label">Jenis Project Event</label>
+                            <input type="text" class="form-control" value="{{ $serviceRequest->eventProjectType?->name ?? data_get($serviceRequest->draft_payload, 'eventProjectType.label', '-') }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Kebutuhan Project Event</label>
+                            <input type="text" class="form-control" value="{{ $serviceRequest->eventProjectNeed?->name ?? data_get($serviceRequest->draft_payload, 'eventProjectNeed.label', '-') }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tanggal Event</label>
+                            <input type="text" class="form-control" value="{{ optional($serviceRequest->event_date)?->format('d M Y') ?? data_get($serviceRequest->draft_payload, 'eventDate', '-') }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Paket Event</label>
+                            <textarea class="form-control" readonly rows="3" style="resize:none;">{{ $serviceRequest->eventPackage?->name ?? data_get($serviceRequest->draft_payload, 'eventPackage.label', '-') }}</textarea>
+                        </div>
+                    @else
+                        <div class="col-md-6">
+                            <label class="form-label">Jenis Bangunan</label>
+                            <input type="text" class="form-control" value="{{ $serviceRequest->building_label ?? '-' }}" readonly>
+                        </div>
+                    @endif
                     <div class="col-md-6">
                         <label class="form-label">Kode Pengajuan</label>
                         <input type="text" class="form-control" value="{{ $serviceRequest->transaction_code_label }}" readonly>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Lokasi Survey</label>
+                        <label class="form-label">{{ $isEventProject ? 'Lokasi Meeting Konsultasi' : 'Lokasi Survey' }}</label>
                         <textarea
                             class="form-control"
                             readonly
@@ -219,26 +240,28 @@
                         >{{ $regionLabel ?: '-' }}</textarea>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Tanggal Survey</label>
+                        <label class="form-label">{{ $isEventProject ? 'Tanggal Meeting' : 'Tanggal Survey' }}</label>
                         <input type="text" class="form-control" value="{{ optional($serviceRequest->survey_date)?->format('d M Y') ?? '-' }}" readonly>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Perkiraan Anggaran</label>
-                        <input type="text" class="form-control" value="{{ $serviceRequest->budgetOption?->name ?? '-' }}" readonly>
+                        <input type="text" class="form-control" value="{{ $isEventProject ? ($serviceRequest->eventBudgetOption?->name ?? data_get($serviceRequest->draft_payload, 'eventBudget.label', '-')) : ($serviceRequest->budgetOption?->name ?? '-') }}" readonly>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Jenis Kebutuhan</label>
-                        <input type="text" class="form-control" value="{{ $serviceRequest->needType?->name ?? '-' }}" readonly>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">Catatan Masalah</label>
-                        <textarea
-                            class="form-control"
-                            readonly
-                            rows="5"
-                            style="min-height: 140px; resize: none; white-space: pre-wrap; line-height: 1.65; padding-top: 14px; vertical-align: top;"
-                        >{{ $serviceRequest->description ?? '-' }}</textarea>
-                    </div>
+                    @unless($isEventProject)
+                        <div class="col-md-6">
+                            <label class="form-label">Jenis Kebutuhan</label>
+                            <input type="text" class="form-control" value="{{ $serviceRequest->needType?->name ?? '-' }}" readonly>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Catatan Masalah</label>
+                            <textarea
+                                class="form-control"
+                                readonly
+                                rows="5"
+                                style="min-height: 140px; resize: none; white-space: pre-wrap; line-height: 1.65; padding-top: 14px; vertical-align: top;"
+                            >{{ $serviceRequest->description ?? '-' }}</textarea>
+                        </div>
+                    @endunless
                 </div>
             </div>
         </div>
@@ -250,7 +273,7 @@
                 <h5 class="mb-3">Biaya</h5>
                 <div class="d-flex flex-column gap-3">
                     <div class="p-3 bg-light">
-                        <div class="fw-bold">Biaya Survey</div>
+                        <div class="fw-bold">{{ $isEventProject ? 'Biaya Konsultasi Event' : 'Biaya Survey' }}</div>
                         <div class="text-muted">Rp{{ number_format((int) $serviceRequest->survey_fee, 0, ',', '.') }}</div>
                     </div>
                     <div class="p-3 bg-light">
@@ -270,7 +293,7 @@
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div>
                         <h5 class="mb-1">Foto Masalah</h5>
-                        <p class="text-muted mb-0">Lampiran foto yang diupload user dari aplikasi mobile.</p>
+                        <p class="text-muted mb-0">{{ $isEventProject ? 'Flow event tidak mewajibkan foto masalah.' : 'Lampiran foto yang diupload user dari aplikasi mobile.' }}</p>
                     </div>
                     <span class="badge badge-sm badge-secondary">{{ $issuePhotos->count() }} foto</span>
                 </div>

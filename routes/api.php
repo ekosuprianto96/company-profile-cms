@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Mobile\AuthController;
 use App\Http\Controllers\Api\Mobile\MobileBudgetOptionController;
 use App\Http\Controllers\Api\Mobile\SearchController;
+use App\Http\Controllers\Api\Mobile\MapsController;
 use App\Http\Controllers\Api\Mobile\MobileServiceController;
 use App\Http\Controllers\Api\Mobile\MobileServiceRequestController;
 use App\Http\Controllers\Api\Mobile\ChatController;
@@ -14,8 +15,12 @@ use App\Http\Controllers\Api\Mobile\BlogController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('v1/mobile/services', [MobileServiceController::class, 'index']);
+Route::get('v1/mobile/services/event-options', [MobileServiceController::class, 'eventOptions']);
 Route::get('v1/mobile/budget-options', [MobileBudgetOptionController::class, 'index']);
 Route::get('v1/mobile/search/popular', [SearchController::class, 'popular']);
+Route::post('v1/mobile/maps/autocomplete', [MapsController::class, 'autocomplete']);
+Route::post('v1/mobile/maps/resolve', [MapsController::class, 'resolve']);
+Route::post('v1/mobile/maps/reverse-geocode', [MapsController::class, 'reverseGeocode']);
 Route::get('v1/mobile/inspires', [InspireController::class, 'index']);
 Route::get('v1/mobile/inspires/{slug}', [InspireController::class, 'show'])->where('slug', '[A-Za-z0-9\-]+');
 Route::get('v1/mobile/blogs', [BlogController::class, 'index']);

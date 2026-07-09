@@ -24,15 +24,21 @@ class MobileServiceRequestsExport implements FromQuery, WithHeadings, WithMappin
     public function map($request): array
     {
         $region = $this->formatRegion($request->survey_region ?? data_get($request->draft_payload, 'surveyRegion'));
+        $isEventProject = ($request->request_flow_type ?? 'standard') === 'event_project';
 
         return [
             $request->transaction_code_label,
+            $request->request_flow_type ?? 'standard',
             $request->user?->name ?? '-',
             $request->user?->phone ?? '-',
             $request->user?->email ?? '-',
             $request->service?->title ?? '-',
-            $request->needType?->name ?? '-',
-            $request->building_label ?? '-',
+            $isEventProject ? ($request->eventProjectType?->name ?? '-') : '-',
+            $isEventProject ? ($request->eventProjectNeed?->name ?? '-') : ($request->needType?->name ?? '-'),
+            $isEventProject ? ($request->eventPackage?->name ?? '-') : '-',
+            $isEventProject ? (optional($request->event_date)?->format('d M Y') ?? '-') : '-',
+            $isEventProject ? '-' : ($request->building_label ?? '-'),
+            $isEventProject ? ($request->eventBudgetOption?->name ?? '-') : ($request->budgetOption?->name ?? '-'),
             $request->survey_address ?? '-',
             $region,
             optional($request->survey_date)?->format('d M Y') ?? '-',
@@ -51,12 +57,17 @@ class MobileServiceRequestsExport implements FromQuery, WithHeadings, WithMappin
     {
         return [
             'Kode Transaksi',
+            'Flow',
             'Nama Pemesan',
             'No Telepon',
             'Email',
             'Layanan',
+            'Jenis Project Event',
             'Jenis Kebutuhan',
+            'Paket Event',
+            'Tanggal Event',
             'Jenis Bangunan',
+            'Perkiraan Anggaran',
             'Lokasi Survey',
             'Alamat',
             'Tanggal Survey',

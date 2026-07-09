@@ -27,6 +27,7 @@ class MobileServiceCatalogService
                     'id' => $service->id,
                     'title' => $service->title,
                     'slug' => $service->slug,
+                    'request_flow_type' => $service->request_flow_type ?? 'standard',
                     'summary' => $service->summary,
                     'description' => $service->description,
                     'icon' => $service->icon,

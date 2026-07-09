@@ -194,6 +194,8 @@ class MobileServiceRequestController extends ApiController
             'payment_payload' => $serviceRequest->payment_payload ?? [],
             'draft_payload' => $serviceRequest->draft_payload ?? [],
             'payment_data' => $serviceRequest->getAttribute('payment_data') ?? null,
+            'request_flow_type' => $serviceRequest->request_flow_type ?? 'standard',
+            'event_date' => optional($serviceRequest->event_date)?->format('Y-m-d'),
             'building_key' => $serviceRequest->building_key,
             'building_label' => $serviceRequest->building_label,
             'description' => $serviceRequest->description,
@@ -209,6 +211,27 @@ class MobileServiceRequestController extends ApiController
             'budget_option' => $serviceRequest->budgetOption ? [
                 'id' => $serviceRequest->budgetOption->id,
                 'name' => $serviceRequest->budgetOption->name,
+            ] : null,
+            'event_project_type' => $serviceRequest->eventProjectType ? [
+                'id' => $serviceRequest->eventProjectType->id,
+                'name' => $serviceRequest->eventProjectType->name,
+                'slug' => $serviceRequest->eventProjectType->slug,
+            ] : null,
+            'event_project_need' => $serviceRequest->eventProjectNeed ? [
+                'id' => $serviceRequest->eventProjectNeed->id,
+                'name' => $serviceRequest->eventProjectNeed->name,
+                'slug' => $serviceRequest->eventProjectNeed->slug,
+            ] : null,
+            'event_package' => $serviceRequest->eventPackage ? [
+                'id' => $serviceRequest->eventPackage->id,
+                'name' => $serviceRequest->eventPackage->name,
+                'slug' => $serviceRequest->eventPackage->slug,
+                'description' => $serviceRequest->eventPackage->description,
+            ] : null,
+            'event_budget_option' => $serviceRequest->eventBudgetOption ? [
+                'id' => $serviceRequest->eventBudgetOption->id,
+                'name' => $serviceRequest->eventBudgetOption->name,
+                'slug' => $serviceRequest->eventBudgetOption->slug,
             ] : null,
         ];
     }

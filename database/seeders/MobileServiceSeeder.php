@@ -109,6 +109,7 @@ class MobileServiceSeeder extends Seeder
                 'title' => 'Wedding Organizer',
                 'summary' => 'Jasa wedding organizer dan dekorasi acara dengan konsep custom.',
                 'icon' => 'favorite',
+                'request_flow_type' => 'event_project',
                 'need_type_slugs' => ['jasa'],
                 'card_color' => '#7fc2cc',
                 'text_color' => '#10444e',
@@ -140,6 +141,7 @@ class MobileServiceSeeder extends Seeder
                 [
                     'title' => $title,
                     'slug' => Str::slug($title),
+                    'request_flow_type' => $service['request_flow_type'] ?? 'standard',
                     'summary' => $service['summary'],
                     'description' => $service['summary'],
                     'icon_type' => 'icon',

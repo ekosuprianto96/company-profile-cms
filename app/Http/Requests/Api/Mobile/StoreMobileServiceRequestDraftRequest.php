@@ -14,11 +14,17 @@ class StoreMobileServiceRequestDraftRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'request_flow_type' => 'nullable|in:standard,event_project',
             'mobile_service_id' => 'required|exists:mobile_services,id',
             'mobile_service_need_type_id' => 'nullable|exists:mobile_service_need_types,id',
             'mobile_budget_option_id' => 'nullable|exists:mobile_budget_options,id',
-            'building_key' => 'required|string|max:50',
-            'building_label' => 'required|string|max:255',
+            'mobile_event_project_type_id' => 'nullable|exists:mobile_event_project_types,id',
+            'mobile_event_project_need_id' => 'nullable|exists:mobile_event_project_needs,id',
+            'mobile_event_package_id' => 'nullable|exists:mobile_event_packages,id',
+            'mobile_event_budget_option_id' => 'nullable|exists:mobile_event_budget_options,id',
+            'event_date' => 'nullable|date',
+            'building_key' => 'nullable|string|max:50',
+            'building_label' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:5000',
             'issue_photos' => 'nullable|array',
             'issue_photos.*' => 'file|mimes:jpg,jpeg,png,webp|max:5120',
@@ -32,6 +38,38 @@ class StoreMobileServiceRequestDraftRequest extends FormRequest
             'tax_amount' => 'nullable|integer|min:0',
             'total_amount' => 'nullable|integer|min:0',
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $flowType = $this->input('request_flow_type', 'standard');
+
+            if ($flowType === 'event_project') {
+                foreach ([
+                    'mobile_event_project_type_id' => 'Jenis project event wajib dipilih.',
+                    'mobile_event_project_need_id' => 'Kebutuhan project event wajib dipilih.',
+                    'mobile_event_package_id' => 'Paket event wajib dipilih.',
+                    'mobile_event_budget_option_id' => 'Anggaran event wajib dipilih.',
+                    'event_date' => 'Tanggal event wajib dipilih.',
+                ] as $field => $message) {
+                    if (! $this->filled($field)) {
+                        $validator->errors()->add($field, $message);
+                    }
+                }
+
+                return;
+            }
+
+            foreach ([
+                'building_key' => 'Jenis bangunan wajib dipilih.',
+                'building_label' => 'Label jenis bangunan wajib diisi.',
+            ] as $field => $message) {
+                if (! $this->filled($field)) {
+                    $validator->errors()->add($field, $message);
+                }
+            }
+        });
     }
 
     public function messages(): array

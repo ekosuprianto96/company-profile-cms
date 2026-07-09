@@ -102,6 +102,9 @@ class MobileServiceAdminService
         return [
             'title' => $title,
             'slug' => $slug,
+            'request_flow_type' => in_array(($payload['request_flow_type'] ?? 'standard'), ['standard', 'event_project'], true)
+                ? $payload['request_flow_type']
+                : 'standard',
             'summary' => $payload['summary'] ?? null,
             'description' => $payload['description'] ?? null,
             'icon_type' => $iconType,

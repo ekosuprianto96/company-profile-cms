@@ -15,6 +15,7 @@ class MobileServiceStoreRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:150',
+            'request_flow_type' => 'required|in:standard,event_project',
             'summary' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'icon_type' => 'required|in:icon,image',

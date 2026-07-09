@@ -50,4 +50,10 @@ return [
         'callback_url' => env('MIDTRANS_CALLBACK_URL', 'https://maninjausembalun.test/api/v1/mobile/midtrans/notification'),
     ],
 
+    'google_maps' => [
+        'language_code' => env('GOOGLE_MAPS_LANGUAGE_CODE', 'id'),
+        'region_code' => env('GOOGLE_MAPS_REGION_CODE', 'ID'),
+        'server_key' => env('GOOGLE_MAPS_SERVER_KEY'),
+    ],
+
 ];
