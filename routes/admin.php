@@ -24,6 +24,8 @@ use App\Http\Controllers\Admin\Mobile\MobileController;
 use App\Http\Controllers\Admin\Mobile\ChatController as MobileChatController;
 use App\Http\Controllers\Admin\Mobile\InspireController as MobileInspireController;
 use App\Http\Controllers\Admin\Mobile\MobileBudgetOptionController;
+use App\Http\Controllers\Admin\Mobile\MobileContentController;
+use App\Http\Controllers\Admin\Mobile\MobileSupportContactController;
 use App\Http\Controllers\Admin\Mobile\MobileEventProjectController;
 use App\Http\Controllers\Admin\Mobile\MobileServiceRequestController;
 use App\Http\Controllers\Admin\Mobile\MobileServiceController;
@@ -259,6 +261,18 @@ Route::middleware(['auth'])->group(function () {
         Route::post('budget-options/store', [MobileBudgetOptionController::class, 'store'])->name('budget_options.store');
         Route::post('budget-options/update/{id}', [MobileBudgetOptionController::class, 'update'])->name('budget_options.update');
         Route::post('budget-options/destroy', [MobileBudgetOptionController::class, 'destroy'])->name('budget_options.destroy');
+
+        // App content (Tentang / Syarat & Ketentuan)
+        Route::get('contents', [MobileContentController::class, 'index'])->name('contents');
+        Route::post('contents/update', [MobileContentController::class, 'update'])->name('contents.update');
+
+        // Kontak Bantuan & Dukungan (CRUD)
+        Route::get('support-contacts', [MobileSupportContactController::class, 'index'])->name('support_contacts');
+        Route::get('support-contacts/data', [MobileSupportContactController::class, 'data'])->name('support_contacts.data');
+        Route::get('support-contacts/forms', [MobileSupportContactController::class, 'forms'])->name('support_contacts.forms');
+        Route::post('support-contacts/store', [MobileSupportContactController::class, 'store'])->name('support_contacts.store');
+        Route::post('support-contacts/update/{id}', [MobileSupportContactController::class, 'update'])->name('support_contacts.update');
+        Route::post('support-contacts/destroy', [MobileSupportContactController::class, 'destroy'])->name('support_contacts.destroy');
         Route::get('event-projects', [MobileEventProjectController::class, 'index'])->name('event_projects');
         Route::post('event-projects/types', [MobileEventProjectController::class, 'storeType'])->name('event_projects.types.store');
         Route::post('event-projects/types/{id}', [MobileEventProjectController::class, 'updateType'])->whereNumber('id')->name('event_projects.types.update');

@@ -10,3 +10,6 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::job(new SendBulkEmailJob)->everyMinute();
+
+// Tandai OTP mobile yang sudah lewat masa berlaku menjadi expired.
+Schedule::command('mobile:expire-otps')->everyMinute()->withoutOverlapping();

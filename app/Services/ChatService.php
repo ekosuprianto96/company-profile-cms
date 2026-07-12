@@ -51,6 +51,7 @@ class ChatService
                     'service_request_id' => $serviceRequest->id,
                     'subject' => $subject ?: ($serviceRequest->transaction_code_label . ' - ' . ($serviceRequest->service?->title ?? 'Pengajuan')),
                     'status' => 'open',
+                    'last_message_at' => now(),
                 ]);
             }
 
@@ -69,6 +70,7 @@ class ChatService
                 'mobile_user_id' => $mobileUser->id,
                 'subject' => $subject ?: 'Percakapan baru',
                 'status' => 'open',
+                'last_message_at' => now(),
             ]);
         });
     }
@@ -109,6 +111,47 @@ class ChatService
             });
     }
 
+    /**
+     * Daftar percakapan user dengan cursor pagination (keyset) untuk infinite scroll.
+     */
+    public function paginateForUser(MobileUser $mobileUser, int $perPage = 20): \Illuminate\Contracts\Pagination\CursorPaginator
+    {
+        return ChatConversation::query()
+            ->with(['serviceRequest.service', 'mobileUser', 'assignedAdmin', 'messages' => fn ($query) => $query->latest()->limit(1)])
+            ->where('mobile_user_id', $mobileUser->id)
+            ->orderByDesc('last_message_at')
+            ->orderByDesc('id')
+            ->cursorPaginate($perPage);
+    }
+
+    /**
+     * Halaman pesan (terbaru dulu, dikembalikan urut naik) untuk infinite scroll terbalik.
+     * $beforeId null = halaman terbaru; berisi id = muat pesan yang lebih lama.
+     *
+     * @return array{messages: \Illuminate\Support\Collection, has_more_older: bool, oldest_message_id: int|null}
+     */
+    public function paginateMessages(ChatConversation $conversation, ?int $beforeId = null, int $perPage = 30): array
+    {
+        $query = $conversation->messages()
+            ->with(['senderAdmin', 'senderMobileUser'])
+            ->orderByDesc('id')
+            ->limit($perPage + 1);
+
+        if ($beforeId) {
+            $query->where('id', '<', $beforeId);
+        }
+
+        $rows = $query->get();
+        $hasMore = $rows->count() > $perPage;
+        $page = $rows->take($perPage);
+
+        return [
+            'messages' => $page->sortBy('id')->values()->map(fn (ChatMessage $message) => $this->messagePayload($message)),
+            'has_more_older' => $hasMore,
+            'oldest_message_id' => $page->min('id'),
+        ];
+    }
+
     public function getConversationForAdmin(int $id): ChatConversation
     {
         $conversation = ChatConversation::query()
@@ -126,11 +169,10 @@ class ChatService
 
     public function getConversationForUser(MobileUser $mobileUser, int $id): ChatConversation
     {
+        // Pesan dimuat terpisah & terpaginasi (paginateMessages), tidak lagi eager-load semua.
         $conversation = ChatConversation::query()
             ->with([
                 'serviceRequest.service',
-                'messages.senderAdmin',
-                'messages.senderMobileUser',
             ])
             ->where('mobile_user_id', $mobileUser->id)
             ->findOrFail($id);

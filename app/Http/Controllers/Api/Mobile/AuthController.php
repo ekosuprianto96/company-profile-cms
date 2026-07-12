@@ -11,6 +11,7 @@ use App\Services\MobileAuthService;
 use App\Services\MobileProfileService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends ApiController
 {
@@ -124,6 +125,65 @@ class AuthController extends ApiController
             $this->mobileAuthService->logout($request->user());
 
             return $this->success([], 'Logout berhasil.');
+        } catch (\Throwable $th) {
+            return $this->error($th->getMessage(), $th->getCode() ?: 500);
+        }
+    }
+
+    public function sendPasswordOtp(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'channel' => ['nullable', 'in:email,sms'],
+            ]);
+
+            $channel = $validated['channel'] ?? 'email';
+            $otp = $this->mobileAuthService->sendPasswordChangeOtp($request->user(), $channel);
+
+            return $this->success([
+                'verification' => [
+                    'channel' => $otp->channel,
+                    'recipient' => $otp->recipient,
+                    'expires_at' => $otp->expires_at->toISOString(),
+                ],
+            ], 'Kode verifikasi telah dikirim.');
+        } catch (ValidationException $th) {
+            return $this->error($th->getMessage() ?: 'Permintaan tidak valid.', 422, $th->errors());
+        } catch (\Throwable $th) {
+            return $this->error($th->getMessage(), $th->getCode() ?: 500);
+        }
+    }
+
+    public function verifyPasswordOtp(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'channel' => ['nullable', 'in:email,sms'],
+                'code' => ['required', 'string'],
+            ]);
+
+            $this->mobileAuthService->verifyPasswordChangeOtp($request->user(), $validated['channel'] ?? 'email', $validated['code']);
+
+            return $this->success([], 'Kode verifikasi valid.');
+        } catch (ValidationException $th) {
+            return $this->error($th->getMessage() ?: 'Permintaan tidak valid.', 422, $th->errors());
+        } catch (\Throwable $th) {
+            return $this->error($th->getMessage(), $th->getCode() ?: 500);
+        }
+    }
+
+    public function updatePassword(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'password' => ['required', 'string', 'min:8', 'confirmed'],
+            ]);
+
+            $this->mobileAuthService->changePassword($request->user(), $validated['password']);
+
+            return $this->success([], 'Password berhasil diperbarui.');
+        } catch (ValidationException $th) {
+            return $this->error($th->getMessage() ?: 'Permintaan tidak valid.', 422, $th->errors());
         } catch (\Throwable $th) {
             return $this->error($th->getMessage(), $th->getCode() ?: 500);
         }

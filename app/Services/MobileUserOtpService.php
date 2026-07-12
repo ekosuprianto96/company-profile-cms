@@ -19,6 +19,14 @@ class MobileUserOtpService
     {
         $recipient = $this->resolveRecipient($user, $channel);
 
+        // Cegah spam pengiriman: bila masih ada OTP pending yang belum kadaluarsa,
+        // kembalikan yang itu (tanpa membuat/mengirim ulang). Klien menghitung mundur
+        // berdasarkan expires_at tersimpan sehingga konsisten meski layar dibuka ulang.
+        $existing = $this->otpRepository->latestPending($recipient, $channel, $purpose);
+        if ($existing && $existing->expires_at && $existing->expires_at->isFuture()) {
+            return $existing;
+        }
+
         $this->otpRepository->expirePending($recipient, $channel, $purpose);
 
         $attributes = [
@@ -26,7 +34,7 @@ class MobileUserOtpService
             'purpose' => $purpose,
             'channel' => $channel,
             'recipient' => $recipient,
-            'expires_at' => now()->addMinutes(config('mobile_auth.otp_expire_minutes')),
+            'expires_at' => now()->addMinutes(app(MobileAppSettingService::class)->otpExpireMinutes()),
             'status' => 'pending',
         ];
 

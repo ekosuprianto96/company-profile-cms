@@ -10,20 +10,26 @@ class NotificationController extends ApiController
     public function index(Request $request)
     {
         $type = $this->normalizeType($request->query('type'));
+        $perPage = max(5, min((int) $request->query('per_page', 20), 50));
 
-        $query = $request->user()->notifications()->latest();
+        // Keyset/cursor pagination pada (created_at, id) → cepat & stabil untuk infinite scroll.
+        $paginator = $request->user()->notifications()
+            ->when($type, fn ($query) => $query->where('category', $type))
+            ->reorder()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->cursorPaginate($perPage);
 
-        $notifications = $query
-            ->take(100)
-            ->get()
+        $notifications = collect($paginator->items())
             ->map(fn (DatabaseNotification $notification) => $this->notificationPayload($notification))
-            ->when($type, fn ($collection) => $collection->filter(fn (array $notification) => $notification['type'] === $type))
             ->values();
 
         return $this->success([
             'notifications' => $notifications,
+            'next_cursor' => optional($paginator->nextCursor())->encode(),
+            'has_more' => $paginator->hasMorePages(),
             'unread_count' => $request->user()->unreadNotifications()->count(),
-            'unread_counts_by_type' => $this->unreadCountsByType($request->user()->notifications()->whereNull('read_at')->get()),
+            'unread_counts_by_type' => $this->unreadCountsByType($request->user()),
         ], 'Notifikasi berhasil dimuat.');
     }
 
@@ -143,10 +149,11 @@ class NotificationController extends ApiController
     }
 
     /**
-     * @param  \Illuminate\Support\Collection<int, DatabaseNotification>  $notifications
+     * Hitung unread per kategori langsung di SQL (COUNT ... GROUP BY), memakai index.
+     *
      * @return array<string, int>
      */
-    private function unreadCountsByType($notifications): array
+    private function unreadCountsByType(\App\Models\MobileUser $user): array
     {
         $counts = [
             'promo' => 0,
@@ -154,14 +161,16 @@ class NotificationController extends ApiController
             'konfirmasi' => 0,
         ];
 
-        foreach ($notifications as $notification) {
-            $type = $this->notificationPayload($notification)['type'] ?? 'informasi';
+        $rows = $user->notifications()
+            ->reorder()
+            ->whereNull('read_at')
+            ->selectRaw('category, COUNT(*) as aggregate')
+            ->groupBy('category')
+            ->pluck('aggregate', 'category');
 
-            if (! isset($counts[$type])) {
-                $type = 'informasi';
-            }
-
-            $counts[$type]++;
+        foreach ($rows as $category => $total) {
+            $key = isset($counts[$category]) ? $category : 'informasi';
+            $counts[$key] += (int) $total;
         }
 
         return $counts;

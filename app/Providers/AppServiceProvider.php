@@ -91,6 +91,8 @@ class AppServiceProvider extends ServiceProvider
             'app.logo' => $settings->value['app_logo'] ?? '',
             'mobile_request.survey_fee' => $mobileAppSettings['survey_fee'] ?? config('mobile_request.survey_fee'),
             'mobile_request.tax_percentage' => $mobileAppSettings['tax_percentage'] ?? 0,
+            'invoice.templates.service' => $mobileAppSettings['invoice_template_service'] ?? config('invoice.templates.service'),
+            'invoice.templates.product' => $mobileAppSettings['invoice_template_product'] ?? config('invoice.templates.product'),
         ]);
 
         config()->set('settings', $settings);

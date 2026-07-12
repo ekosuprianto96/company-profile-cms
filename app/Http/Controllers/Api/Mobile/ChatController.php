@@ -17,8 +17,14 @@ class ChatController extends ApiController
     public function index(Request $request)
     {
         try {
+            $paginator = $this->chatService->paginateForUser($request->user());
+
             return $this->success([
-                'conversations' => $this->chatService->listForUser($request->user()),
+                'conversations' => collect($paginator->items())
+                    ->map(fn (ChatConversation $conversation) => $this->chatService->conversationSummary($conversation))
+                    ->values(),
+                'next_cursor' => optional($paginator->nextCursor())->encode(),
+                'has_more' => $paginator->hasMorePages(),
             ], 'Daftar chat berhasil dimuat.');
         } catch (\Throwable $th) {
             if ($th instanceof ValidationException) {
@@ -80,12 +86,13 @@ class ChatController extends ApiController
             $conversation = $this->chatService->getConversationForUser($request->user(), $id);
             $this->chatService->markReadForMobile($conversation);
 
+            $page = $this->chatService->paginateMessages($conversation);
+
             return $this->success([
                 'conversation' => $this->conversationPayload($conversation->fresh(['mobileUser', 'serviceRequest.service', 'assignedAdmin']), $request->user()),
-                'messages' => $conversation->messages
-                    ->sortBy('created_at')
-                    ->values()
-                    ->map(fn ($message) => $this->chatService->messagePayload($message)),
+                'messages' => $page['messages'],
+                'has_more_older' => $page['has_more_older'],
+                'oldest_message_id' => $page['oldest_message_id'],
             ], 'Detail percakapan berhasil dimuat.');
         } catch (\Throwable $th) {
             if ($th instanceof ValidationException) {
@@ -97,6 +104,32 @@ class ChatController extends ApiController
             }
 
             Log::error('Chat show error: ' . $th->getMessage(), [
+                'stack' => $th->getTraceAsString(),
+            ]);
+
+            return $this->error($th->getMessage(), $th->getCode() ?: 500);
+        }
+    }
+
+    public function messages(Request $request, int $id)
+    {
+        try {
+            $conversation = $this->chatService->getConversationForUser($request->user(), $id);
+            $beforeId = $request->integer('before') ?: null;
+
+            $page = $this->chatService->paginateMessages($conversation, $beforeId);
+
+            return $this->success([
+                'messages' => $page['messages'],
+                'has_more_older' => $page['has_more_older'],
+                'oldest_message_id' => $page['oldest_message_id'],
+            ], 'Pesan berhasil dimuat.');
+        } catch (\Throwable $th) {
+            if ($th instanceof ValidationException) {
+                return $this->error($th->getMessage() ?: 'Permintaan tidak valid.', 422, $th->errors());
+            }
+
+            Log::error('Chat messages error: ' . $th->getMessage(), [
                 'stack' => $th->getTraceAsString(),
             ]);
 

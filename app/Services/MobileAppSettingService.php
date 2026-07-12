@@ -33,6 +33,11 @@ class MobileAppSettingService
         return (int) $this->getSettings()['survey_fee'];
     }
 
+    public function otpExpireMinutes(): int
+    {
+        return max(1, (int) ($this->getSettings()['otp_expire_minutes'] ?? config('mobile_auth.otp_expire_minutes', 10)));
+    }
+
     public function eventConsultationFee(): int
     {
         return (int) $this->getSettings()['event_consultation_fee'];
@@ -41,6 +46,24 @@ class MobileAppSettingService
     public function taxPercentage(): float
     {
         return (float) $this->getSettings()['tax_percentage'];
+    }
+
+    public function invoiceTemplateService(): string
+    {
+        return $this->normalizeInvoiceTemplate($this->getSettings()['invoice_template_service'] ?? null, 'service');
+    }
+
+    public function invoiceTemplateProduct(): string
+    {
+        return $this->normalizeInvoiceTemplate($this->getSettings()['invoice_template_product'] ?? null, 'product');
+    }
+
+    protected function normalizeInvoiceTemplate(?string $value, string $type): string
+    {
+        $available = array_keys(config('invoice.available', []));
+        $fallback = config('invoice.templates.' . $type, 'classic');
+
+        return in_array($value, $available, true) ? $value : $fallback;
     }
 
     public function taxAmount(): int
@@ -210,6 +233,9 @@ class MobileAppSettingService
             'survey_fee' => 150000,
             'event_consultation_fee' => 150000,
             'tax_percentage' => 0,
+            'otp_expire_minutes' => (int) config('mobile_auth.otp_expire_minutes', 10),
+            'invoice_template_service' => config('invoice.templates.service', 'classic'),
+            'invoice_template_product' => config('invoice.templates.product', 'classic'),
             'payment_gateway' => [
                 'enabled' => true,
                 'provider' => 'midtrans',

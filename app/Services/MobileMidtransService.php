@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\MobileServiceRequest;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
 class MobileMidtransService
@@ -50,9 +51,21 @@ class MobileMidtransService
             'enabled_payments' => $this->enabledPayments($paymentMethod),
         ];
 
-        $response = Http::withBasicAuth($serverKey, '')
-            ->acceptJson()
-            ->post('https://app.'.($this->isProduction() ? 'midtrans.com' : 'sandbox.midtrans.com').'/snap/v1/transactions', $payload);
+        try {
+            $response = Http::withBasicAuth($serverKey, '')
+                ->connectTimeout(10)
+                ->timeout(30)
+                ->acceptJson()
+                ->post('https://app.'.($this->isProduction() ? 'midtrans.com' : 'sandbox.midtrans.com').'/snap/v1/transactions', $payload);
+        } catch (ConnectionException $exception) {
+            // Server tidak bisa menjangkau Midtrans (timeout / jaringan). Beri kode 503
+            // agar aplikasi bisa menawarkan retry atau Transfer Manual, bukan menampilkan pesan cURL mentah.
+            throw new \Exception(
+                'Layanan pembayaran otomatis sedang tidak dapat dihubungi. Silakan coba lagi atau gunakan Transfer Manual.',
+                503,
+                $exception
+            );
+        }
 
         if ($response->failed()) {
             throw new \Exception($response->json('error_messages.0') ?? 'Gagal membuat transaksi Midtrans.');

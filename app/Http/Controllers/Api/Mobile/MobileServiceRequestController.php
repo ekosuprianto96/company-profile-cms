@@ -159,6 +159,26 @@ class MobileServiceRequestController extends ApiController
         }
     }
 
+    public function cancel(Request $request, int $id)
+    {
+        try {
+            $serviceRequest = $this->mobileServiceRequestService->cancel($request->user(), $id);
+
+            return $this->success([
+                'service_request' => $this->serviceRequestPayload($serviceRequest),
+            ], 'Pengajuan berhasil dibatalkan.');
+        } catch (\Throwable $th) {
+            Log::error('Cancel mobile service request error: ' . $th->getMessage());
+
+            $status = (int) $th->getCode();
+            if ($status <= 0) {
+                $status = 500;
+            }
+
+            return $this->error($th->getMessage(), $status);
+        }
+    }
+
     protected function serviceRequestPayload($serviceRequest): array
     {
         return [
@@ -166,6 +186,7 @@ class MobileServiceRequestController extends ApiController
             'transaction_code' => $serviceRequest->transaction_code_label,
             'transaction_code_label' => $serviceRequest->transaction_code_label,
             'status' => $serviceRequest->status,
+            'can_cancel' => $serviceRequest->canBeCancelled(),
             'payment_status' => $serviceRequest->payment_status,
             'payment_method' => $serviceRequest->payment_method,
             'payment_gateway_provider' => $serviceRequest->payment_gateway_provider,

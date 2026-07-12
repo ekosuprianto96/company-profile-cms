@@ -59,6 +59,7 @@ class MobileServiceRequest extends Model
         'reviewed_at',
         'approved_at',
         'rejected_at',
+        'cancelled_at',
         'handled_by_user_id',
         'admin_note',
         'rejection_reason',
@@ -78,6 +79,7 @@ class MobileServiceRequest extends Model
             'reviewed_at' => 'datetime',
             'approved_at' => 'datetime',
             'rejected_at' => 'datetime',
+            'cancelled_at' => 'datetime',
             'payment_method_selected_at' => 'datetime',
             'paid_at' => 'datetime',
             'survey_fee' => 'integer',
@@ -85,6 +87,27 @@ class MobileServiceRequest extends Model
             'tax_amount' => 'integer',
             'total_amount' => 'integer',
         ];
+    }
+
+    /**
+     * Pengajuan hanya bisa dibatalkan user selama BELUM bayar biaya survey dan
+     * BELUM diproses admin (belum di-review/approve/reject) serta masih di tahap awal.
+     */
+    public function canBeCancelled(): bool
+    {
+        if ($this->status === 'cancelled') {
+            return false;
+        }
+
+        if ($this->payment_status === 'paid' || $this->paid_at) {
+            return false;
+        }
+
+        if ($this->reviewed_at || $this->approved_at || $this->rejected_at) {
+            return false;
+        }
+
+        return in_array($this->status, ['draft', 'waiting_payment', 'waiting_transfer', 'payment_challenge', 'pending'], true);
     }
 
     public function getTransactionCodeLabelAttribute(): string

@@ -120,6 +120,59 @@ class MobileAuthService
         $user->currentAccessToken()?->delete();
     }
 
+    public function sendPasswordChangeOtp(MobileUser $user, string $channel = 'email'): \App\Models\MobileUserOtp
+    {
+        $channel = $channel === 'sms' ? 'sms' : 'email';
+
+        if ($channel === 'email' && empty($user->email)) {
+            throw new \Exception('Email belum tersedia untuk verifikasi.', 422);
+        }
+
+        if ($channel === 'sms' && empty($user->phone)) {
+            throw new \Exception('Nomor telepon belum tersedia untuk verifikasi.', 422);
+        }
+
+        return $this->mobileUserOtpService->createAndSend($user, $channel, 'password_change');
+    }
+
+    public function verifyPasswordChangeOtp(MobileUser $user, string $channel, string $code): void
+    {
+        $channel = $channel === 'sms' ? 'sms' : 'email';
+        $recipient = $channel === 'sms' ? $user->phone : $user->email;
+
+        if (empty($recipient)) {
+            throw new \Exception('Kontak untuk verifikasi tidak tersedia.', 422);
+        }
+
+        // Melempar exception bila kode tidak valid/kadaluarsa. Menandai OTP sebagai verified.
+        $this->mobileUserOtpService->verify($recipient, $channel, 'password_change', $code);
+    }
+
+    public function changePassword(MobileUser $user, string $password): MobileUser
+    {
+        // Wajib ada OTP password_change yang baru saja terverifikasi (langkah "Lanjutkan").
+        $otp = \App\Models\MobileUserOtp::query()
+            ->where('mobile_user_id', $user->id)
+            ->where('purpose', 'password_change')
+            ->where('status', 'verified')
+            ->whereNotNull('verified_at')
+            ->where('verified_at', '>=', now()->subMinutes(15))
+            ->latest('verified_at')
+            ->first();
+
+        if (! $otp) {
+            throw new \Exception('Verifikasi OTP diperlukan atau sudah kadaluarsa. Silakan verifikasi ulang.', 422);
+        }
+
+        $user->password = Hash::make($password);
+        $user->save();
+
+        // Konsumsi OTP agar tidak bisa dipakai ulang.
+        $otp->update(['status' => 'expired']);
+
+        return $user->fresh();
+    }
+
     public function issueToken(MobileUser $user, string $deviceName): array
     {
         $token = $user->createToken(

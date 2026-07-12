@@ -415,6 +415,7 @@ class MobileController extends Controller
             'survey_fee' => 'required|integer|min:0',
             'event_consultation_fee' => 'required|integer|min:0',
             'tax_percentage' => 'required|integer|min:0|max:100',
+            'otp_expire_minutes' => 'nullable|integer|min:1|max:60',
             'payment_gateway_enabled' => 'nullable|boolean',
             'payment_gateway_provider' => 'nullable|string|max:50',
             'survey_coverage_enabled' => 'nullable|boolean',
@@ -437,6 +438,8 @@ class MobileController extends Controller
             'manual_transfers.*.notes' => 'nullable|string|max:2000',
             'manual_transfers.*.sort_order' => 'nullable|integer|min:0',
             'manual_transfers.*.is_active' => 'nullable|boolean',
+            'invoice_template_service' => 'nullable|string|in:' . implode(',', array_keys(config('invoice.available', []))),
+            'invoice_template_product' => 'nullable|string|in:' . implode(',', array_keys(config('invoice.available', []))),
         ]);
 
         $manualTransfers = collect($validated['manual_transfers'] ?? [])
@@ -506,6 +509,7 @@ class MobileController extends Controller
             'survey_fee' => (int) $validated['survey_fee'],
             'event_consultation_fee' => (int) $validated['event_consultation_fee'],
             'tax_percentage' => (int) $validated['tax_percentage'],
+            'otp_expire_minutes' => (int) ($validated['otp_expire_minutes'] ?? config('mobile_auth.otp_expire_minutes', 10)),
             'payment_gateway' => [
                 'enabled' => $request->boolean('payment_gateway_enabled'),
                 'provider' => $validated['payment_gateway_provider'] ?: 'midtrans',
@@ -517,6 +521,8 @@ class MobileController extends Controller
                 'rules' => $surveyCoverageRules,
             ],
             'manual_transfers' => $manualTransfers,
+            'invoice_template_service' => $validated['invoice_template_service'] ?? config('invoice.templates.service', 'classic'),
+            'invoice_template_product' => $validated['invoice_template_product'] ?? config('invoice.templates.product', 'classic'),
         ]);
 
         return redirect()
@@ -642,6 +648,18 @@ class MobileController extends Controller
                 'route' => route('admin.mobile.live_chat'),
                 'icon' => 'ri-message-3-line',
                 'description' => 'Percakapan user dengan admin.',
+            ],
+            [
+                'title' => 'App Content',
+                'route' => route('admin.mobile.contents'),
+                'icon' => 'ri-file-text-line',
+                'description' => 'Konten Tentang Aplikasi dan Syarat & Ketentuan mobile.',
+            ],
+            [
+                'title' => 'Support Contacts',
+                'route' => route('admin.mobile.support_contacts'),
+                'icon' => 'ri-customer-service-2-line',
+                'description' => 'Kontak Bantuan & Dukungan (WhatsApp, Email, dll).',
             ],
             [
                 'title' => 'Settings',

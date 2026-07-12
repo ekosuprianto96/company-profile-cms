@@ -46,6 +46,15 @@
                         @enderror
                     </div>
 
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Masa Berlaku OTP (menit)</label>
+                        <input type="number" min="1" max="60" name="otp_expire_minutes" class="form-control @error('otp_expire_minutes') is-invalid @enderror" value="{{ old('otp_expire_minutes', $settings['otp_expire_minutes'] ?? 10) }}">
+                        <small class="text-muted d-block">OTP otomatis kadaluarsa setelah durasi ini. Pengiriman ulang menunggu hingga OTP kadaluarsa.</small>
+                        @error('otp_expire_minutes')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                     <div class="col-12 mt-2 mb-3">
                         <h5 class="mb-0">Payment Gateway</h5>
                         <small class="text-muted">Sementara fokus ke Midtrans sebagai gateway utama.</small>
@@ -64,6 +73,31 @@
                         <select name="payment_gateway_provider" class="form-select">
                             <option value="midtrans" {{ old('payment_gateway_provider', data_get($settings, 'payment_gateway.provider', 'midtrans')) === 'midtrans' ? 'selected' : '' }}>Midtrans</option>
                         </select>
+                    </div>
+
+                    <div class="col-12 mt-2 mb-2">
+                        <h5 class="mb-0">Template Invoice</h5>
+                        <small class="text-muted">Pilih desain PDF invoice untuk tiap jenis order. Kop (nama & logo) mengikuti pengaturan aplikasi.</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Template Invoice Jasa / Layanan</label>
+                        <select name="invoice_template_service" class="form-select @error('invoice_template_service') is-invalid @enderror">
+                            @foreach (config('invoice.available', []) as $value => $label)
+                                <option value="{{ $value }}" {{ old('invoice_template_service', data_get($settings, 'invoice_template_service', config('invoice.templates.service'))) === $value ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        @error('invoice_template_service')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Template Invoice Order Produk</label>
+                        <select name="invoice_template_product" class="form-select @error('invoice_template_product') is-invalid @enderror">
+                            @foreach (config('invoice.available', []) as $value => $label)
+                                <option value="{{ $value }}" {{ old('invoice_template_product', data_get($settings, 'invoice_template_product', config('invoice.templates.product'))) === $value ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        @error('invoice_template_product')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
 
                     <div class="col-12 mt-2 mb-3">

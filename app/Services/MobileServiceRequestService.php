@@ -306,6 +306,35 @@ class MobileServiceRequestService
         return $freshServiceRequest;
     }
 
+    public function cancel(MobileUser $user, int $requestId): MobileServiceRequest
+    {
+        $serviceRequest = $this->mobileServiceRequestRepository->findByUserAndId($user->id, $requestId);
+
+        if (! $serviceRequest) {
+            throw new \Exception('Data pengajuan tidak ditemukan.', 404);
+        }
+
+        if (! $serviceRequest->canBeCancelled()) {
+            throw new \Exception('Pengajuan tidak dapat dibatalkan karena sudah diproses admin atau biaya survey sudah dibayar.', 422);
+        }
+
+        $serviceRequest->update([
+            'status' => 'cancelled',
+            'cancelled_at' => now(),
+        ]);
+
+        return $serviceRequest->fresh([
+            'service',
+            'needType',
+            'budgetOption',
+            'eventProjectType',
+            'eventProjectNeed',
+            'eventPackage',
+            'eventBudgetOption',
+            'user',
+        ]) ?? $serviceRequest;
+    }
+
     public function handleMidtransNotification(array $payload): ?MobileServiceRequest
     {
         $notification = $this->mobileMidtransService->handleNotification($payload);
