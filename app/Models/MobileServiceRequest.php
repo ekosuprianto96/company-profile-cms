@@ -40,6 +40,8 @@ class MobileServiceRequest extends Model
         'tax_percentage',
         'tax_amount',
         'total_amount',
+        'voucher_id',
+        'discount_amount',
         'status',
         'payment_status',
         'payment_method',

@@ -661,6 +661,12 @@ class MobileController extends Controller
                 'icon' => 'ri-customer-service-2-line',
                 'description' => 'Kontak Bantuan & Dukungan (WhatsApp, Email, dll).',
             ],
+            ...(auth()->user()?->hasPermission('voucher:show') ? [[
+                'title' => 'Voucher',
+                'route' => route('admin.mobile.vouchers'),
+                'icon' => 'ri-coupon-3-line',
+                'description' => 'Kelola voucher diskon jasa & produk untuk mobile.',
+            ]] : []),
             [
                 'title' => 'Settings',
                 'route' => route('admin.mobile.settings'),

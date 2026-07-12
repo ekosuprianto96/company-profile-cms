@@ -40,10 +40,13 @@ class MobileInvoicePdfService
                 'subtitle' => trim(($serviceRequest->needType?->name ?? '-') . ' · Survei lokasi'),
                 'amount' => null,
             ],
-            'summary' => [
+            'summary' => array_values(array_filter([
                 ['label' => 'Biaya Survey', 'value' => $this->rp($serviceRequest->survey_fee)],
+                ((int) $serviceRequest->discount_amount > 0
+                    ? ['label' => 'Diskon Voucher', 'value' => '-' . $this->rp($serviceRequest->discount_amount)]
+                    : null),
                 ['label' => 'Pajak (' . (int) $serviceRequest->tax_percentage . '%)', 'value' => $this->rp($serviceRequest->tax_amount)],
-            ],
+            ])),
             'total' => $this->rp($serviceRequest->total_amount),
             'payment' => [
                 ['label' => 'Metode', 'value' => $this->paymentLabel($serviceRequest->payment_method)],

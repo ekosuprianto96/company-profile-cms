@@ -5,6 +5,9 @@ namespace App\Services;
 use App\Mail\MobileServiceRequestPaymentMethodSelectedMail;
 use App\Models\MobileUser;
 use App\Models\MobileServiceRequest;
+use App\Models\Voucher;
+use App\Models\VoucherRedemption;
+use App\Services\VoucherService;
 use App\Services\MobileMidtransService;
 use App\Services\MobileAppSettingService;
 use App\Services\MobileServiceRequestAdminService;
@@ -38,6 +41,7 @@ class MobileServiceRequestService
         protected MobileMidtransService $mobileMidtransService,
         protected MobileServiceRequestAdminService $mobileServiceRequestAdminService,
         protected SystemNotificationService $systemNotificationService,
+        protected VoucherService $voucherService,
     ) {}
 
     public function meta(): array
@@ -252,13 +256,20 @@ class MobileServiceRequestService
         return $storedPhotos;
     }
 
-    public function selectPaymentMethod(MobileUser $user, int $requestId, string $paymentMethod): MobileServiceRequest
+    public function selectPaymentMethod(MobileUser $user, int $requestId, string $paymentMethod, ?int $voucherId = null): MobileServiceRequest
     {
         $serviceRequest = $this->mobileServiceRequestRepository->findByUserAndId($user->id, $requestId);
 
         if (! $serviceRequest) {
             throw new \Exception('Data pengajuan tidak ditemukan.', 404);
         }
+
+        // Rekonsiliasi voucher: lepas voucher lama (jika ada), lalu terapkan yang baru bila dipilih.
+        $this->releaseVoucher($serviceRequest);
+        if ($voucherId) {
+            $this->applyVoucher($serviceRequest, $user, $voucherId);
+        }
+        $serviceRequest->refresh();
 
         $serviceRequest->update([
             'payment_method' => $paymentMethod,
@@ -306,6 +317,94 @@ class MobileServiceRequestService
         return $freshServiceRequest;
     }
 
+    /** Tandai redemption reserved order ini sebagai used (bayar sukses) atau released (gagal/batal). */
+    public function settleVoucherRedemption(MobileServiceRequest $serviceRequest, string $paymentStatus): void
+    {
+        $query = VoucherRedemption::query()
+            ->where('order_type', 'service')
+            ->where('order_id', $serviceRequest->id)
+            ->where('status', 'reserved');
+
+        if ($paymentStatus === 'paid') {
+            $query->update(['status' => 'used', 'used_at' => now()]);
+        } elseif (in_array($paymentStatus, ['failed', 'cancelled'], true)) {
+            $query->update(['status' => 'released', 'released_at' => now()]);
+        }
+    }
+
+    /** Lepas voucher yang masih reserved untuk order ini & kembalikan total ke nilai dasar. */
+    protected function releaseVoucher(MobileServiceRequest $serviceRequest): void
+    {
+        VoucherRedemption::query()
+            ->where('order_type', 'service')
+            ->where('order_id', $serviceRequest->id)
+            ->where('status', 'reserved')
+            ->update(['status' => 'released', 'released_at' => now()]);
+
+        $surveyFee = (int) $serviceRequest->survey_fee;
+        $taxPercentage = (int) $serviceRequest->tax_percentage;
+        $taxAmount = (int) round($surveyFee * $taxPercentage / 100);
+
+        $serviceRequest->update([
+            'voucher_id' => null,
+            'discount_amount' => 0,
+            'tax_amount' => $taxAmount,
+            'total_amount' => $surveyFee + $taxAmount,
+        ]);
+    }
+
+    /** Validasi + reserve voucher, lalu terapkan diskon ke total order (diskon di subtotal pra-pajak). */
+    protected function applyVoucher(MobileServiceRequest $serviceRequest, MobileUser $user, int $voucherId): void
+    {
+        // Kunci baris voucher agar cek kuota + reserve atomik (hindari race kuota).
+        DB::transaction(function () use ($serviceRequest, $user, $voucherId) {
+            $voucher = Voucher::query()
+                ->with('targetItems')
+                ->where('order_type', 'service')
+                ->where('is_active', true)
+                ->where(fn ($q) => $q->where('user_scope', 'all')
+                    ->orWhereHas('targetUsers', fn ($u) => $u->where('mobile_users.id', $user->id)))
+                ->whereKey($voucherId)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $voucher) {
+                throw new \Exception('Voucher tidak tersedia.', 422);
+            }
+
+            $subtotal = (int) $serviceRequest->survey_fee;
+            $itemId = (int) $serviceRequest->mobile_service_id;
+
+            $reason = $this->voucherService->ineligibilityReason($voucher, $user, 'service', $subtotal, $itemId);
+            if ($reason) {
+                throw new \Exception($reason, 422);
+            }
+
+            $discount = $this->voucherService->calculateDiscount($voucher, $subtotal);
+            $discountedSubtotal = max(0, $subtotal - $discount);
+            $taxPercentage = (int) $serviceRequest->tax_percentage;
+            $taxAmount = (int) round($discountedSubtotal * $taxPercentage / 100);
+
+            VoucherRedemption::create([
+                'voucher_id' => $voucher->id,
+                'mobile_user_id' => $user->id,
+                'order_type' => 'service',
+                'order_id' => $serviceRequest->id,
+                'base_amount' => $subtotal,
+                'discount_amount' => $discount,
+                'status' => 'reserved',
+                'reserved_at' => now(),
+            ]);
+
+            $serviceRequest->update([
+                'voucher_id' => $voucher->id,
+                'discount_amount' => $discount,
+                'tax_amount' => $taxAmount,
+                'total_amount' => $discountedSubtotal + $taxAmount,
+            ]);
+        });
+    }
+
     public function cancel(MobileUser $user, int $requestId): MobileServiceRequest
     {
         $serviceRequest = $this->mobileServiceRequestRepository->findByUserAndId($user->id, $requestId);
@@ -317,6 +416,9 @@ class MobileServiceRequestService
         if (! $serviceRequest->canBeCancelled()) {
             throw new \Exception('Pengajuan tidak dapat dibatalkan karena sudah diproses admin atau biaya survey sudah dibayar.', 422);
         }
+
+        // Lepas voucher yang di-reserve agar kuota kembali.
+        $this->settleVoucherRedemption($serviceRequest, 'cancelled');
 
         $serviceRequest->update([
             'status' => 'cancelled',
@@ -374,6 +476,8 @@ class MobileServiceRequestService
                 'midtrans_notification' => $notification,
             ]),
         ]);
+
+        $this->settleVoucherRedemption($serviceRequest, $paymentStatus);
 
         if ($transactionStatus !== 'pending') {
             $this->systemNotificationService->notifyServiceRequestPaymentUpdated(

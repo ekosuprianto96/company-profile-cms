@@ -33,6 +33,8 @@ class ProductOrder extends Model
         'customer_email',
         'customer_phone',
         'cancelled_at',
+        'voucher_id',
+        'discount_amount',
     ];
 
     protected $casts = [

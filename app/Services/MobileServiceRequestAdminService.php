@@ -6,6 +6,7 @@ use App\Mail\MobileServiceRequestDecisionMail;
 use App\Mail\MobileServiceRequestSubmittedMail;
 use App\Models\MobileServiceRequest;
 use App\Models\User;
+use App\Models\VoucherRedemption;
 use App\Repositories\MobileServiceRequestRepository;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -181,6 +182,19 @@ class MobileServiceRequestAdminService
             }
 
             $serviceRequest->update($updatePayload);
+
+            // Selesaikan voucher: disetujui/selesai = konfirmasi pembayaran (mark used);
+            // ditolak = lepas reservasi voucher.
+            $reserved = VoucherRedemption::query()
+                ->where('order_type', 'service')
+                ->where('order_id', $serviceRequest->id)
+                ->where('status', 'reserved');
+
+            if (in_array($status, ['approved', 'completed'], true)) {
+                $reserved->update(['status' => 'used', 'used_at' => now()]);
+            } elseif ($status === 'rejected') {
+                $reserved->update(['status' => 'released', 'released_at' => now()]);
+            }
 
             return $serviceRequest->fresh(['user', 'service', 'needType', 'budgetOption', 'eventProjectType', 'eventProjectNeed', 'eventPackage', 'eventBudgetOption', 'handledBy']);
         });

@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\Mobile\InspireController as MobileInspireControll
 use App\Http\Controllers\Admin\Mobile\MobileBudgetOptionController;
 use App\Http\Controllers\Admin\Mobile\MobileContentController;
 use App\Http\Controllers\Admin\Mobile\MobileSupportContactController;
+use App\Http\Controllers\Admin\Mobile\VoucherController;
 use App\Http\Controllers\Admin\Mobile\MobileEventProjectController;
 use App\Http\Controllers\Admin\Mobile\MobileServiceRequestController;
 use App\Http\Controllers\Admin\Mobile\MobileServiceController;
@@ -273,6 +274,14 @@ Route::middleware(['auth'])->group(function () {
         Route::post('support-contacts/store', [MobileSupportContactController::class, 'store'])->name('support_contacts.store');
         Route::post('support-contacts/update/{id}', [MobileSupportContactController::class, 'update'])->name('support_contacts.update');
         Route::post('support-contacts/destroy', [MobileSupportContactController::class, 'destroy'])->name('support_contacts.destroy');
+
+        // Voucher (CRUD) — permission-gated
+        Route::get('vouchers', [VoucherController::class, 'index'])->name('vouchers')->middleware('permission:voucher:show');
+        Route::get('vouchers/data', [VoucherController::class, 'data'])->name('vouchers.data')->middleware('permission:voucher:show');
+        Route::get('vouchers/forms', [VoucherController::class, 'forms'])->name('vouchers.forms')->middleware('permission:voucher:show');
+        Route::post('vouchers/store', [VoucherController::class, 'store'])->name('vouchers.store')->middleware('permission:voucher:create');
+        Route::post('vouchers/update/{id}', [VoucherController::class, 'update'])->whereNumber('id')->name('vouchers.update')->middleware('permission:voucher:update');
+        Route::post('vouchers/destroy', [VoucherController::class, 'destroy'])->name('vouchers.destroy')->middleware('permission:voucher:destroy');
         Route::get('event-projects', [MobileEventProjectController::class, 'index'])->name('event_projects');
         Route::post('event-projects/types', [MobileEventProjectController::class, 'storeType'])->name('event_projects.types.store');
         Route::post('event-projects/types/{id}', [MobileEventProjectController::class, 'updateType'])->whereNumber('id')->name('event_projects.types.update');

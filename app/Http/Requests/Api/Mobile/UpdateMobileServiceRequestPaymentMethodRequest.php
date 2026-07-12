@@ -14,7 +14,8 @@ class UpdateMobileServiceRequestPaymentMethodRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'payment_method' => 'required|string|in:qris,va_bca,va_bni,va_mandiri,gopay,dana,ovo',
+            'payment_method' => 'required|string|in:qris,va_bca,va_bni,va_mandiri,gopay,dana,ovo,manual_transfer',
+            'voucher_id' => 'nullable|integer',
         ];
     }
 }

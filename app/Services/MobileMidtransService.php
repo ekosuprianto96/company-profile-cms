@@ -26,20 +26,26 @@ class MobileMidtransService
                 'email' => $serviceRequest->user?->email,
                 'phone' => $serviceRequest->user?->phone,
             ],
-            'item_details' => [
+            'item_details' => array_values(array_filter([
                 [
                     'id' => 'survey-fee',
                     'price' => (int) $serviceRequest->survey_fee,
                     'quantity' => 1,
                     'name' => 'Biaya Survey',
                 ],
+                ((int) $serviceRequest->discount_amount > 0 ? [
+                    'id' => 'voucher-discount',
+                    'price' => -1 * (int) $serviceRequest->discount_amount,
+                    'quantity' => 1,
+                    'name' => 'Diskon Voucher',
+                ] : null),
                 [
                     'id' => 'tax-fee',
                     'price' => (int) $serviceRequest->tax_amount,
                     'quantity' => 1,
                     'name' => 'Pajak',
                 ],
-            ],
+            ])),
             'callbacks' => [
                 'finish' => config('services.midtrans.finish_url'),
             ],

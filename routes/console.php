@@ -13,3 +13,6 @@ Schedule::job(new SendBulkEmailJob)->everyMinute();
 
 // Tandai OTP mobile yang sudah lewat masa berlaku menjadi expired.
 Schedule::command('mobile:expire-otps')->everyMinute()->withoutOverlapping();
+
+// Lepas reservasi voucher yang menggantung (tidak dibayar) agar kuota kembali.
+Schedule::command('vouchers:release-stale')->hourly()->withoutOverlapping();

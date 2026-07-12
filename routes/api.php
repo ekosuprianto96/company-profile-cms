@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\Mobile\MobileServiceController;
 use App\Http\Controllers\Api\Mobile\MobileServiceRequestController;
 use App\Http\Controllers\Api\Mobile\MobileInvoiceController;
 use App\Http\Controllers\Api\Mobile\MobileProductOrderController;
+use App\Http\Controllers\Api\Mobile\VoucherController;
 use App\Http\Controllers\Api\Mobile\ChatController;
 use App\Http\Controllers\Api\Mobile\PushTokenController;
 use App\Http\Controllers\Api\Mobile\NotificationController;
@@ -45,6 +46,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/draft', [MobileServiceRequestController::class, 'storeDraft'])->name('service-requests.draft');
         Route::patch('/{id}/payment-method', [MobileServiceRequestController::class, 'updatePaymentMethod'])->name('service-requests.payment-method');
         Route::patch('/{id}/cancel', [MobileServiceRequestController::class, 'cancel'])->whereNumber('id')->name('service-requests.cancel');
+    });
+
+    Route::prefix('v1/mobile/vouchers')->group(function () {
+        Route::get('/', [VoucherController::class, 'index'])->name('vouchers.index');
+        Route::get('/available', [VoucherController::class, 'available'])->name('vouchers.available');
+        Route::post('/preview', [VoucherController::class, 'preview'])->name('vouchers.preview');
     });
 
     Route::get('v1/mobile/product-orders/{orderNumber}/invoice', [MobileInvoiceController::class, 'productOrder'])->name('product-orders.invoice');

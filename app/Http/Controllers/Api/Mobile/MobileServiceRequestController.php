@@ -139,7 +139,8 @@ class MobileServiceRequestController extends ApiController
             $serviceRequest = $this->mobileServiceRequestService->selectPaymentMethod(
                 $request->user(),
                 $id,
-                $request->validated('payment_method')
+                $request->validated('payment_method'),
+                $request->validated('voucher_id'),
             );
 
             return $this->success([
@@ -193,6 +194,8 @@ class MobileServiceRequestController extends ApiController
             'survey_fee' => (int) $serviceRequest->survey_fee,
             'tax_percentage' => (int) $serviceRequest->tax_percentage,
             'tax_amount' => (int) $serviceRequest->tax_amount,
+            'discount_amount' => (int) $serviceRequest->discount_amount,
+            'voucher_id' => $serviceRequest->voucher_id,
             'total_amount' => (int) $serviceRequest->total_amount,
             'drafted_at' => optional($serviceRequest->drafted_at)?->toISOString(),
             'submitted_at' => optional($serviceRequest->submitted_at)?->toISOString(),
