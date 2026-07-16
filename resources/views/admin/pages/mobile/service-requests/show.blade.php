@@ -326,6 +326,37 @@
             </div>
         </div>
 
+        @if ($serviceRequest->payment_method === 'manual_transfer' && $serviceRequest->payment_status !== 'paid')
+            <div class="card shadow-sm border-0 mb-3">
+                <div class="card-body">
+                    <h5 class="mb-3"><i class="ri-bank-line me-1"></i> Verifikasi Transfer Manual</h5>
+
+                    @if ($serviceRequest->payment_proof_path)
+                        <p class="text-muted mb-2">Bukti diupload: {{ optional($serviceRequest->payment_proof_uploaded_at)->format('d M Y H:i') ?? '-' }}</p>
+                        @php $proofUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($serviceRequest->payment_proof_path); @endphp
+                        @if (\Illuminate\Support\Str::endsWith(strtolower($serviceRequest->payment_proof_path), '.pdf'))
+                            <a href="{{ $proofUrl }}" target="_blank" class="btn btn-outline-secondary btn-sm mb-3"><i class="ri-file-pdf-line me-1"></i> Lihat Bukti (PDF)</a>
+                        @else
+                            <a href="{{ $proofUrl }}" target="_blank"><img src="{{ $proofUrl }}" alt="Bukti transfer" class="img-fluid rounded border mb-3" style="max-height: 320px;"></a>
+                        @endif
+
+                        <div class="d-flex gap-2">
+                            <form method="POST" action="{{ route('admin.mobile.service_requests.confirm_payment', $serviceRequest->id) }}" class="flex-fill">
+                                @csrf
+                                <button type="submit" class="btn btn-success w-100"><i class="ri-check-line me-1"></i> Konfirmasi Lunas</button>
+                            </form>
+                            <form method="POST" action="{{ route('admin.mobile.service_requests.reject_payment', $serviceRequest->id) }}" class="flex-fill">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('Tolak bukti transfer ini? User diminta upload ulang.')"><i class="ri-close-line me-1"></i> Tolak Bukti</button>
+                            </form>
+                        </div>
+                    @else
+                        <p class="text-muted mb-0">User belum mengunggah bukti transfer.</p>
+                    @endif
+                </div>
+            </div>
+        @endif
+
         <div class="card shadow-sm border-0">
             <div class="card-body">
                 <h5 class="mb-3">Aksi Admin</h5>

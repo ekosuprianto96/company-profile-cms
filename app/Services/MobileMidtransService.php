@@ -33,6 +33,12 @@ class MobileMidtransService
                     'quantity' => 1,
                     'name' => 'Biaya Survey',
                 ],
+                ...$serviceRequest->products->map(fn ($product) => [
+                    'id' => 'product-'.$product->id,
+                    'price' => (int) $product->unit_price,
+                    'quantity' => (int) $product->quantity,
+                    'name' => \Illuminate\Support\Str::limit((string) $product->product_name, 45, ''),
+                ])->all(),
                 ((int) $serviceRequest->discount_amount > 0 ? [
                     'id' => 'voucher-discount',
                     'price' => -1 * (int) $serviceRequest->discount_amount,
@@ -57,6 +63,101 @@ class MobileMidtransService
             'enabled_payments' => $this->enabledPayments($paymentMethod),
         ];
 
+        $responseData = $this->requestSnap($payload);
+
+        return [
+            'order_id' => $payload['transaction_details']['order_id'],
+            'gross_amount' => (int) $serviceRequest->total_amount,
+            'token' => $responseData['token'] ?? null,
+            'redirect_url' => $responseData['redirect_url'] ?? null,
+            'finish_url' => config('services.midtrans.finish_url'),
+            'raw' => $responseData,
+        ];
+    }
+
+    /** Buat transaksi Snap untuk order produk (item + ongkir − diskon). */
+    public function createProductOrderSnapTransaction(\App\Models\ProductOrder $order, string $paymentMethod): array
+    {
+        if ((string) config('services.midtrans.server_key') === '') {
+            throw new \Exception('MIDTRANS_SERVER_KEY belum diatur.');
+        }
+
+        $order->loadMissing('items', 'user');
+
+        $itemDetails = array_values(array_filter([
+            ...$order->items->map(fn ($item) => [
+                'id' => 'item-' . $item->id,
+                'price' => (int) $item->unit_price,
+                'quantity' => (int) $item->quantity,
+                'name' => \Illuminate\Support\Str::limit((string) $item->product_name, 45, ''),
+            ])->all(),
+            (int) $order->shipping_fee > 0 ? [
+                'id' => 'shipping-fee',
+                'price' => (int) $order->shipping_fee,
+                'quantity' => 1,
+                'name' => 'Ongkos Kirim',
+            ] : null,
+            (int) $order->discount_amount > 0 ? [
+                'id' => 'voucher-discount',
+                'price' => -1 * (int) $order->discount_amount,
+                'quantity' => 1,
+                'name' => 'Diskon Voucher',
+            ] : null,
+            // Biaya survey/jasa bila order digabung dengan layanan (grand_total > bagian produk).
+            (function () use ($order) {
+                $productPart = (int) $order->subtotal - (int) $order->discount_amount + (int) $order->shipping_fee;
+                $surveyCharge = (int) $order->grand_total - $productPart;
+
+                return $surveyCharge > 0 ? [
+                    'id' => 'service-survey',
+                    'price' => $surveyCharge,
+                    'quantity' => 1,
+                    'name' => 'Biaya Survey Jasa',
+                ] : null;
+            })(),
+        ]));
+
+        $orderId = $order->order_number . '-' . now()->format('YmdHis');
+
+        $payload = [
+            'transaction_details' => [
+                'order_id' => $orderId,
+                'gross_amount' => (int) $order->grand_total,
+            ],
+            'customer_details' => [
+                'first_name' => $order->customer_name ?: ($order->user?->name ?? 'Pengguna'),
+                'email' => $order->customer_email ?: $order->user?->email,
+                'phone' => $order->customer_phone ?: $order->user?->phone,
+            ],
+            'item_details' => $itemDetails,
+            'callbacks' => [
+                'finish' => config('services.midtrans.finish_url'),
+            ],
+            'notification_url' => config('services.midtrans.callback_url'),
+            'expiry' => [
+                'unit' => 'hour',
+                'duration' => 24,
+            ],
+            'enabled_payments' => $this->enabledPayments($paymentMethod),
+        ];
+
+        $responseData = $this->requestSnap($payload);
+
+        return [
+            'order_id' => $orderId,
+            'gross_amount' => (int) $order->grand_total,
+            'token' => $responseData['token'] ?? null,
+            'redirect_url' => $responseData['redirect_url'] ?? null,
+            'finish_url' => config('services.midtrans.finish_url'),
+            'raw' => $responseData,
+        ];
+    }
+
+    /** Kirim payload ke Snap API; lempar 503 jika gateway tak terjangkau. */
+    protected function requestSnap(array $payload): array
+    {
+        $serverKey = (string) config('services.midtrans.server_key');
+
         try {
             $response = Http::withBasicAuth($serverKey, '')
                 ->connectTimeout(10)
@@ -77,16 +178,7 @@ class MobileMidtransService
             throw new \Exception($response->json('error_messages.0') ?? 'Gagal membuat transaksi Midtrans.');
         }
 
-        $responseData = $response->json();
-
-        return [
-            'order_id' => $payload['transaction_details']['order_id'],
-            'gross_amount' => (int) $serviceRequest->total_amount,
-            'token' => $responseData['token'] ?? null,
-            'redirect_url' => $responseData['redirect_url'] ?? null,
-            'finish_url' => config('services.midtrans.finish_url'),
-            'raw' => $responseData,
-        ];
+        return $response->json();
     }
 
     public function handleNotification(array $payload): array

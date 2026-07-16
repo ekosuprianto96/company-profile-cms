@@ -79,6 +79,36 @@ class MobileServiceRequestController extends ApiController
         }
     }
 
+    public function uploadPaymentProof(Request $request, int $id)
+    {
+        try {
+            $validated = $request->validate([
+                'proof' => 'required|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+            ]);
+
+            $serviceRequest = $this->mobileServiceRequestService->uploadPaymentProof(
+                $request->user(),
+                $id,
+                $validated['proof'],
+            );
+
+            return $this->success([
+                'service_request' => $this->serviceRequestPayload($serviceRequest),
+            ], 'Bukti pembayaran berhasil dikirim. Menunggu verifikasi admin.');
+        } catch (\Throwable $th) {
+            Log::error('Upload mobile payment proof error: ' . $th->getMessage(), [
+                'stack' => $th->getTraceAsString(),
+            ]);
+
+            $status = (int) $th->getCode();
+            if ($status <= 0) {
+                $status = 500;
+            }
+
+            return $this->error($th->getMessage(), $status);
+        }
+    }
+
     public function uploadIssuePhoto(Request $request)
     {
         try {
@@ -191,11 +221,29 @@ class MobileServiceRequestController extends ApiController
             'payment_status' => $serviceRequest->payment_status,
             'payment_method' => $serviceRequest->payment_method,
             'payment_gateway_provider' => $serviceRequest->payment_gateway_provider,
+            'payment_proof_url' => $serviceRequest->payment_proof_path
+                ? \Illuminate\Support\Facades\Storage::disk('public')->url($serviceRequest->payment_proof_path)
+                : null,
+            'payment_proof_uploaded_at' => optional($serviceRequest->payment_proof_uploaded_at)?->toISOString(),
             'survey_fee' => (int) $serviceRequest->survey_fee,
             'tax_percentage' => (int) $serviceRequest->tax_percentage,
             'tax_amount' => (int) $serviceRequest->tax_amount,
             'discount_amount' => (int) $serviceRequest->discount_amount,
             'voucher_id' => $serviceRequest->voucher_id,
+            'products_amount' => (int) $serviceRequest->products_amount,
+            'products' => $serviceRequest->products->map(fn ($product) => [
+                'id' => $product->id,
+                'product_id' => $product->product_id,
+                'name' => $product->product_name,
+                'unit_price' => (int) $product->unit_price,
+                'quantity' => (int) $product->quantity,
+                'subtotal' => (int) $product->subtotal,
+                'image' => $product->product?->primary_image
+                    ? (\Illuminate\Support\Str::startsWith($product->product->primary_image, ['http://', 'https://'])
+                        ? $product->product->primary_image
+                        : asset('storage/'.$product->product->primary_image))
+                    : null,
+            ])->all(),
             'total_amount' => (int) $serviceRequest->total_amount,
             'drafted_at' => optional($serviceRequest->drafted_at)?->toISOString(),
             'submitted_at' => optional($serviceRequest->submitted_at)?->toISOString(),

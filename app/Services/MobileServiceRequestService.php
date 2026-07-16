@@ -85,12 +85,15 @@ class MobileServiceRequestService
                 : $this->mobileAppSettingService->surveyFee();
             $taxPercentage = $this->mobileAppSettingService->taxPercentage();
             $taxAmount = (int) round($surveyFee * ($taxPercentage / 100));
-            $totalAmount = $surveyFee + $taxAmount;
 
             $service = $this->mobileServiceRepository->find((int) $payload['mobile_service_id']);
             if (! $service || (($service->request_flow_type ?? 'standard') !== $flowType)) {
                 throw new \Exception('Tipe flow pengajuan tidak sesuai dengan layanan yang dipilih.', 422);
             }
+
+            $resolvedProducts = $this->resolveAddOnProducts($payload['products'] ?? [], (int) $payload['mobile_service_id']);
+            $productsAmount = array_sum(array_map(fn ($item) => $item['subtotal'], $resolvedProducts));
+            $totalAmount = $surveyFee + $taxAmount + $productsAmount;
 
             if ($flowType === 'event_project') {
                 $this->validateEventSelection($payload);
@@ -119,6 +122,7 @@ class MobileServiceRequestService
                 'survey_fee' => $surveyFee,
                 'tax_percentage' => $taxPercentage,
                 'tax_amount' => $taxAmount,
+                'products_amount' => $productsAmount,
                 'total_amount' => $totalAmount,
                 'status' => 'draft',
                 'payment_status' => 'unpaid',
@@ -131,6 +135,10 @@ class MobileServiceRequestService
                 'transaction_code' => sprintf('SR-EK%05d', (int) $request->id),
             ])->save();
 
+            foreach ($resolvedProducts as $item) {
+                $request->products()->create($item);
+            }
+
             $freshRequest = $request->fresh([
                 'service',
                 'needType',
@@ -140,6 +148,7 @@ class MobileServiceRequestService
                 'eventPackage',
                 'eventBudgetOption',
                 'user',
+                'products',
             ]);
 
             return $freshRequest;
@@ -166,7 +175,7 @@ class MobileServiceRequestService
     public function listForUser(MobileUser $user): Collection
     {
         return $this->mobileServiceRequestRepository->listByUser($user->id)
-            ->loadMissing(['service', 'needType', 'budgetOption', 'eventProjectType', 'eventProjectNeed', 'eventPackage', 'eventBudgetOption', 'handledBy', 'user']);
+            ->loadMissing(['service', 'needType', 'budgetOption', 'eventProjectType', 'eventProjectNeed', 'eventPackage', 'eventBudgetOption', 'handledBy', 'user', 'products.product']);
     }
 
     public function findForUser(MobileUser $user, int $requestId): ?MobileServiceRequest
@@ -181,6 +190,7 @@ class MobileServiceRequestService
             'eventBudgetOption',
             'handledBy',
             'user',
+            'products.product',
         ]);
     }
 
@@ -317,6 +327,91 @@ class MobileServiceRequestService
         return $freshServiceRequest;
     }
 
+    /** Upload bukti transfer manual oleh user; order masuk antrean verifikasi admin. */
+    public function uploadPaymentProof(MobileUser $user, int $requestId, UploadedFile $file): MobileServiceRequest
+    {
+        $serviceRequest = $this->mobileServiceRequestRepository->findByUserAndId($user->id, $requestId);
+
+        if (! $serviceRequest) {
+            throw new \Exception('Data pengajuan tidak ditemukan.', 404);
+        }
+
+        if ($serviceRequest->payment_method !== 'manual_transfer') {
+            throw new \Exception('Order ini tidak menggunakan pembayaran transfer manual.', 422);
+        }
+
+        if ($serviceRequest->payment_status === 'paid' || $serviceRequest->paid_at) {
+            throw new \Exception('Pembayaran sudah lunas.', 422);
+        }
+
+        $fileName = now()->format('Y-m-d') . '-' . \Illuminate\Support\Str::uuid() . '.' . $file->getClientOriginalExtension();
+        $path = $file->storeAs('mobile/payment-proofs', $fileName, 'public');
+
+        if ($serviceRequest->payment_proof_path) {
+            Storage::disk('public')->delete($serviceRequest->payment_proof_path);
+        }
+
+        $serviceRequest->update([
+            'payment_proof_path' => $path,
+            'payment_proof_uploaded_at' => now(),
+            'payment_status' => 'waiting_verification',
+            'status' => 'waiting_verification',
+        ]);
+
+        return $serviceRequest->fresh(['service', 'needType', 'user']) ?? $serviceRequest;
+    }
+
+    /** Admin menyetujui bukti transfer manual: tandai lunas + settle voucher jadi used. */
+    public function confirmManualPayment(int $requestId): MobileServiceRequest
+    {
+        $serviceRequest = $this->findOrFailById($requestId);
+
+        if ($serviceRequest->payment_method !== 'manual_transfer') {
+            throw new \Exception('Order ini tidak menggunakan pembayaran transfer manual.', 422);
+        }
+
+        if ($serviceRequest->payment_status === 'paid') {
+            throw new \Exception('Pembayaran sudah dikonfirmasi.', 422);
+        }
+
+        $serviceRequest->update([
+            'payment_status' => 'paid',
+            'status' => 'waiting_payment' === $serviceRequest->status ? 'pending' : $serviceRequest->status,
+            'paid_at' => now(),
+        ]);
+
+        $this->settleVoucherRedemption($serviceRequest, 'paid');
+
+        return $serviceRequest->fresh(['service', 'needType', 'user']) ?? $serviceRequest;
+    }
+
+    /** Admin menolak bukti transfer manual: kembalikan ke status menunggu transfer. */
+    public function rejectManualPayment(int $requestId, ?string $reason = null): MobileServiceRequest
+    {
+        $serviceRequest = $this->findOrFailById($requestId);
+
+        $serviceRequest->update([
+            'payment_status' => 'waiting_transfer',
+            'status' => 'waiting_transfer',
+            'payment_proof_path' => null,
+            'payment_proof_uploaded_at' => null,
+            'admin_note' => $reason ?: $serviceRequest->admin_note,
+        ]);
+
+        return $serviceRequest->fresh(['service', 'needType', 'user']) ?? $serviceRequest;
+    }
+
+    protected function findOrFailById(int $requestId): MobileServiceRequest
+    {
+        $serviceRequest = $this->mobileServiceRequestRepository->findForAdmin($requestId);
+
+        if (! $serviceRequest) {
+            throw new \Exception('Data pengajuan tidak ditemukan.', 404);
+        }
+
+        return $serviceRequest;
+    }
+
     /** Tandai redemption reserved order ini sebagai used (bayar sukses) atau released (gagal/batal). */
     public function settleVoucherRedemption(MobileServiceRequest $serviceRequest, string $paymentStatus): void
     {
@@ -344,12 +439,13 @@ class MobileServiceRequestService
         $surveyFee = (int) $serviceRequest->survey_fee;
         $taxPercentage = (int) $serviceRequest->tax_percentage;
         $taxAmount = (int) round($surveyFee * $taxPercentage / 100);
+        $productsAmount = (int) $serviceRequest->products_amount;
 
         $serviceRequest->update([
             'voucher_id' => null,
             'discount_amount' => 0,
             'tax_amount' => $taxAmount,
-            'total_amount' => $surveyFee + $taxAmount,
+            'total_amount' => $surveyFee + $taxAmount + $productsAmount,
         ]);
     }
 
@@ -384,6 +480,7 @@ class MobileServiceRequestService
             $discountedSubtotal = max(0, $subtotal - $discount);
             $taxPercentage = (int) $serviceRequest->tax_percentage;
             $taxAmount = (int) round($discountedSubtotal * $taxPercentage / 100);
+            $productsAmount = (int) $serviceRequest->products_amount;
 
             VoucherRedemption::create([
                 'voucher_id' => $voucher->id,
@@ -400,7 +497,7 @@ class MobileServiceRequestService
                 'voucher_id' => $voucher->id,
                 'discount_amount' => $discount,
                 'tax_amount' => $taxAmount,
-                'total_amount' => $discountedSubtotal + $taxAmount,
+                'total_amount' => $discountedSubtotal + $taxAmount + $productsAmount,
             ]);
         });
     }
@@ -506,5 +603,67 @@ class MobileServiceRequestService
         if ((int) $package->mobile_event_project_need_id !== (int) $need->id) {
             throw new \Exception('Paket event tidak sesuai dengan kebutuhan project.', 422);
         }
+    }
+
+    /**
+     * Validasi & normalisasi produk tambahan (add-on) pada pengajuan.
+     * Harga diambil dari database (server-authoritative), bukan dari client.
+     * Produk hanya diterima bila aktif dan cocok dengan layanan (service_scope=all
+     * atau terpetakan ke layanan tersebut via product_service).
+     *
+     * @param  array<int, array{product_id?: mixed, quantity?: mixed}>  $rawProducts
+     * @return array<int, array{product_id: int, product_name: string, unit_price: int, quantity: int, subtotal: int}>
+     */
+    private function resolveAddOnProducts(array $rawProducts, int $serviceId): array
+    {
+        if (empty($rawProducts)) {
+            return [];
+        }
+
+        // Gabungkan quantity bila produk yang sama dikirim lebih dari sekali.
+        $quantities = [];
+        foreach ($rawProducts as $item) {
+            $productId = (int) ($item['product_id'] ?? 0);
+            $quantity = (int) ($item['quantity'] ?? 0);
+            if ($productId <= 0 || $quantity <= 0) {
+                continue;
+            }
+            $quantities[$productId] = ($quantities[$productId] ?? 0) + $quantity;
+        }
+
+        if (empty($quantities)) {
+            return [];
+        }
+
+        $products = \App\Models\Product::with('services:id')
+            ->whereIn('id', array_keys($quantities))
+            ->get();
+
+        $resolved = [];
+        foreach ($quantities as $productId => $quantity) {
+            $product = $products->firstWhere('id', $productId);
+
+            if (! $product || ! $product->is_active) {
+                throw new \Exception('Produk yang dipilih tidak tersedia.', 422);
+            }
+
+            $matchesService = ($product->service_scope ?? 'all') === 'all'
+                || $product->services->contains('id', $serviceId);
+
+            if (! $matchesService) {
+                throw new \Exception('Produk "'.$product->name.'" tidak tersedia untuk layanan ini.', 422);
+            }
+
+            $unitPrice = (int) $product->price;
+            $resolved[] = [
+                'product_id' => (int) $product->id,
+                'product_name' => (string) $product->name,
+                'unit_price' => $unitPrice,
+                'quantity' => $quantity,
+                'subtotal' => $unitPrice * $quantity,
+            ];
+        }
+
+        return $resolved;
     }
 }

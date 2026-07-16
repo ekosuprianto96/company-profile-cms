@@ -667,6 +667,18 @@ class MobileController extends Controller
                 'icon' => 'ri-coupon-3-line',
                 'description' => 'Kelola voucher diskon jasa & produk untuk mobile.',
             ]] : []),
+            ...(auth()->user()?->hasPermission('product:show') ? [[
+                'title' => 'Produk',
+                'route' => route('admin.mobile.products'),
+                'icon' => 'ri-shopping-bag-3-line',
+                'description' => 'Katalog produk, kategori, & kurir pengiriman.',
+            ]] : []),
+            ...(auth()->user()?->hasPermission('product-order:show') ? [[
+                'title' => 'Order Produk',
+                'route' => route('admin.mobile.product_orders'),
+                'icon' => 'ri-shopping-cart-2-line',
+                'description' => 'Kelola & proses pesanan produk mobile.',
+            ]] : []),
             [
                 'title' => 'Settings',
                 'route' => route('admin.mobile.settings'),

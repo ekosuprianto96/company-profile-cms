@@ -27,6 +27,10 @@ use App\Http\Controllers\Admin\Mobile\MobileBudgetOptionController;
 use App\Http\Controllers\Admin\Mobile\MobileContentController;
 use App\Http\Controllers\Admin\Mobile\MobileSupportContactController;
 use App\Http\Controllers\Admin\Mobile\VoucherController;
+use App\Http\Controllers\Admin\Mobile\ProductController;
+use App\Http\Controllers\Admin\Mobile\ProductCategoryController;
+use App\Http\Controllers\Admin\Mobile\ShippingCourierController;
+use App\Http\Controllers\Admin\Mobile\ProductOrderController;
 use App\Http\Controllers\Admin\Mobile\MobileEventProjectController;
 use App\Http\Controllers\Admin\Mobile\MobileServiceRequestController;
 use App\Http\Controllers\Admin\Mobile\MobileServiceController;
@@ -282,6 +286,36 @@ Route::middleware(['auth'])->group(function () {
         Route::post('vouchers/store', [VoucherController::class, 'store'])->name('vouchers.store')->middleware('permission:voucher:create');
         Route::post('vouchers/update/{id}', [VoucherController::class, 'update'])->whereNumber('id')->name('vouchers.update')->middleware('permission:voucher:update');
         Route::post('vouchers/destroy', [VoucherController::class, 'destroy'])->name('vouchers.destroy')->middleware('permission:voucher:destroy');
+
+        // Produk (CRUD) — permission-gated
+        Route::get('products', [ProductController::class, 'index'])->name('products')->middleware('permission:product:show');
+        Route::get('products/data', [ProductController::class, 'data'])->name('products.data')->middleware('permission:product:show');
+        Route::get('products/forms', [ProductController::class, 'forms'])->name('products.forms')->middleware('permission:product:show');
+        Route::post('products/store', [ProductController::class, 'store'])->name('products.store')->middleware('permission:product:create');
+        Route::post('products/update/{id}', [ProductController::class, 'update'])->whereNumber('id')->name('products.update')->middleware('permission:product:update');
+        Route::post('products/destroy', [ProductController::class, 'destroy'])->name('products.destroy')->middleware('permission:product:destroy');
+
+        // Kategori Produk
+        Route::get('product-categories', [ProductCategoryController::class, 'index'])->name('product_categories')->middleware('permission:product-category:show');
+        Route::get('product-categories/data', [ProductCategoryController::class, 'data'])->name('product_categories.data')->middleware('permission:product-category:show');
+        Route::get('product-categories/forms', [ProductCategoryController::class, 'forms'])->name('product_categories.forms')->middleware('permission:product-category:show');
+        Route::post('product-categories/store', [ProductCategoryController::class, 'store'])->name('product_categories.store')->middleware('permission:product-category:create');
+        Route::post('product-categories/update/{id}', [ProductCategoryController::class, 'update'])->whereNumber('id')->name('product_categories.update')->middleware('permission:product-category:update');
+        Route::post('product-categories/destroy', [ProductCategoryController::class, 'destroy'])->name('product_categories.destroy')->middleware('permission:product-category:destroy');
+
+        // Kurir Pengiriman
+        Route::get('shipping-couriers', [ShippingCourierController::class, 'index'])->name('shipping_couriers')->middleware('permission:shipping:show');
+        Route::get('shipping-couriers/data', [ShippingCourierController::class, 'data'])->name('shipping_couriers.data')->middleware('permission:shipping:show');
+        Route::get('shipping-couriers/forms', [ShippingCourierController::class, 'forms'])->name('shipping_couriers.forms')->middleware('permission:shipping:show');
+        Route::post('shipping-couriers/store', [ShippingCourierController::class, 'store'])->name('shipping_couriers.store')->middleware('permission:shipping:create');
+        Route::post('shipping-couriers/update/{id}', [ShippingCourierController::class, 'update'])->whereNumber('id')->name('shipping_couriers.update')->middleware('permission:shipping:update');
+        Route::post('shipping-couriers/destroy', [ShippingCourierController::class, 'destroy'])->name('shipping_couriers.destroy')->middleware('permission:shipping:destroy');
+
+        // Order Produk (kelola)
+        Route::get('product-orders', [ProductOrderController::class, 'index'])->name('product_orders')->middleware('permission:product-order:show');
+        Route::get('product-orders/data', [ProductOrderController::class, 'data'])->name('product_orders.data')->middleware('permission:product-order:show');
+        Route::get('product-orders/forms', [ProductOrderController::class, 'forms'])->name('product_orders.forms')->middleware('permission:product-order:show');
+        Route::post('product-orders/update/{id}', [ProductOrderController::class, 'update'])->whereNumber('id')->name('product_orders.update')->middleware('permission:product-order:update');
         Route::get('event-projects', [MobileEventProjectController::class, 'index'])->name('event_projects');
         Route::post('event-projects/types', [MobileEventProjectController::class, 'storeType'])->name('event_projects.types.store');
         Route::post('event-projects/types/{id}', [MobileEventProjectController::class, 'updateType'])->whereNumber('id')->name('event_projects.types.update');
@@ -301,6 +335,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('service-requests/export-pdf', [MobileServiceRequestController::class, 'exportPdf'])->name('service_requests.export_pdf');
         Route::get('service-requests/{id}/download', [MobileServiceRequestController::class, 'download'])->whereNumber('id')->name('service_requests.download');
         Route::get('service-requests/photos/{file}', [MobileServiceRequestController::class, 'photo'])->where('file', '.+')->name('service_requests.photo');
+        Route::post('service-requests/{id}/confirm-payment', [MobileServiceRequestController::class, 'confirmPayment'])->whereNumber('id')->name('service_requests.confirm_payment');
+        Route::post('service-requests/{id}/reject-payment', [MobileServiceRequestController::class, 'rejectPayment'])->whereNumber('id')->name('service_requests.reject_payment');
         Route::post('service-requests/{id}/approve', [MobileServiceRequestController::class, 'approve'])->whereNumber('id')->name('service_requests.approve');
         Route::post('service-requests/{id}/complete', [MobileServiceRequestController::class, 'complete'])->whereNumber('id')->name('service_requests.complete');
         Route::post('service-requests/{id}/reject', [MobileServiceRequestController::class, 'reject'])->whereNumber('id')->name('service_requests.reject');

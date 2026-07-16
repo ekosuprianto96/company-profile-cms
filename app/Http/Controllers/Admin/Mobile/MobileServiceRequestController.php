@@ -22,7 +22,8 @@ class MobileServiceRequestController extends Controller
     public function __construct(
         protected MobileServiceRequestAdminService $mobileServiceRequestAdminService,
         protected MobileServiceRequestPdfService $mobileServiceRequestPdfService,
-        protected MobileServiceRepository $mobileServiceRepository
+        protected MobileServiceRepository $mobileServiceRepository,
+        protected \App\Services\MobileServiceRequestService $mobileServiceRequestService,
     ) {
         $this->setView('admin.pages.mobile');
     }
@@ -286,6 +287,36 @@ class MobileServiceRequestController extends Controller
             return redirect()
                 ->back()
                 ->with('error', $th->getMessage());
+        }
+    }
+
+    public function confirmPayment(Request $request, int $id)
+    {
+        try {
+            $serviceRequest = $this->mobileServiceRequestService->confirmManualPayment($id);
+
+            return redirect()
+                ->route('admin.mobile.service_requests.show', $serviceRequest->id)
+                ->with('success', 'Pembayaran transfer manual berhasil dikonfirmasi lunas.');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', $th->getMessage());
+        }
+    }
+
+    public function rejectPayment(Request $request, int $id)
+    {
+        $validated = $request->validate([
+            'reason' => 'nullable|string|max:5000',
+        ]);
+
+        try {
+            $serviceRequest = $this->mobileServiceRequestService->rejectManualPayment($id, $validated['reason'] ?? null);
+
+            return redirect()
+                ->route('admin.mobile.service_requests.show', $serviceRequest->id)
+                ->with('success', 'Bukti pembayaran ditolak. User diminta upload ulang.');
+        } catch (\Throwable $th) {
+            return redirect()->back()->with('error', $th->getMessage());
         }
     }
 

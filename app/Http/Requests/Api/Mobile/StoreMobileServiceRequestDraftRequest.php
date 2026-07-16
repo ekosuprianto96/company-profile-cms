@@ -11,6 +11,16 @@ class StoreMobileServiceRequestDraftRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $products = $this->input('products');
+
+        if (is_string($products)) {
+            $decoded = json_decode($products, true);
+            $this->merge(['products' => is_array($decoded) ? $decoded : []]);
+        }
+    }
+
     public function rules(): array
     {
         return [
@@ -37,6 +47,9 @@ class StoreMobileServiceRequestDraftRequest extends FormRequest
             'tax_percentage' => 'nullable|integer|min:0|max:100',
             'tax_amount' => 'nullable|integer|min:0',
             'total_amount' => 'nullable|integer|min:0',
+            'products' => 'nullable|array',
+            'products.*.product_id' => 'required|integer|exists:products,id',
+            'products.*.quantity' => 'required|integer|min:1|max:999',
         ];
     }
 

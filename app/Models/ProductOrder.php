@@ -4,11 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/**
- * Mock product order. Akan digantikan/di-extend saat fitur Order Produk penuh
- * dibangun. Untuk sekarang menopang pembuatan invoice PDF produk.
- */
 class ProductOrder extends Model
 {
     protected $fillable = [
@@ -23,10 +20,25 @@ class ProductOrder extends Model
         'shipping_fee',
         'grand_total',
         'courier',
+        'shipping_courier_id',
+        'service_request_id',
+        'notes',
         'tracking_number',
         'address',
         'payment_method',
+        'payment_gateway_provider',
         'payment_status',
+        'payment_proof_path',
+        'payment_proof_uploaded_at',
+        'payment_method_selected_at',
+        'midtrans_order_id',
+        'midtrans_snap_token',
+        'midtrans_redirect_url',
+        'midtrans_transaction_status',
+        'midtrans_payment_type',
+        'payment_reference',
+        'payment_payload',
+        'paid_at',
         'status',
         'status_label',
         'customer_name',
@@ -43,12 +55,27 @@ class ProductOrder extends Model
         'subtotal' => 'integer',
         'shipping_fee' => 'integer',
         'grand_total' => 'integer',
+        'discount_amount' => 'integer',
         'cancelled_at' => 'datetime',
+        'paid_at' => 'datetime',
+        'payment_proof_uploaded_at' => 'datetime',
+        'payment_method_selected_at' => 'datetime',
+        'payment_payload' => 'array',
     ];
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(MobileUser::class, 'mobile_user_id');
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(ProductOrderItem::class);
+    }
+
+    public function shippingCourier(): BelongsTo
+    {
+        return $this->belongsTo(ShippingCourier::class, 'shipping_courier_id');
     }
 
     /**

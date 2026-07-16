@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\Mobile\MobileServiceRequestController;
 use App\Http\Controllers\Api\Mobile\MobileInvoiceController;
 use App\Http\Controllers\Api\Mobile\MobileProductOrderController;
 use App\Http\Controllers\Api\Mobile\VoucherController;
+use App\Http\Controllers\Api\Mobile\ProductController as ProductApiController;
 use App\Http\Controllers\Api\Mobile\ChatController;
 use App\Http\Controllers\Api\Mobile\PushTokenController;
 use App\Http\Controllers\Api\Mobile\NotificationController;
@@ -30,6 +31,9 @@ Route::get('v1/mobile/inspires/{slug}', [InspireController::class, 'show'])->whe
 Route::get('v1/mobile/blogs', [BlogController::class, 'index']);
 Route::get('v1/mobile/blogs/{slug}', [BlogController::class, 'show'])->where('slug', '[A-Za-z0-9\-]+');
 Route::get('v1/mobile/app-content', [AppContentController::class, 'index']);
+Route::get('v1/mobile/products', [ProductApiController::class, 'index']);
+Route::get('v1/mobile/product-categories', [ProductApiController::class, 'categories']);
+Route::get('v1/mobile/products/{slug}', [ProductApiController::class, 'show'])->where('slug', '[A-Za-z0-9\-]+');
 Route::get('v1/mobile/service-requests/meta', [MobileServiceRequestController::class, 'meta']);
 Route::middleware('auth:sanctum')->post('v1/mobile/service-requests/upload-photo', [MobileServiceRequestController::class, 'uploadIssuePhoto']);
 Route::post('v1/mobile/midtrans/notification', [MidtransController::class, 'notification']);
@@ -45,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [MobileServiceRequestController::class, 'storeDraft'])->name('service-requests.store');
         Route::post('/draft', [MobileServiceRequestController::class, 'storeDraft'])->name('service-requests.draft');
         Route::patch('/{id}/payment-method', [MobileServiceRequestController::class, 'updatePaymentMethod'])->name('service-requests.payment-method');
+        Route::post('/{id}/payment-proof', [MobileServiceRequestController::class, 'uploadPaymentProof'])->whereNumber('id')->name('service-requests.payment-proof');
         Route::patch('/{id}/cancel', [MobileServiceRequestController::class, 'cancel'])->whereNumber('id')->name('service-requests.cancel');
     });
 
@@ -54,8 +59,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/preview', [VoucherController::class, 'preview'])->name('vouchers.preview');
     });
 
+    Route::get('v1/mobile/shipping/couriers', [MobileProductOrderController::class, 'couriers'])->name('shipping.couriers');
+    Route::post('v1/mobile/product-orders', [MobileProductOrderController::class, 'checkout'])->name('product-orders.checkout');
+    Route::get('v1/mobile/product-orders', [MobileProductOrderController::class, 'index'])->name('product-orders.index');
     Route::get('v1/mobile/product-orders/{orderNumber}/invoice', [MobileInvoiceController::class, 'productOrder'])->name('product-orders.invoice');
+    Route::patch('v1/mobile/product-orders/{orderNumber}/payment-method', [MobileProductOrderController::class, 'selectPaymentMethod'])->name('product-orders.payment-method');
+    Route::post('v1/mobile/product-orders/{orderNumber}/payment-proof', [MobileProductOrderController::class, 'uploadPaymentProof'])->name('product-orders.payment-proof');
     Route::patch('v1/mobile/product-orders/{orderNumber}/cancel', [MobileProductOrderController::class, 'cancel'])->name('product-orders.cancel');
+    Route::get('v1/mobile/product-orders/{orderNumber}', [MobileProductOrderController::class, 'show'])->name('product-orders.show');
 
     Route::prefix('v1/mobile/notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);

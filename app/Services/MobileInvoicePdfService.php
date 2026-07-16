@@ -12,7 +12,7 @@ class MobileInvoicePdfService
     /** Invoice untuk pengajuan jasa / layanan. */
     public function forServiceRequest(MobileServiceRequest $serviceRequest): string
     {
-        $serviceRequest->loadMissing(['user', 'service', 'needType']);
+        $serviceRequest->loadMissing(['user', 'service', 'needType', 'products']);
 
         $paid = $serviceRequest->payment_status === 'paid' || ! empty($serviceRequest->paid_at);
         $date = $serviceRequest->paid_at
@@ -42,6 +42,10 @@ class MobileInvoicePdfService
             ],
             'summary' => array_values(array_filter([
                 ['label' => 'Biaya Survey', 'value' => $this->rp($serviceRequest->survey_fee)],
+                ...$serviceRequest->products->map(fn ($product) => [
+                    'label' => $product->product_name . ' (' . (int) $product->quantity . '×)',
+                    'value' => $this->rp($product->subtotal),
+                ])->all(),
                 ((int) $serviceRequest->discount_amount > 0
                     ? ['label' => 'Diskon Voucher', 'value' => '-' . $this->rp($serviceRequest->discount_amount)]
                     : null),
@@ -84,10 +88,13 @@ class MobileInvoicePdfService
                     . ($order->variant ? ' · ' . $order->variant : ''),
                 'amount' => $this->rp($order->subtotal),
             ],
-            'summary' => [
+            'summary' => array_values(array_filter([
                 ['label' => 'Subtotal', 'value' => $this->rp($order->subtotal)],
+                ((int) $order->discount_amount > 0
+                    ? ['label' => 'Diskon Voucher', 'value' => '-' . $this->rp($order->discount_amount)]
+                    : null),
                 ['label' => 'Ongkir (' . ($order->courier ?: '-') . ')', 'value' => $this->rp($order->shipping_fee)],
-            ],
+            ])),
             'total' => $this->rp($order->grand_total),
             'payment' => [
                 ['label' => 'Metode', 'value' => $order->payment_method ?: '-'],

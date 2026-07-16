@@ -40,6 +40,7 @@ class MobileServiceRequest extends Model
         'tax_percentage',
         'tax_amount',
         'total_amount',
+        'products_amount',
         'voucher_id',
         'discount_amount',
         'status',
@@ -52,6 +53,8 @@ class MobileServiceRequest extends Model
         'midtrans_transaction_status',
         'midtrans_payment_type',
         'payment_reference',
+        'payment_proof_path',
+        'payment_proof_uploaded_at',
         'payment_payload',
         'draft_payload',
         'drafted_at',
@@ -83,12 +86,19 @@ class MobileServiceRequest extends Model
             'rejected_at' => 'datetime',
             'cancelled_at' => 'datetime',
             'payment_method_selected_at' => 'datetime',
+            'payment_proof_uploaded_at' => 'datetime',
             'paid_at' => 'datetime',
             'survey_fee' => 'integer',
             'tax_percentage' => 'integer',
             'tax_amount' => 'integer',
             'total_amount' => 'integer',
+            'products_amount' => 'integer',
         ];
+    }
+
+    public function products(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ServiceRequestProduct::class);
     }
 
     /**

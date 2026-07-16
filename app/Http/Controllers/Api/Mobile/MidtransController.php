@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Mobile;
 
+use App\Services\MobileProductOrderCheckoutService;
 use App\Services\MobileServiceRequestService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -9,12 +10,22 @@ use Illuminate\Support\Facades\Log;
 class MidtransController extends ApiController
 {
     public function __construct(
-        protected MobileServiceRequestService $mobileServiceRequestService
+        protected MobileServiceRequestService $mobileServiceRequestService,
+        protected MobileProductOrderCheckoutService $productOrderCheckoutService,
     ) {}
 
     public function notification(Request $request)
     {
         try {
+            $orderId = (string) $request->input('order_id', '');
+
+            // Order produk memakai prefix "ORD-"; pengajuan survey memakai "SR-".
+            if (str_starts_with($orderId, 'ORD-')) {
+                $this->productOrderCheckoutService->handleMidtransNotification($request->all());
+
+                return $this->success([], 'Notifikasi Midtrans (produk) berhasil diproses.');
+            }
+
             $serviceRequest = $this->mobileServiceRequestService->handleMidtransNotification($request->all());
 
             return $this->success([
