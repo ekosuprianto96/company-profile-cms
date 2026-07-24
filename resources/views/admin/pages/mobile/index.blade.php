@@ -1,71 +1,60 @@
 @extends('admin.layouts.main')
 
 @section('content')
+@php
+    // Warna tile dibuat berulang agar tiap menu mudah dibedakan sekilas.
+    $tilePalette = ['#1f6f8b', '#2e7d32', '#c8915c', '#6a4c93', '#0277bd', '#d84315', '#00897b', '#455a64'];
+@endphp
+
 <div class="row">
     <div class="col-md-12 mb-4">
-        <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #112d4e 0%, #1f6f8b 100%); color: #fff;">
-            <div class="card-body p-4">
-                <div class="d-flex flex-wrap justify-content-between align-items-start" style="gap: 16px;">
-                    <div>
-                        <div class="mb-2 text-uppercase" style="letter-spacing: 1px; font-size: 12px; opacity: .8;">Mobile App Backoffice</div>
-                        <h3 class="mb-2 text-white">Module Mobile</h3>
-                        <p class="mb-0" style="max-width: 720px;">
-                            Area ini disiapkan sebagai pusat kendali aplikasi mobile order jasa kontraktor. Tujuannya supaya tim tidak perlu membangun dashboard baru dan semua operasional tetap terpusat di admin web yang sudah ada.
-                        </p>
-                    </div>
-                    <div class="text-end">
-                        <a href="{{ route('admin.mobile.users') }}" class="btn btn-light btn-sm">
-                            <i class="ri-user-settings-line me-1"></i> Manage Users
-                        </a>
-                    </div>
+        <div class="card border-0 shadow-sm">
+            <div class="card-body d-flex flex-wrap justify-content-between align-items-center" style="gap: 16px;">
+                <div>
+                    <h4 class="card-title mb-1">Mobile App</h4>
+                    <p class="text-muted mb-0">Pusat kendali aplikasi mobile: pengguna, layanan, produk, pesanan, dan konten.</p>
                 </div>
+                <a href="{{ route('admin.mobile.users') }}" class="btn btn-primary btn-sm">
+                    <i class="ri-user-settings-line me-1"></i> Kelola Pengguna
+                </a>
             </div>
         </div>
     </div>
 
-    @foreach($stats as $stat)
-        <div class="col-md-3 mb-4">
+    @foreach ($stats as $stat)
+        <div class="col-6 col-md-3 mb-4">
             <div class="card h-100 shadow-sm border-0">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <div class="text-muted mb-2">{{ $stat['label'] }}</div>
-                            <div style="font-size: 30px; font-weight: 700;">{{ $stat['value'] }}</div>
-                        </div>
-                        <div class="rounded-circle d-flex align-items-center justify-content-center bg-{{ $stat['tone'] }} text-white" style="width: 54px; height: 54px; font-size: 24px;">
-                            <i class="{{ $stat['icon'] }}"></i>
-                        </div>
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted mb-1">{{ $stat['label'] }}</div>
+                        <div style="font-size: 26px; font-weight: 700;">{{ $stat['value'] }}</div>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-{{ $stat['tone'] }} text-white"
+                         style="width: 48px; height: 48px; font-size: 22px;">
+                        <i class="{{ $stat['icon'] }}"></i>
                     </div>
                 </div>
             </div>
         </div>
     @endforeach
 
-    <div class="col-lg-8 mb-4">
-        <div class="card shadow-sm border-0 h-100">
+    <div class="col-md-12">
+        <div class="card shadow-sm border-0">
             <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <h4 class="mb-1">Cakupan Modul</h4>
-                        <p class="text-muted mb-0">Menu awal untuk area mobile app management.</p>
-                    </div>
-                </div>
+                <h4 class="mb-1">Menu</h4>
+                <p class="text-muted mb-4">Pilih area yang ingin dikelola.</p>
 
-                <div class="row">
-                    @foreach($sections as $section)
-                        <div class="col-md-6 mb-3">
-                            <a href="{{ $section['route'] }}" class="text-decoration-none">
-                                <div class="border rounded p-3 h-100 hover-shadow" style="transition: .2s ease;">
-                                    <div class="d-flex align-items-start" style="gap: 12px;">
-                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
-                                            <i class="{{ $section['icon'] }}" style="font-size: 20px; color: #1f6f8b;"></i>
-                                        </div>
-                                        <div>
-                                            <h5 class="mb-1 text-dark">{{ $section['title'] }}</h5>
-                                            <p class="mb-0 text-muted">{{ $section['description'] }}</p>
-                                        </div>
-                                    </div>
-                                </div>
+                <div class="row g-3">
+                    @foreach ($sections as $section)
+                        @php $tileColor = $tilePalette[$loop->index % count($tilePalette)]; @endphp
+                        <div class="col-4 col-sm-3 col-md-2">
+                            <a href="{{ $section['route'] }}"
+                               class="mobile-tile"
+                               title="{{ $section['description'] ?? $section['title'] }}">
+                                <span class="mobile-tile__icon" style="background: {{ $tileColor }};">
+                                    <i class="{{ $section['icon'] }}"></i>
+                                </span>
+                                <span class="mobile-tile__label">{{ $section['title'] }}</span>
                             </a>
                         </div>
                     @endforeach
@@ -73,31 +62,46 @@
             </div>
         </div>
     </div>
-
-    <div class="col-lg-4 mb-4">
-        <div class="card shadow-sm border-0 h-100">
-            <div class="card-body">
-                <h4 class="mb-3">Prioritas Implementasi</h4>
-                <div class="d-flex flex-column" style="gap: 12px;">
-                    <div class="p-3 rounded bg-light">
-                        <div class="fw-bold mb-1">1. Struktur Data Mobile</div>
-                        <div class="text-muted">Pisahkan entitas mobile dari konten company profile di bagian yang memang berbeda tujuan.</div>
-                    </div>
-                    <div class="p-3 rounded bg-light">
-                        <div class="fw-bold mb-1">2. Monitoring User & OTP</div>
-                        <div class="text-muted">Pantau verifikasi akun, token aktif, dan histori OTP sebelum flow order mobile diperluas.</div>
-                    </div>
-                    <div class="p-3 rounded bg-light">
-                        <div class="fw-bold mb-1">3. Panel Konfigurasi Home</div>
-                        <div class="text-muted">Supaya tim bisa mengatur banner, urutan section, layanan unggulan, dan tema tanpa deploy ulang aplikasi.</div>
-                    </div>
-                    <div class="p-3 rounded bg-light">
-                        <div class="fw-bold mb-1">4. Notifikasi & Chat</div>
-                        <div class="text-muted">Dikerjakan sesudah user, order, dan layanan sudah punya flow yang jelas.</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
+
+<style>
+    .mobile-tile {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 6px;
+        border-radius: 14px;
+        text-decoration: none;
+        transition: background-color .15s ease, transform .15s ease;
+    }
+    .mobile-tile:hover {
+        background-color: rgba(31, 111, 139, .07);
+        transform: translateY(-2px);
+    }
+    .mobile-tile__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 62px;
+        height: 62px;
+        border-radius: 16px;
+        color: #fff;
+        font-size: 28px;
+        box-shadow: 0 6px 16px rgba(16, 24, 40, .14);
+    }
+    .mobile-tile__label {
+        font-size: 12.5px;
+        font-weight: 600;
+        line-height: 1.25;
+        text-align: center;
+        color: #3f4254;
+        /* Judul panjang dipotong agar tinggi tiap tile tetap rata. */
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+</style>
 @endsection

@@ -52,6 +52,7 @@ class MobileServiceRepository extends BaseRepositori
         return $this->model
             ->where('is_active', true)
             ->with([
+                'category.parent.parent', // rantai kategori untuk resolusi induk (maks. 3 tingkat)
                 'needTypes' => function ($query) {
                     $query
                         ->where('is_active', true)

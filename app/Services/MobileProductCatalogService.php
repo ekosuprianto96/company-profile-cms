@@ -34,6 +34,10 @@ class MobileProductCatalogService
             $query->where(fn ($w) => $w->where('service_scope', 'all')
                 ->orWhereHas('services', fn ($s) => $s->where('mobile_services.id', $serviceId)));
         }
+        // Batasi ke cakupan voucher (untuk tombol "Pakai"). item_ids = null → semua.
+        if (array_key_exists('item_ids', $filters) && is_array($filters['item_ids'])) {
+            $query->whereIn('id', $filters['item_ids']);
+        }
 
         match ($filters['sort'] ?? 'newest') {
             'price_asc' => $query->orderBy('price'),
@@ -74,8 +78,9 @@ class MobileProductCatalogService
             'price' => (int) $product->price,
             'compare_at_price' => $product->compare_at_price ? (int) $product->compare_at_price : null,
             'discount_percent' => $this->discountPercent($product),
-            'primary_image' => $this->imageUrl($product->primary_image),
+            'primary_image' => storageUrl($product->primary_image),
             'rating' => (float) $product->rating,
+            'review_count' => (int) $product->review_count,
             'sold_count' => (int) $product->sold_count,
             'stock' => (int) $product->stock,
             'is_featured' => (bool) $product->is_featured,
@@ -92,7 +97,7 @@ class MobileProductCatalogService
             'service_scope' => $product->service_scope,
             'shipping_method' => $product->shipping_method,
             'internal_shipping_fee' => $product->internal_shipping_fee ? (int) $product->internal_shipping_fee : null,
-            'images' => $product->images->map(fn ($i) => $this->imageUrl($i->path))->filter()->values()->all(),
+            'images' => $product->images->map(fn ($i) => storageUrl($i->path))->filter()->values()->all(),
             'services' => $product->services->pluck('title')->all(),
         ]);
     }
@@ -106,15 +111,4 @@ class MobileProductCatalogService
         return (int) round((1 - $product->price / $product->compare_at_price) * 100);
     }
 
-    protected function imageUrl(?string $path): ?string
-    {
-        if (! $path) {
-            return null;
-        }
-        if (str_starts_with($path, 'http')) {
-            return $path;
-        }
-
-        return asset('storage/' . ltrim($path, '/'));
-    }
 }

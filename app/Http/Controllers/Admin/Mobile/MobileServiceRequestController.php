@@ -451,18 +451,6 @@ class MobileServiceRequestController extends Controller
                 'description' => 'Master jenis project, kebutuhan, paket, dan anggaran event.',
             ],
             [
-                'title' => 'Banners',
-                'route' => route('admin.mobile.banners'),
-                'icon' => 'ri-image-edit-line',
-                'description' => 'Banner dan promo home mobile.',
-            ],
-            [
-                'title' => 'Furniture',
-                'route' => route('admin.mobile.furniture'),
-                'icon' => 'ri-sofa-line',
-                'description' => 'Produk furniture dan add-on proyek.',
-            ],
-            [
                 'title' => 'Home Layout',
                 'route' => route('admin.mobile.home_layout'),
                 'icon' => 'ri-layout-grid-line',

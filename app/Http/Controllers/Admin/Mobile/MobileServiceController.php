@@ -6,15 +6,21 @@ use App\Http\Controllers\Admin\Modules\Status;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\MobileServiceStoreRequest;
 use App\Http\Requests\MobileServiceUpdateRequest;
+use App\Models\Category;
+use App\Models\MobileService;
 use App\Services\MobileServiceAdminService;
 use App\Services\MobileServiceNeedTypeAdminService;
 use App\Traits\AdminView;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
 class MobileServiceController extends Controller
 {
     use AdminView;
+
+    /** Jumlah tile layanan yang tampil di grid home mobile (samakan dgn ServiceGrid MAX_TILES). */
+    private const HOME_TILE_LIMIT = 7;
 
     protected $statusCode = 500;
 
@@ -27,13 +33,18 @@ class MobileServiceController extends Controller
 
     public function index()
     {
-        return $this->view('index');
+        return $this->view('index', [
+            'categoryOptions' => $this->categoryOptions(),
+        ]);
     }
 
-    public function data()
+    public function data(Request $request)
     {
         try {
-            return DataTables::of($this->mobileServiceAdminService->queryForAdmin())
+            $query = $this->mobileServiceAdminService->queryForAdmin();
+            $this->applyFilters($query, $request);
+
+            return DataTables::of($query)
                 ->addColumn('title', function ($service) {
                     return '
                         <div class="d-flex flex-column">
@@ -105,6 +116,73 @@ class MobileServiceController extends Controller
         }
     }
 
+    /**
+     * Terapkan filter daftar layanan. Kategori memakai seluruh keturunannya, jadi
+     * memilih kategori induk ikut menampilkan layanan di sub-kategorinya.
+     */
+    private function applyFilters(Builder $query, Request $request): void
+    {
+        if ($request->filled('category_id')) {
+            $category = Category::find((int) $request->input('category_id'));
+            if ($category) {
+                $query->whereIn('category_id', $category->descendantIds());
+            }
+        }
+
+        foreach (['is_featured', 'is_popular', 'is_new', 'is_coming_soon', 'is_active'] as $flag) {
+            $value = $request->input($flag);
+            if ($value === '0' || $value === '1') {
+                $query->where($flag, (int) $value);
+            }
+        }
+
+        if (in_array($request->input('request_flow_type'), ['standard', 'event_project'], true)) {
+            $query->where('request_flow_type', $request->input('request_flow_type'));
+        }
+
+        // Tab "Tampil di Home": batasi ke layanan yang benar-benar dirender grid home.
+        if ($request->input('scope') === 'home') {
+            $query->whereIn('id', $this->homeServiceIds());
+        }
+    }
+
+    /**
+     * ID layanan yang tampil di grid home mobile: aktif, featured diprioritaskan,
+     * lalu diurutkan sort_order, diambil 7 teratas — persis logika ServiceGrid.
+     */
+    private function homeServiceIds(): array
+    {
+        return MobileService::where('is_active', true)
+            ->orderByDesc('is_featured')
+            ->orderBy('sort_order')
+            ->orderBy('title')
+            ->limit(self::HOME_TILE_LIMIT)
+            ->pluck('id')
+            ->all();
+    }
+
+    /** Opsi kategori berindentasi (urut pohon) untuk dropdown filter. */
+    private function categoryOptions(): array
+    {
+        $roots = Category::with('childrenRecursive')
+            ->whereNull('parent_id')
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
+        $flatten = function ($nodes, int $depth) use (&$flatten): array {
+            $out = [];
+            foreach ($nodes as $node) {
+                $out[] = ['id' => $node->id, 'label' => str_repeat('— ', $depth) . $node->name];
+                $out = array_merge($out, $flatten($node->childrenRecursive, $depth + 1));
+            }
+
+            return $out;
+        };
+
+        return $flatten($roots, 0);
+    }
+
     public function forms(Request $request)
     {
         $service = null;
@@ -120,9 +198,10 @@ class MobileServiceController extends Controller
             }
 
             $needTypes = $this->mobileServiceNeedTypeAdminService->listActive();
+            $categoryTree = \App\Models\Category::orderBy('sort_order')->orderBy('name')->get(['id', 'parent_id', 'name']);
 
             return $this->setView('admin.components.forms.')
-                ->view($request->view, compact('service', 'needTypes', 'selectedNeedTypeIds'));
+                ->view($request->view, compact('service', 'needTypes', 'selectedNeedTypeIds', 'categoryTree'));
         } catch (\Exception $error) {
             return response()->json(['message' => $error->getMessage()], 500);
         }

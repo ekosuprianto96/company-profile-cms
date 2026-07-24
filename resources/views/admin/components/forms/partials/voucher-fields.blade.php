@@ -20,8 +20,15 @@
     </div>
 
     <div class="form-group">
-        <label class="form-label">Deskripsi (opsional)</label>
-        <textarea name="description" rows="2" class="form-control" placeholder="Syarat & ketentuan singkat">{{ optional($voucher)->description }}</textarea>
+        <label class="form-label">Deskripsi Singkat (opsional)</label>
+        <textarea name="description" rows="2" class="form-control" placeholder="Ringkasan singkat voucher">{{ optional($voucher)->description }}</textarea>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Syarat &amp; Ketentuan</label>
+        <textarea name="terms" id="{{ $formId }}_terms" class="form-control voucher-terms-editor" rows="6">{!! optional($voucher)->terms !!}</textarea>
+        <small class="text-muted">Ditampilkan di halaman detail voucher pada aplikasi mobile.</small>
+        <div data-error="terms"><span class="text-danger" style="font-size:.8em"></span></div>
     </div>
 
     <div class="row">

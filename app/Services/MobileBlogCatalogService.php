@@ -31,6 +31,12 @@ class MobileBlogCatalogService
             ->values();
     }
 
+    /** Payload satu blog (dipakai home section). */
+    public function listItem(Blog $blog): array
+    {
+        return $this->mapBlog($blog);
+    }
+
     public function findBySlug(string $slug): ?array
     {
         $blog = Blog::query()

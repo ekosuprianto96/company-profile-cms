@@ -15,6 +15,7 @@ class MobileServiceStoreRequest extends FormRequest
     {
         return [
             'title' => 'required|string|max:150',
+            'category_id' => 'nullable|integer|exists:categories,id',
             'request_flow_type' => 'required|in:standard,event_project',
             'summary' => 'nullable|string|max:255',
             'description' => 'nullable|string',
@@ -37,6 +38,7 @@ class MobileServiceStoreRequest extends FormRequest
             'is_featured' => 'required|boolean',
             'is_popular' => 'required|boolean',
             'is_active' => 'required|boolean',
+            'is_coming_soon' => 'nullable|boolean',
         ];
     }
 }

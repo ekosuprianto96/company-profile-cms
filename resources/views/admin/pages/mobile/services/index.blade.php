@@ -24,6 +24,84 @@
     <div class="col-md-12">
         <div class="card shadow-sm border-0">
             <div class="card-body">
+                <ul class="nav nav-tabs mb-3" id="serviceScopeTabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="javascript:void(0)" data-scope="all">
+                            <i class="ri-list-check-2 me-1"></i> Semua Layanan
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="javascript:void(0)" data-scope="home">
+                            <i class="ri-home-4-line me-1"></i> Tampil di Home
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="row g-2 mb-3 align-items-end js-service-filters">
+                    <div class="col-md-3 col-6">
+                        <label class="form-label mb-1" style="font-size:.8em">Kategori</label>
+                        <select id="filterCategory" class="form-control form-control-sm js-service-filter">
+                            <option value="">Semua kategori</option>
+                            @foreach ($categoryOptions as $opt)
+                                <option value="{{ $opt['id'] }}">{{ $opt['label'] }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <label class="form-label mb-1" style="font-size:.8em">Flow</label>
+                        <select id="filterFlow" class="form-control form-control-sm js-service-filter">
+                            <option value="">Semua</option>
+                            <option value="standard">Standard</option>
+                            <option value="event_project">Event Project</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 col-6">
+                        <label class="form-label mb-1" style="font-size:.8em">Featured</label>
+                        <select id="filterFeatured" class="form-control form-control-sm js-service-filter">
+                            <option value="">Semua</option>
+                            <option value="1">Ya</option>
+                            <option value="0">Tidak</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 col-6">
+                        <label class="form-label mb-1" style="font-size:.8em">Popular</label>
+                        <select id="filterPopular" class="form-control form-control-sm js-service-filter">
+                            <option value="">Semua</option>
+                            <option value="1">Ya</option>
+                            <option value="0">Tidak</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 col-6">
+                        <label class="form-label mb-1" style="font-size:.8em">New</label>
+                        <select id="filterNew" class="form-control form-control-sm js-service-filter">
+                            <option value="">Semua</option>
+                            <option value="1">Ya</option>
+                            <option value="0">Tidak</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 col-6">
+                        <label class="form-label mb-1" style="font-size:.8em">Coming Soon</label>
+                        <select id="filterComingSoon" class="form-control form-control-sm js-service-filter">
+                            <option value="">Semua</option>
+                            <option value="1">Ya</option>
+                            <option value="0">Tidak</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 col-6">
+                        <label class="form-label mb-1" style="font-size:.8em">Status</label>
+                        <select id="filterStatus" class="form-control form-control-sm js-service-filter">
+                            <option value="">Semua</option>
+                            <option value="1">Aktif</option>
+                            <option value="0">Nonaktif</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1 col-6">
+                        <button type="button" id="resetServiceFilter" class="btn btn-light btn-sm w-100" title="Reset filter">
+                            <i class="ri-refresh-line"></i> Reset
+                        </button>
+                    </div>
+                </div>
+
                 <div class="table-responsive">
                     <table class="table w-100" id="tableMobileServices">
                         <thead>
@@ -78,7 +156,17 @@
             pageLength: 50,
             ajax: {
                 method: 'get',
-                url: '{{ route("admin.mobile.services.data") }}'
+                url: '{{ route("admin.mobile.services.data") }}',
+                data: function(d) {
+                    d.scope = window.serviceScope || 'all';
+                    d.category_id = $('#filterCategory').val();
+                    d.request_flow_type = $('#filterFlow').val();
+                    d.is_featured = $('#filterFeatured').val();
+                    d.is_popular = $('#filterPopular').val();
+                    d.is_new = $('#filterNew').val();
+                    d.is_coming_soon = $('#filterComingSoon').val();
+                    d.is_active = $('#filterStatus').val();
+                }
             },
             columns: [
                 {data: 'title', name: 'title'},
@@ -90,6 +178,24 @@
                 {data: 'updated_by', name: 'updated_by', orderable: false, searchable: false},
                 {data: 'action', name: 'action', orderable: false, searchable: false}
             ]
+        });
+
+        window.serviceScope = 'all';
+
+        $('#serviceScopeTabs .nav-link').on('click', function() {
+            $('#serviceScopeTabs .nav-link').removeClass('active');
+            $(this).addClass('active');
+            window.serviceScope = $(this).data('scope');
+            window.$mobileServicesTable.ajax.reload();
+        });
+
+        $('.js-service-filter').on('change', function() {
+            window.$mobileServicesTable.ajax.reload();
+        });
+
+        $('#resetServiceFilter').on('click', function() {
+            $('.js-service-filter').val('');
+            window.$mobileServicesTable.ajax.reload();
         });
 
         window.$mobileServicesTable.on('draw', function() {

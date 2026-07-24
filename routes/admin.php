@@ -31,6 +31,10 @@ use App\Http\Controllers\Admin\Mobile\ProductController;
 use App\Http\Controllers\Admin\Mobile\ProductCategoryController;
 use App\Http\Controllers\Admin\Mobile\ShippingCourierController;
 use App\Http\Controllers\Admin\Mobile\ProductOrderController;
+use App\Http\Controllers\Admin\Mobile\ReviewController;
+use App\Http\Controllers\Admin\Mobile\PromotionController;
+use App\Http\Controllers\Admin\Mobile\CategoryController;
+use App\Http\Controllers\Admin\Mobile\HomeSectionController;
 use App\Http\Controllers\Admin\Mobile\MobileEventProjectController;
 use App\Http\Controllers\Admin\Mobile\MobileServiceRequestController;
 use App\Http\Controllers\Admin\Mobile\MobileServiceController;
@@ -312,10 +316,35 @@ Route::middleware(['auth'])->group(function () {
         Route::post('shipping-couriers/destroy', [ShippingCourierController::class, 'destroy'])->name('shipping_couriers.destroy')->middleware('permission:shipping:destroy');
 
         // Order Produk (kelola)
+        Route::get('promotions', [PromotionController::class, 'index'])->name('promotions')->middleware('permission:promotion:show');
+        Route::get('promotions/data', [PromotionController::class, 'data'])->name('promotions.data')->middleware('permission:promotion:show');
+        Route::get('promotions/forms', [PromotionController::class, 'forms'])->name('promotions.forms')->middleware('permission:promotion:show');
+        Route::post('promotions/store', [PromotionController::class, 'store'])->name('promotions.store')->middleware('permission:promotion:create');
+        Route::post('promotions/update/{id}', [PromotionController::class, 'update'])->whereNumber('id')->name('promotions.update')->middleware('permission:promotion:update');
+        Route::post('promotions/destroy', [PromotionController::class, 'destroy'])->name('promotions.destroy')->middleware('permission:promotion:delete');
+
+        Route::get('categories', [CategoryController::class, 'index'])->name('categories')->middleware('permission:category:show');
+        Route::get('categories/forms', [CategoryController::class, 'forms'])->name('categories.forms')->middleware('permission:category:show');
+        Route::post('categories/store', [CategoryController::class, 'store'])->name('categories.store')->middleware('permission:category:create');
+        Route::post('categories/update/{id}', [CategoryController::class, 'update'])->whereNumber('id')->name('categories.update')->middleware('permission:category:update');
+        Route::post('categories/destroy', [CategoryController::class, 'destroy'])->name('categories.destroy')->middleware('permission:category:delete');
+
+        Route::get('home-sections', [HomeSectionController::class, 'index'])->name('home_sections')->middleware('permission:home-section:show');
+        Route::get('home-sections/forms', [HomeSectionController::class, 'forms'])->name('home_sections.forms')->middleware('permission:home-section:show');
+        Route::get('home-sections/source-items', [HomeSectionController::class, 'sourceItems'])->name('home_sections.source_items')->middleware('permission:home-section:show');
+        Route::post('home-sections/store', [HomeSectionController::class, 'store'])->name('home_sections.store')->middleware('permission:home-section:create');
+        Route::post('home-sections/update/{id}', [HomeSectionController::class, 'update'])->whereNumber('id')->name('home_sections.update')->middleware('permission:home-section:update');
+        Route::post('home-sections/destroy', [HomeSectionController::class, 'destroy'])->name('home_sections.destroy')->middleware('permission:home-section:delete');
+        Route::post('home-sections/reorder', [HomeSectionController::class, 'reorder'])->name('home_sections.reorder')->middleware('permission:home-section:update');
+
         Route::get('product-orders', [ProductOrderController::class, 'index'])->name('product_orders')->middleware('permission:product-order:show');
         Route::get('product-orders/data', [ProductOrderController::class, 'data'])->name('product_orders.data')->middleware('permission:product-order:show');
         Route::get('product-orders/forms', [ProductOrderController::class, 'forms'])->name('product_orders.forms')->middleware('permission:product-order:show');
         Route::post('product-orders/update/{id}', [ProductOrderController::class, 'update'])->whereNumber('id')->name('product_orders.update')->middleware('permission:product-order:update');
+
+        Route::get('reviews', [ReviewController::class, 'index'])->name('reviews')->middleware('permission:product-review:show');
+        Route::get('reviews/data', [ReviewController::class, 'data'])->name('reviews.data')->middleware('permission:product-review:show');
+        Route::get('reviews/forms', [ReviewController::class, 'forms'])->name('reviews.forms')->middleware('permission:product-review:show');
         Route::get('event-projects', [MobileEventProjectController::class, 'index'])->name('event_projects');
         Route::post('event-projects/types', [MobileEventProjectController::class, 'storeType'])->name('event_projects.types.store');
         Route::post('event-projects/types/{id}', [MobileEventProjectController::class, 'updateType'])->whereNumber('id')->name('event_projects.types.update');
@@ -343,8 +372,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('service-requests/{id}/status', [MobileServiceRequestController::class, 'updateStatus'])->whereNumber('id')->name('service_requests.update_status');
         Route::get('service-requests/{id}/chat-user', [MobileServiceRequestController::class, 'chatUser'])->whereNumber('id')->name('service_requests.chat_user');
         Route::get('service-requests/{id}', [MobileServiceRequestController::class, 'show'])->whereNumber('id')->name('service_requests.show');
-        Route::get('banners', [MobileController::class, 'banners'])->name('banners');
-        Route::get('furniture', [MobileController::class, 'furniture'])->name('furniture');
         Route::get('home-layout', [MobileController::class, 'homeLayout'])->name('home_layout');
         Route::get('notifications', [MobileController::class, 'notifications'])->name('notifications');
         Route::get('notifications/send', [MobileController::class, 'sendNotificationForm'])->name('notifications.create');

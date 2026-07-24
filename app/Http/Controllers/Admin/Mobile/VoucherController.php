@@ -147,6 +147,7 @@ class VoucherController extends Controller
             'code' => ['required', 'string', 'max:50', Rule::unique('vouchers', 'code')->ignore($id)],
             'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:1000'],
+            'terms' => ['nullable', 'string', 'max:20000'],
             'order_type' => ['required', 'in:service,product'],
             'discount_type' => ['required', 'in:percentage,fixed'],
             'discount_value' => ['required', 'integer', 'min:1'],

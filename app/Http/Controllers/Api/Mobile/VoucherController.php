@@ -25,6 +25,30 @@ class VoucherController extends ApiController
         ], 'OK');
     }
 
+    public function show(Request $request, int $id)
+    {
+        $voucher = $this->vouchers->detail($request->user(), $id);
+
+        if (! $voucher) {
+            return $this->error('Voucher tidak ditemukan.', 404);
+        }
+
+        return $this->success(['voucher' => $voucher], 'OK');
+    }
+
+    public function claim(Request $request, int $id)
+    {
+        try {
+            $voucher = $this->vouchers->claim($request->user(), $id);
+
+            return $this->success(['voucher' => $voucher], 'Voucher berhasil diambil.');
+        } catch (\Exception $error) {
+            $code = (int) $error->getCode();
+
+            return $this->error($error->getMessage(), $code >= 400 && $code < 600 ? $code : 500);
+        }
+    }
+
     public function available(Request $request)
     {
         $validated = $request->validate([

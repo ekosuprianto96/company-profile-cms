@@ -30,6 +30,19 @@
     
     {{-- Remixicon --}}
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet" />
+
+    {{-- Material Icons (untuk preview picker ikon mobile) --}}
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+    {{-- Perbaikan kontras badge abu-abu (badge-light) agar teks tetap terbaca --}}
+    <style>
+        .badge.badge-light {
+            background-color: #eef2f7 !important;
+            color: #475569 !important;
+            border: 1px solid #d5dbe3 !important;
+            font-weight: 600;
+        }
+    </style>
     
     <script src="{{ asset('assets/admin/assets/vendors/js/vendor.bundle.base.js') }}"></script>
 

@@ -9,12 +9,15 @@ use App\Http\Controllers\Api\Mobile\MobileServiceController;
 use App\Http\Controllers\Api\Mobile\MobileServiceRequestController;
 use App\Http\Controllers\Api\Mobile\MobileInvoiceController;
 use App\Http\Controllers\Api\Mobile\MobileProductOrderController;
+use App\Http\Controllers\Api\Mobile\PromotionController as MobilePromotionController;
 use App\Http\Controllers\Api\Mobile\VoucherController;
 use App\Http\Controllers\Api\Mobile\ProductController as ProductApiController;
+use App\Http\Controllers\Api\Mobile\ProductReviewController;
 use App\Http\Controllers\Api\Mobile\ChatController;
 use App\Http\Controllers\Api\Mobile\PushTokenController;
 use App\Http\Controllers\Api\Mobile\NotificationController;
 use App\Http\Controllers\Api\Mobile\MidtransController;
+use App\Http\Controllers\Api\Mobile\HomeSectionController as MobileHomeSectionController;
 use App\Http\Controllers\Api\Mobile\InspireController;
 use App\Http\Controllers\Api\Mobile\BlogController;
 use Illuminate\Support\Facades\Route;
@@ -31,12 +34,18 @@ Route::get('v1/mobile/inspires/{slug}', [InspireController::class, 'show'])->whe
 Route::get('v1/mobile/blogs', [BlogController::class, 'index']);
 Route::get('v1/mobile/blogs/{slug}', [BlogController::class, 'show'])->where('slug', '[A-Za-z0-9\-]+');
 Route::get('v1/mobile/app-content', [AppContentController::class, 'index']);
+Route::get('v1/mobile/home-sections', [MobileHomeSectionController::class, 'index']);
 Route::get('v1/mobile/products', [ProductApiController::class, 'index']);
 Route::get('v1/mobile/product-categories', [ProductApiController::class, 'categories']);
 Route::get('v1/mobile/products/{slug}', [ProductApiController::class, 'show'])->where('slug', '[A-Za-z0-9\-]+');
+Route::get('v1/mobile/products/{slug}/reviews', [ProductReviewController::class, 'index'])->where('slug', '[A-Za-z0-9\-]+');
 Route::get('v1/mobile/service-requests/meta', [MobileServiceRequestController::class, 'meta']);
 Route::middleware('auth:sanctum')->post('v1/mobile/service-requests/upload-photo', [MobileServiceRequestController::class, 'uploadIssuePhoto']);
 Route::post('v1/mobile/midtrans/notification', [MidtransController::class, 'notification']);
+
+// Promosi (banner beranda + halaman detail) — publik, tidak perlu login.
+Route::get('v1/mobile/promotions', [MobilePromotionController::class, 'index'])->name('promotions.index');
+Route::get('v1/mobile/promotions/{slug}', [MobilePromotionController::class, 'show'])->name('promotions.show');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('v1/mobile/push-tokens', [PushTokenController::class, 'store']);
@@ -57,6 +66,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/', [VoucherController::class, 'index'])->name('vouchers.index');
         Route::get('/available', [VoucherController::class, 'available'])->name('vouchers.available');
         Route::post('/preview', [VoucherController::class, 'preview'])->name('vouchers.preview');
+        Route::get('/{id}', [VoucherController::class, 'show'])->whereNumber('id')->name('vouchers.show');
+        Route::post('/{id}/claim', [VoucherController::class, 'claim'])->whereNumber('id')->name('vouchers.claim');
     });
 
     Route::get('v1/mobile/shipping/couriers', [MobileProductOrderController::class, 'couriers'])->name('shipping.couriers');
@@ -67,6 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('v1/mobile/product-orders/{orderNumber}/payment-proof', [MobileProductOrderController::class, 'uploadPaymentProof'])->name('product-orders.payment-proof');
     Route::patch('v1/mobile/product-orders/{orderNumber}/cancel', [MobileProductOrderController::class, 'cancel'])->name('product-orders.cancel');
     Route::get('v1/mobile/product-orders/{orderNumber}', [MobileProductOrderController::class, 'show'])->name('product-orders.show');
+    Route::post('v1/mobile/product-orders/{orderNumber}/reviews', [ProductReviewController::class, 'store'])->name('product-orders.reviews.store');
 
     Route::prefix('v1/mobile/notifications')->group(function () {
         Route::get('/', [NotificationController::class, 'index']);

@@ -13,11 +13,26 @@ class MobileServiceController extends ApiController
         protected MobileEventProjectOptionsService $mobileEventProjectOptionsService,
     ) {}
 
-    public function index()
+    public function index(\Illuminate\Http\Request $request)
     {
         try {
+            $services = $this->mobileServiceCatalogService->all();
+
+            // Cakupan voucher (untuk tombol "Pakai"): hanya layanan yang berlaku.
+            if ($request->filled('voucher_id')) {
+                $voucher = \App\Models\Voucher::with('targetItems')->find((int) $request->voucher_id);
+                if (! $voucher || $voucher->order_type !== 'service') {
+                    $services = [];
+                } else {
+                    $ids = app(\App\Services\VoucherService::class)->scopedItemIds($voucher);
+                    if ($ids !== null) {
+                        $services = array_values(array_filter($services, fn ($s) => in_array($s['id'], $ids, true)));
+                    }
+                }
+            }
+
             return $this->success([
-                'services' => $this->mobileServiceCatalogService->all(),
+                'services' => $services,
             ], 'Daftar layanan mobile berhasil dimuat.');
         } catch (\Throwable $th) {
             Log::error('Load mobile services error: ' . $th->getMessage(), [

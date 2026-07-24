@@ -18,11 +18,17 @@
         </div>
     </div>
 
+    {{-- Kategori master bertingkat (bersama layanan) --}}
+    @include('admin.components.forms.partials.category-picker', [
+        'categoryTree' => $categoryTree ?? collect(),
+        'selectedCategoryId' => optional($product)->category_id,
+    ])
+
     <div class="row">
         <div class="col-md-6 form-group">
-            <label class="form-label">Kategori</label>
+            <label class="form-label">Kategori Katalog <small class="text-muted">(opsional)</small></label>
             <select name="product_category_id" class="form-control">
-                <option value="">— Tanpa kategori —</option>
+                <option value="">— Tanpa kategori katalog —</option>
                 @foreach ($categories as $category)
                     <option value="{{ $category->id }}" @selected(optional($product)->product_category_id == $category->id)>{{ $category->name }}</option>
                 @endforeach
@@ -117,11 +123,12 @@
 
     <div class="row">
         <div class="col-md-6 form-group">
-            <label class="form-label">Unggulan (Featured)</label>
+            <label class="form-label">Tampil di Home <small class="text-muted">(Unggulan)</small></label>
             <select name="is_featured" class="form-control">
                 <option value="0" @selected(!optional($product)->is_featured)>Tidak</option>
                 <option value="1" @selected(optional($product)->is_featured)>Ya</option>
             </select>
+            <small class="text-muted">Jika "Ya", produk muncul di section "Produk Pilihan" home mobile.</small>
         </div>
         <div class="col-md-6 form-group">
             <label class="form-label">Status</label>

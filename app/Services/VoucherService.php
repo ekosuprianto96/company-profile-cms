@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Models\MobileUser;
 use App\Models\Voucher;
+use App\Models\VoucherClaim;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 
 class VoucherService
 {
@@ -48,6 +48,9 @@ class VoucherService
         if ($voucher->order_type !== $orderType) {
             return 'Tidak berlaku untuk order ini.';
         }
+        if (! $voucher->isClaimedBy($user->id)) {
+            return 'Ambil voucher ini dulu.';
+        }
         if ($subtotal < (int) $voucher->min_purchase_amount) {
             return 'Min. belanja Rp' . number_format($voucher->min_purchase_amount, 0, ',', '.') . '.';
         }
@@ -81,7 +84,7 @@ class VoucherService
         $now = Carbon::now();
 
         return Voucher::query()
-            ->with('targetItems')
+            ->with(['targetItems', 'claims' => fn ($q) => $q->where('mobile_user_id', $user->id)])
             ->where('order_type', $orderType)
             ->where('is_active', true)
             ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', $now))
@@ -104,7 +107,7 @@ class VoucherService
 
         foreach ($vouchers as $voucher) {
             $reason = $this->ineligibilityReason($voucher, $user, $orderType, $subtotal, $itemId);
-            $groups[$voucher->discount_type]['vouchers'][] = $this->payload($voucher, $subtotal, $reason);
+            $groups[$voucher->discount_type]['vouchers'][] = $this->payload($voucher, $subtotal, $reason, false, $voucher->isClaimedBy($user->id));
         }
 
         // urutkan tiap grup: layak dulu, lalu diskon terbesar
@@ -154,11 +157,11 @@ class VoucherService
                 ->whereHas('redemptions', fn ($r) => $r->where('mobile_user_id', $user->id)->where('status', 'used'))
                 ->orderByDesc('id')->get();
 
-            return $vouchers->map(fn ($v) => $this->payload($v, null, null, true))->all();
+            return $vouchers->map(fn ($v) => $this->payload($v, null, null, true, true))->all();
         }
 
         $accessible = Voucher::query()
-            ->with('targetItems')
+            ->with(['targetItems', 'claims' => fn ($q) => $q->where('mobile_user_id', $user->id)])
             ->where(fn ($q) => $q->where('user_scope', 'all')
                 ->orWhereHas('targetUsers', fn ($u) => $u->where('mobile_users.id', $user->id)))
             ->orderByDesc('id')
@@ -176,10 +179,28 @@ class VoucherService
             return ! $expired && ! $usedUp;
         });
 
-        return $vouchers->map(fn ($v) => $this->payload($v, null, null))->values()->all();
+        return $vouchers->map(fn ($v) => $this->payload($v, null, null, false, $v->isClaimedBy($user->id)))->values()->all();
     }
 
-    public function payload(Voucher $voucher, ?int $subtotal = null, ?string $reason = null, bool $used = false): array
+    /**
+     * Item (produk/layanan) yang masuk cakupan voucher — untuk tombol "Pakai".
+     * Return daftar id; null = semua item order_type-nya berlaku (item_scope all).
+     */
+    public function scopedItemIds(Voucher $voucher): ?array
+    {
+        if ($voucher->item_scope !== 'specific') {
+            return null;
+        }
+
+        return $voucher->targetItems
+            ->where('target_type', $voucher->order_type)
+            ->pluck('target_id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+    }
+
+    public function payload(Voucher $voucher, ?int $subtotal = null, ?string $reason = null, bool $used = false, ?bool $claimed = null, bool $withTerms = false): array
     {
         $data = [
             'id' => $voucher->id,
@@ -195,6 +216,14 @@ class VoucherService
             'used' => $used,
         ];
 
+        if ($claimed !== null) {
+            $data['claimed'] = $claimed;
+        }
+
+        if ($withTerms) {
+            $data['terms'] = $voucher->terms;
+        }
+
         if ($subtotal !== null) {
             $discount = $this->calculateDiscount($voucher, $subtotal);
             $data['discount_amount'] = $discount;
@@ -204,5 +233,44 @@ class VoucherService
         }
 
         return $data;
+    }
+
+    /** Ambil (claim) voucher untuk user. Return payload voucher (dengan claimed=true). */
+    public function claim(MobileUser $user, int $voucherId): array
+    {
+        $now = Carbon::now();
+
+        $voucher = Voucher::query()
+            ->where('is_active', true)
+            ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', $now))
+            ->where(fn ($q) => $q->where('user_scope', 'all')
+                ->orWhereHas('targetUsers', fn ($u) => $u->where('mobile_users.id', $user->id)))
+            ->find($voucherId);
+
+        if (! $voucher) {
+            throw new \Exception('Voucher tidak tersedia untuk diambil.', 422);
+        }
+
+        VoucherClaim::firstOrCreate(
+            ['voucher_id' => $voucher->id, 'mobile_user_id' => $user->id],
+            ['claimed_at' => $now],
+        );
+
+        return $this->payload($voucher, null, null, false, true, true);
+    }
+
+    /** Detail satu voucher (dengan terms + status claimed) untuk halaman detail. */
+    public function detail(MobileUser $user, int $voucherId): ?array
+    {
+        $voucher = Voucher::query()
+            ->where('is_active', true)
+            ->with(['claims' => fn ($q) => $q->where('mobile_user_id', $user->id)])
+            ->find($voucherId);
+
+        if (! $voucher) {
+            return null;
+        }
+
+        return $this->payload($voucher, null, null, false, $voucher->isClaimedBy($user->id), true);
     }
 }

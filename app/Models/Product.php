@@ -13,6 +13,7 @@ class Product extends Model
         'sku',
         'slug',
         'product_category_id',
+        'category_id',
         'name',
         'brand',
         'short_description',
@@ -53,6 +54,12 @@ class Product extends Model
         return $this->belongsTo(ProductCategory::class, 'product_category_id');
     }
 
+    /** Kategori master bertingkat (bersama layanan) — beda dari product_category lama. */
+    public function masterCategory(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
     public function images(): HasMany
     {
         return $this->hasMany(ProductImage::class)->orderBy('sort_order');
@@ -61,6 +68,11 @@ class Product extends Model
     public function services(): BelongsToMany
     {
         return $this->belongsToMany(MobileService::class, 'product_service', 'product_id', 'mobile_service_id')->withTimestamps();
+    }
+
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class)->latest();
     }
 
     public function requiresThirdPartyCourier(): bool

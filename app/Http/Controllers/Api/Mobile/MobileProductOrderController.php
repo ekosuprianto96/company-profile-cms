@@ -36,7 +36,7 @@ class MobileProductOrderController extends ApiController
     public function show(Request $request, string $orderNumber)
     {
         $order = ProductOrder::query()
-            ->with('items.product:id,primary_image')
+            ->with(['items.product:id,primary_image', 'reviews'])
             ->where('mobile_user_id', $request->user()->id)
             ->where('order_number', $orderNumber)
             ->first();
@@ -67,7 +67,7 @@ class MobileProductOrderController extends ApiController
 
             $order = $this->checkoutService->checkout($request->user(), $validated);
 
-            return $this->success(['order' => $this->detailPayload($order->load('items.product:id,primary_image'))], 'Pesanan berhasil dibuat.');
+            return $this->success(['order' => $this->detailPayload($order->load(['items.product:id,primary_image', 'reviews']))], 'Pesanan berhasil dibuat.');
         } catch (ValidationException $error) {
             return response()->json(['message' => 'Data tidak valid.', 'errors' => $error->errors()], 422);
         } catch (\Throwable $th) {
@@ -86,7 +86,7 @@ class MobileProductOrderController extends ApiController
 
             $order = $this->checkoutService->selectPaymentMethod($request->user(), $orderNumber, $validated['payment_method']);
 
-            return $this->success(['order' => $this->detailPayload($order->load('items.product:id,primary_image'))], 'Metode pembayaran berhasil dipilih.');
+            return $this->success(['order' => $this->detailPayload($order->load(['items.product:id,primary_image', 'reviews']))], 'Metode pembayaran berhasil dipilih.');
         } catch (ValidationException $error) {
             return response()->json(['message' => 'Data tidak valid.', 'errors' => $error->errors()], 422);
         } catch (\Throwable $th) {
@@ -105,7 +105,7 @@ class MobileProductOrderController extends ApiController
 
             $order = $this->checkoutService->uploadPaymentProof($request->user(), $orderNumber, $validated['proof']);
 
-            return $this->success(['order' => $this->detailPayload($order->load('items.product:id,primary_image'))], 'Bukti pembayaran berhasil dikirim. Menunggu verifikasi admin.');
+            return $this->success(['order' => $this->detailPayload($order->load(['items.product:id,primary_image', 'reviews']))], 'Bukti pembayaran berhasil dikirim. Menunggu verifikasi admin.');
         } catch (ValidationException $error) {
             return response()->json(['message' => 'Data tidak valid.', 'errors' => $error->errors()], 422);
         } catch (\Throwable $th) {
@@ -157,7 +157,7 @@ class MobileProductOrderController extends ApiController
             'id' => $order->id,
             'order_number' => $order->order_number,
             'product_name' => $order->product_name,
-            'image' => $this->imageUrl($order->image),
+            'image' => storageUrl($order->image),
             'quantity' => (int) $order->quantity,
             'grand_total' => (int) $order->grand_total,
             'status' => $order->status,
@@ -172,6 +172,31 @@ class MobileProductOrderController extends ApiController
 
     protected function detailPayload(ProductOrder $order): array
     {
+        // Review pesanan ini, dipetakan per produk agar tiap item tahu apakah
+        // sudah dinilai (dipakai layar penilaian & untuk sembunyikan CTA).
+        $reviewsByProduct = $order->reviews->keyBy('product_id');
+        $completed = $order->isCompleted();
+
+        $items = $order->items->map(function ($item) use ($reviewsByProduct, $completed) {
+            $review = $item->product_id ? $reviewsByProduct->get($item->product_id) : null;
+
+            return [
+                'product_id' => $item->product_id,
+                'product_name' => $item->product_name,
+                'unit_price' => (int) $item->unit_price,
+                'quantity' => (int) $item->quantity,
+                'subtotal' => (int) $item->subtotal,
+                'image' => storageUrl($item->product?->primary_image),
+                // Hanya produk yang masih terhubung (product_id ada) yang bisa dinilai.
+                'can_review' => $completed && $item->product_id && ! $review,
+                'reviewed' => (bool) $review,
+                'review' => $review ? [
+                    'rating' => (int) $review->rating,
+                    'comment' => $review->comment,
+                ] : null,
+            ];
+        })->all();
+
         return array_merge($this->listPayload($order), [
             'subtotal' => (int) $order->subtotal,
             'discount_amount' => (int) $order->discount_amount,
@@ -182,28 +207,14 @@ class MobileProductOrderController extends ApiController
             'notes' => $order->notes,
             'payment_method' => $order->payment_method,
             'payment_gateway_provider' => $order->payment_gateway_provider,
-            'payment_proof_url' => $order->payment_proof_path
-                ? \Illuminate\Support\Facades\Storage::disk('public')->url($order->payment_proof_path)
-                : null,
+            'payment_proof_url' => storageUrl($order->payment_proof_path),
             'payment_proof_uploaded_at' => optional($order->payment_proof_uploaded_at)?->toISOString(),
             'paid_at' => optional($order->paid_at)?->toISOString(),
             'payment_data' => $order->getAttribute('payment_data') ?? null,
-            'items' => $order->items->map(fn ($item) => [
-                'product_name' => $item->product_name,
-                'unit_price' => (int) $item->unit_price,
-                'quantity' => (int) $item->quantity,
-                'subtotal' => (int) $item->subtotal,
-                'image' => $this->imageUrl($item->product?->primary_image),
-            ])->all(),
+            // True bila pesanan selesai & masih ada minimal 1 produk belum dinilai.
+            'can_review' => $completed && collect($items)->contains('can_review', true),
+            'items' => $items,
         ]);
     }
 
-    protected function imageUrl(?string $path): ?string
-    {
-        if (! $path) {
-            return null;
-        }
-
-        return str_starts_with($path, 'http') ? $path : asset('storage/' . ltrim($path, '/'));
-    }
 }

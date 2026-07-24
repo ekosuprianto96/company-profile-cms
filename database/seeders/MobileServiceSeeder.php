@@ -2,169 +2,143 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category;
 use App\Models\MobileService;
 use App\Models\MobileServiceNeedType;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class MobileServiceSeeder extends Seeder
 {
     /**
-     * Run the database seeds.
+     * Layanan mobile — hanya hal yang benar-benar "jasa yang diajukan".
+     * Item furnitur pindah ke produk (ProductSeeder); paket Umroh jadi jenis
+     * kebutuhan dari satu layanan "Travel Umroh". Idempotent (kunci = slug);
+     * baris yang sudah ada di-update di tempat agar relasi (pengajuan) terjaga.
      */
     public function run(): void
     {
-        $services = [
-            [
-                'title' => 'Bangun Rumah',
-                'summary' => 'Pendampingan desain, RAB, dan pembangunan untuk rumah tinggal modern.',
-                'icon' => 'home-repair-service',
-                'need_type_slugs' => ['perencanaan', 'jasa-bahan-bangunan', 'jasa'],
-                'card_color' => '#6ec7d0',
-                'text_color' => '#0e4751',
-                'badge_text' => 'Recommended',
-                'price_label' => 'Mulai Rp175jt',
-                'rating' => 4.8,
-                'projects_label' => '187 proyek',
-                'estimated_duration' => '90 - 180 hari',
-                'sort_order' => 1,
-                'is_new' => false,
-                'is_featured' => true,
-                'is_popular' => true,
-                'is_active' => true,
-            ],
-            [
-                'title' => 'Renovasi Rumah',
-                'summary' => 'Paket renovasi fasad, ruang tamu, dan dapur dengan survey langsung.',
-                'icon' => 'architecture',
-                'need_type_slugs' => ['perencanaan', 'jasa-bahan-bangunan', 'jasa'],
-                'card_color' => '#f3c66a',
-                'text_color' => '#4f3b09',
-                'badge_text' => 'Best Seller',
-                'price_label' => 'Mulai Rp15jt',
-                'rating' => 4.9,
-                'projects_label' => '320 proyek',
-                'estimated_duration' => '14 - 60 hari',
-                'sort_order' => 2,
-                'is_new' => false,
-                'is_featured' => true,
-                'is_popular' => true,
-                'is_active' => true,
-            ],
-            [
-                'title' => 'Pembuatan Kolam',
-                'summary' => 'Pembuatan kolam renang dan kolam taman dengan konstruksi rapi dan aman.',
-                'icon' => 'pool',
-                'need_type_slugs' => ['jasa-bahan-bangunan', 'jasa'],
-                'card_color' => '#e88779',
-                'text_color' => '#5a1f17',
-                'badge_text' => null,
-                'price_label' => 'Hubungi Kami',
-                'rating' => 4.7,
-                'projects_label' => '95 proyek',
-                'estimated_duration' => '20 - 75 hari',
-                'sort_order' => 3,
-                'is_new' => false,
-                'is_featured' => true,
-                'is_popular' => false,
-                'is_active' => true,
-            ],
-            [
-                'title' => 'Konstruksi Baja',
-                'summary' => 'Layanan struktur dan konstruksi baja untuk hunian maupun bangunan komersial.',
-                'icon' => 'foundation',
-                'need_type_slugs' => ['perencanaan', 'jasa-bahan-bangunan', 'jasa'],
-                'card_color' => '#8ed2d5',
-                'text_color' => '#114a4c',
-                'badge_text' => null,
-                'price_label' => 'Hubungi Kami',
-                'rating' => 4.8,
-                'projects_label' => '140 proyek',
-                'estimated_duration' => '30 - 90 hari',
-                'sort_order' => 4,
-                'is_new' => false,
-                'is_featured' => true,
-                'is_popular' => false,
-                'is_active' => true,
-            ],
-            [
-                'title' => 'Pekerjaan Interior',
-                'summary' => 'Kitchen set, wardrobe, dan furnitur built-in sesuai ukuran ruangan.',
-                'icon' => 'chair',
-                'need_type_slugs' => ['perencanaan', 'jasa-bahan-bangunan', 'jasa'],
-                'card_color' => '#f4e8b7',
-                'text_color' => '#5a4d1f',
-                'badge_text' => 'Trending',
-                'price_label' => 'Mulai Rp8jt',
-                'rating' => 4.9,
-                'projects_label' => '241 proyek',
-                'estimated_duration' => '10 - 45 hari',
-                'sort_order' => 5,
-                'is_new' => false,
-                'is_featured' => true,
-                'is_popular' => true,
-                'is_active' => true,
-            ],
-            [
-                'title' => 'Wedding Organizer',
-                'summary' => 'Jasa wedding organizer dan dekorasi acara dengan konsep custom.',
-                'icon' => 'favorite',
-                'request_flow_type' => 'event_project',
-                'need_type_slugs' => ['jasa'],
-                'card_color' => '#7fc2cc',
-                'text_color' => '#10444e',
-                'badge_text' => 'NEW',
-                'price_label' => 'Mulai Rp12jt',
-                'rating' => 4.8,
-                'projects_label' => '68 event',
-                'estimated_duration' => 'Sesuai rundown',
-                'sort_order' => 6,
-                'is_new' => true,
-                'is_featured' => true,
-                'is_popular' => false,
-                'is_active' => true,
-            ],
+        $this->call([
+            CategorySeeder::class,
+            MobileServiceNeedTypeSeeder::class,
+        ]);
+
+        $categoryIds = Category::pluck('id', 'slug');
+        $needTypeIds = MobileServiceNeedType::pluck('id', 'slug');
+
+        $palette = [
+            'sipil' => ['card' => '#6ec7d0', 'text' => '#0e4751'],
+            'it' => ['card' => '#8aa9f0', 'text' => '#16265e'],
+            'event' => ['card' => '#f3a6c0', 'text' => '#5a1030'],
+            'umroh' => ['card' => '#86d0a8', 'text' => '#10432b'],
         ];
 
-        foreach ($services as $service) {
-            $title = (string) $service['title'];
+        // Ruang lingkup pekerjaan sipil/interior.
+        $scopeNeeds = ['perencanaan-bahan-pelaksana', 'bahan-pelaksana', 'pelaksana'];
+        // Paket durasi umroh.
+        $umrohPackages = ['umroh-full-ramadhan', 'umroh-12-hari', 'umroh-9-hari'];
 
-            $needTypeIds = MobileServiceNeedType::query()
-                ->whereIn('slug', $service['need_type_slugs'] ?? [])
-                ->pluck('id')
-                ->map(fn ($id) => (int) $id)
-                ->values()
-                ->toArray();
+        $services = [
+            // A.1 Pekerjaan Sipil
+            ['title' => 'Bangun Rumah', 'cat' => 'pekerjaan-sipil', 'icon' => 'home-work', 'group' => 'sipil', 'needs' => $scopeNeeds, 'featured' => true, 'popular' => true],
+            ['title' => 'Renovasi Rumah', 'cat' => 'pekerjaan-sipil', 'icon' => 'home-repair-service', 'group' => 'sipil', 'needs' => $scopeNeeds, 'featured' => true, 'popular' => true],
+            ['title' => 'Pembuatan / Service Kolam Renang', 'cat' => 'pekerjaan-sipil', 'icon' => 'pool', 'group' => 'sipil', 'needs' => $scopeNeeds, 'featured' => true],
 
-            $saved = MobileService::query()->updateOrCreate(
-                ['slug' => Str::slug($title)],
+            // A.2 Fit Out Interior (Set) — jasa per ruangan
+            ['title' => 'Interior Set untuk Dapur', 'cat' => 'fit-out-interior-set', 'icon' => 'kitchen', 'group' => 'sipil', 'needs' => $scopeNeeds],
+            ['title' => 'Interior Set untuk Kamar Tidur', 'cat' => 'fit-out-interior-set', 'icon' => 'king-bed', 'group' => 'sipil', 'needs' => $scopeNeeds],
+            ['title' => 'Interior Set untuk Kamar Mandi', 'cat' => 'fit-out-interior-set', 'icon' => 'bathtub', 'group' => 'sipil', 'needs' => $scopeNeeds],
+            ['title' => 'Interior Set untuk Ruang Tamu', 'cat' => 'fit-out-interior-set', 'icon' => 'chair', 'group' => 'sipil', 'needs' => $scopeNeeds, 'featured' => true, 'popular' => true],
+            ['title' => 'Interior Set untuk Teras', 'cat' => 'fit-out-interior-set', 'icon' => 'deck', 'group' => 'sipil', 'needs' => $scopeNeeds],
+            ['title' => 'Interior Set untuk Rooftop', 'cat' => 'fit-out-interior-set', 'icon' => 'roofing', 'group' => 'sipil', 'needs' => $scopeNeeds],
+
+            // B. IT Developer — layanan langsung di bawah kategori IT Developer
+            ['title' => 'Web Developer', 'cat' => 'it-developer', 'icon' => 'web', 'group' => 'it'],
+            ['title' => 'Mobile Developer', 'cat' => 'it-developer', 'icon' => 'smartphone', 'group' => 'it'],
+
+            // C. Event Organizer — layanan langsung di bawah kategori Event Organizer
+            ['title' => 'Wedding Organizer', 'cat' => 'event-organizer', 'icon' => 'favorite', 'group' => 'event', 'flow' => 'event_project', 'featured' => true, 'popular' => true],
+            ['title' => 'Gathering', 'cat' => 'event-organizer', 'icon' => 'groups', 'group' => 'event', 'flow' => 'event_project'],
+            ['title' => 'Event', 'cat' => 'event-organizer', 'icon' => 'event', 'group' => 'event', 'flow' => 'event_project'],
+
+            // D. Travel Umroh — satu layanan, paket sebagai jenis kebutuhan
+            ['title' => 'Travel Umroh', 'cat' => 'travel-umroh', 'icon' => 'mosque', 'group' => 'umroh', 'needs' => $umrohPackages, 'featured' => true],
+        ];
+
+        $keepSlugs = [];
+
+        foreach ($services as $order => $service) {
+            $slug = Str::slug($service['title']);
+            $keepSlugs[] = $slug;
+            $group = $service['group'];
+
+            $saved = MobileService::updateOrCreate(
+                ['slug' => $slug],
                 [
-                    'title' => $title,
-                    'slug' => Str::slug($title),
-                    'request_flow_type' => $service['request_flow_type'] ?? 'standard',
-                    'summary' => $service['summary'],
-                    'description' => $service['summary'],
+                    'title' => $service['title'],
+                    'category_id' => $categoryIds[$service['cat']] ?? null,
+                    'request_flow_type' => $service['flow'] ?? 'standard',
+                    'summary' => null,
+                    'description' => null,
                     'icon_type' => 'icon',
                     'icon' => $service['icon'],
                     'icon_image' => null,
-                    'cover_image' => null,
-                    'card_color' => $service['card_color'],
-                    'text_color' => $service['text_color'],
-                    'badge_text' => $service['badge_text'],
-                    'price_label' => $service['price_label'],
-                    'rating' => $service['rating'],
-                    'projects_label' => $service['projects_label'],
-                    'estimated_duration' => $service['estimated_duration'],
+                    'card_color' => $palette[$group]['card'],
+                    'text_color' => $palette[$group]['text'],
+                    'badge_text' => null,
+                    'price_label' => 'Hubungi Kami',
+                    'rating' => null,
+                    'projects_label' => null,
+                    'estimated_duration' => null,
                     'cta_text' => 'Ajukan Sekarang',
-                    'sort_order' => $service['sort_order'],
-                    'is_new' => $service['is_new'],
-                    'is_featured' => $service['is_featured'],
-                    'is_popular' => $service['is_popular'],
-                    'is_active' => $service['is_active'],
-                ]
+                    'sort_order' => $order + 1,
+                    'is_new' => false,
+                    'is_featured' => (bool) ($service['featured'] ?? false),
+                    'is_popular' => (bool) ($service['popular'] ?? false),
+                    'is_active' => true,
+                    'is_coming_soon' => false,
+                ],
             );
 
-            $saved->needTypes()->sync($needTypeIds);
+            $ids = collect($service['needs'] ?? [])
+                ->map(fn ($s) => $needTypeIds[$s] ?? null)
+                ->filter()
+                ->map(fn ($id) => (int) $id)
+                ->values()
+                ->all();
+
+            $saved->needTypes()->sync($ids);
         }
+
+        $this->pruneStaleServices($keepSlugs);
+    }
+
+    /**
+     * Layanan di luar set baru (mis. item furnitur & paket umroh lama): hapus bila
+     * tak direferensikan; jika masih dipakai pengajuan/produk, non-aktifkan saja.
+     */
+    private function pruneStaleServices(array $keepSlugs): void
+    {
+        $stale = MobileService::whereNotIn('slug', $keepSlugs)->get();
+        $deleted = 0;
+        $deactivated = 0;
+
+        foreach ($stale as $service) {
+            $referenced = DB::table('mobile_service_requests')->where('mobile_service_id', $service->id)->exists()
+                || DB::table('product_service')->where('mobile_service_id', $service->id)->exists();
+
+            $service->needTypes()->detach();
+
+            if ($referenced) {
+                $service->update(['is_active' => false]);
+                $deactivated++;
+            } else {
+                $service->delete();
+                $deleted++;
+            }
+        }
+
+        $this->command?->info("MobileServiceSeeder: {$deleted} layanan lama dihapus, {$deactivated} dinonaktifkan.");
     }
 }

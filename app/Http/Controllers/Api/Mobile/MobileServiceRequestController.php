@@ -8,7 +8,6 @@ use App\Services\MobileServiceRequestService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 
 class MobileServiceRequestController extends ApiController
 {
@@ -124,7 +123,7 @@ class MobileServiceRequestController extends ApiController
             return $this->success([
                 'file_name' => $fileName,
                 'path' => $relativePath,
-                'url' => Storage::disk('public')->url($relativePath),
+                'url' => storageUrl($relativePath),
                 'mime_type' => $file->getMimeType(),
             ], 'Foto berhasil diupload.');
         } catch (\Throwable $th) {
@@ -221,9 +220,7 @@ class MobileServiceRequestController extends ApiController
             'payment_status' => $serviceRequest->payment_status,
             'payment_method' => $serviceRequest->payment_method,
             'payment_gateway_provider' => $serviceRequest->payment_gateway_provider,
-            'payment_proof_url' => $serviceRequest->payment_proof_path
-                ? \Illuminate\Support\Facades\Storage::disk('public')->url($serviceRequest->payment_proof_path)
-                : null,
+            'payment_proof_url' => storageUrl($serviceRequest->payment_proof_path),
             'payment_proof_uploaded_at' => optional($serviceRequest->payment_proof_uploaded_at)?->toISOString(),
             'survey_fee' => (int) $serviceRequest->survey_fee,
             'tax_percentage' => (int) $serviceRequest->tax_percentage,
@@ -238,11 +235,7 @@ class MobileServiceRequestController extends ApiController
                 'unit_price' => (int) $product->unit_price,
                 'quantity' => (int) $product->quantity,
                 'subtotal' => (int) $product->subtotal,
-                'image' => $product->product?->primary_image
-                    ? (\Illuminate\Support\Str::startsWith($product->product->primary_image, ['http://', 'https://'])
-                        ? $product->product->primary_image
-                        : asset('storage/'.$product->product->primary_image))
-                    : null,
+                'image' => storageUrl($product->product?->primary_image),
             ])->all(),
             'total_amount' => (int) $serviceRequest->total_amount,
             'drafted_at' => optional($serviceRequest->drafted_at)?->toISOString(),
@@ -307,4 +300,5 @@ class MobileServiceRequestController extends ApiController
             ] : null,
         ];
     }
+
 }

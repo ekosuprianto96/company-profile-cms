@@ -19,6 +19,9 @@ class DatabaseSeeder extends Seeder
             MobileEventProjectSeeder::class,
             MobileServiceSeeder::class,
             InspirePostSeeder::class,
+            HomeSectionPermissionSeeder::class,
+            HomeSectionSeeder::class,
+            VoucherTermsSeeder::class,
         ]);
     }
 }

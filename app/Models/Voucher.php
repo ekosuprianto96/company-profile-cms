@@ -12,6 +12,7 @@ class Voucher extends Model
         'code',
         'name',
         'description',
+        'terms',
         'order_type',
         'discount_type',
         'discount_value',
@@ -53,6 +54,23 @@ class Voucher extends Model
     public function redemptions(): HasMany
     {
         return $this->hasMany(VoucherRedemption::class);
+    }
+
+    public function claims(): HasMany
+    {
+        return $this->hasMany(VoucherClaim::class);
+    }
+
+    /** Apakah voucher sudah diambil (claim) oleh user tertentu. */
+    public function isClaimedBy(?int $mobileUserId): bool
+    {
+        if (! $mobileUserId) {
+            return false;
+        }
+
+        return $this->relationLoaded('claims')
+            ? $this->claims->contains('mobile_user_id', $mobileUserId)
+            : $this->claims()->where('mobile_user_id', $mobileUserId)->exists();
     }
 
     /** Jumlah redemption yang masih memakai kuota (reserved atau used). */

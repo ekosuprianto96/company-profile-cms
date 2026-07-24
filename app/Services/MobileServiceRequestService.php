@@ -234,7 +234,7 @@ class MobileServiceRequestService
                     'file_name' => $fileName,
                     'mime_type' => $photo->getMimeType(),
                     'path' => $path,
-                    'uri' => Storage::disk('public')->url($path),
+                    'uri' => storageUrl($path),
                     'size' => $photo->getSize(),
                 ];
 

@@ -92,8 +92,9 @@ class ProductController extends Controller
 
             $categories = $this->service->categories();
             $services = $this->service->services();
+            $categoryTree = \App\Models\Category::orderBy('sort_order')->orderBy('name')->get(['id', 'parent_id', 'name']);
 
-            return $this->setView('admin.components.forms.')->view($request->view, compact('product', 'categories', 'services'));
+            return $this->setView('admin.components.forms.')->view($request->view, compact('product', 'categories', 'services', 'categoryTree'));
         } catch (\Exception $error) {
             return response()->json(['message' => $error->getMessage()], 500);
         }
@@ -148,6 +149,7 @@ class ProductController extends Controller
             'name' => ['required', 'string', 'max:180'],
             'brand' => ['nullable', 'string', 'max:120'],
             'product_category_id' => ['nullable', 'integer', 'exists:product_categories,id'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'short_description' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'price' => ['required', 'integer', 'min:0'],

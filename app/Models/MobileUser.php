@@ -68,10 +68,6 @@ class MobileUser extends Authenticatable
 
     public function getAvatarUrlAttribute(): ?string
     {
-        if (empty($this->avatar_path)) {
-            return null;
-        }
-
-        return Storage::disk('public')->url($this->avatar_path);
+        return storageUrl($this->avatar_path);
     }
 }

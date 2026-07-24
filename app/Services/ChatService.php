@@ -373,7 +373,7 @@ class ChatService
                     'file_name' => $fileName,
                     'mime_type' => $attachment->getMimeType(),
                     'path' => $relativePath,
-                    'url' => url(Storage::disk('public')->url($relativePath)),
+                    'url' => storageUrl($relativePath),
                     'size' => $attachment->getSize(),
                 ];
 
@@ -422,7 +422,11 @@ class ChatService
                 'file_name' => $attachment['file_name'] ?? basename($path ?: $url),
                 'mime_type' => $attachment['mime_type'] ?? $attachment['mimeType'] ?? null,
                 'path' => $path ?: null,
-                'url' => $url ?: ($path !== '' ? (filter_var($path, FILTER_VALIDATE_URL) ? $path : url(Storage::disk('public')->url($path))) : null),
+                // URL diturunkan ULANG dari `path`, bukan diambil dari `url` yang
+                // tersimpan: baris lama terlanjur menyimpan URL absolut ber-APP_URL
+                // (`.test`) yang tidak bisa di-resolve HP. Dengan menurunkan dari
+                // path, lampiran lama ikut sembuh tanpa perlu migrasi data.
+                'url' => $path !== '' ? storageUrl($path) : ($url ?: null),
                 'size' => $attachment['size'] ?? null,
             ];
         })

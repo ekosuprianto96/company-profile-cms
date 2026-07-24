@@ -155,4 +155,35 @@
         });
     }
 </script>
+
+@push('ckeditor')
+<script src="{{ asset('assets/admin/assets/js/ckeditor5.js') }}"></script>
+<script src="{{ asset('assets/admin/assets/js/texteditor.js') }}"></script>
+<script>
+    // Init CKEditor untuk Syarat & Ketentuan voucher di dalam modal.
+    function initVoucherTermsEditor(selector) {
+        const el = document.querySelector(selector);
+        if (!el || typeof ClassicEditor === 'undefined') return;
+        if (window.voucherTermsEditor) {
+            try { window.voucherTermsEditor.destroy(); } catch (e) {}
+            window.voucherTermsEditor = null;
+        }
+        ClassicEditor
+            .create(el, {
+                extraPlugins: [
+                    function (editor) {
+                        createCustomUploadAdapterPlugin({
+                            url: '{{ route('admin.ckeditor.upload') }}',
+                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                        })(editor);
+                        new ImageRemovePlugin(editor);
+                    },
+                ],
+                removePlugins: ['Markdown'],
+            })
+            .then((editor) => { window.voucherTermsEditor = editor; })
+            .catch(() => {});
+    }
+</script>
+@endpush
 @endsection

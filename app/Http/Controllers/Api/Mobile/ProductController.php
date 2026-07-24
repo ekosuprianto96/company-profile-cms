@@ -20,9 +20,23 @@ class ProductController extends ApiController
             'max_price' => ['nullable', 'integer', 'min:0'],
             'featured' => ['nullable', 'boolean'],
             'service_id' => ['nullable', 'integer'],
+            'voucher_id' => ['nullable', 'integer'],
             'sort' => ['nullable', 'in:newest,price_asc,price_desc,popular,rating'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
         ]);
+
+        // Cakupan voucher: hanya produk yang berlaku untuk voucher tsb.
+        if (! empty($validated['voucher_id'])) {
+            $voucher = \App\Models\Voucher::with('targetItems')->find($validated['voucher_id']);
+            if (! $voucher || $voucher->order_type !== 'product') {
+                $validated['item_ids'] = []; // voucher bukan utk produk → kosong
+            } else {
+                $ids = app(\App\Services\VoucherService::class)->scopedItemIds($voucher);
+                if ($ids !== null) {
+                    $validated['item_ids'] = $ids;
+                }
+            }
+        }
 
         $paginator = $this->catalog->list($validated);
 

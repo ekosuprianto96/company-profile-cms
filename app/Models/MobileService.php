@@ -20,6 +20,7 @@ class MobileService extends Model
             'is_featured' => 'boolean',
             'is_popular' => 'boolean',
             'is_active' => 'boolean',
+            'is_coming_soon' => 'boolean',
             'rating' => 'decimal:1',
         ];
     }
@@ -42,5 +43,10 @@ class MobileService extends Model
             'mobile_service_id',
             'mobile_service_need_type_id'
         )->withTimestamps();
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
     }
 }

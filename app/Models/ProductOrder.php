@@ -78,6 +78,17 @@ class ProductOrder extends Model
         return $this->belongsTo(ShippingCourier::class, 'shipping_courier_id');
     }
 
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(ProductReview::class, 'product_order_id');
+    }
+
+    /** Order sudah selesai → produk di dalamnya boleh dinilai. */
+    public function isCompleted(): bool
+    {
+        return $this->status === 'selesai';
+    }
+
     /**
      * Order produk hanya bisa dibatalkan selama masih di tahap awal (diproses/menunggu),
      * yaitu belum dikemas/dikirim/selesai.

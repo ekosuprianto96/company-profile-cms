@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category;
 use App\Models\MobileService;
 use App\Models\Product;
 use App\Models\ProductCategory;
@@ -69,6 +70,56 @@ class ProductSeeder extends Seeder
             }
         }
 
+        $this->seedInteriorItems($imgA, $imgB);
+
         $this->command?->info('Seeded ' . count($products) . ' products in ' . $categories->count() . ' categories.');
+    }
+
+    /**
+     * Item furnitur "Fit Out Interior (Item)" — dulu keliru jadi layanan, kini
+     * produk katalog yang memakai kategori master (category_id) yang sama dengan
+     * layanan. Harga = contoh, admin bisa sesuaikan.
+     */
+    private function seedInteriorItems(string $imgA, string $imgB): void
+    {
+        $masterCategoryId = Category::where('slug', 'fit-out-interior-item')->value('id');
+
+        // [nama, harga contoh, berat gram, stok]
+        $items = [
+            ['Lemari Pakaian', 4500000, 45000, 8, $imgA],
+            ['Kabinet TV', 2800000, 28000, 10, $imgB],
+            ['Peninsula', 6500000, 60000, 5, $imgA],
+            ['Table Island', 5500000, 55000, 6, $imgB],
+            ['Sofa', 3500000, 32000, 12, $imgA],
+            ['Kabinet Penyimpanan', 3200000, 35000, 9, $imgB],
+            ['Meja Kerja', 1800000, 18000, 15, $imgA],
+            ['Meja Belajar', 1500000, 16000, 15, $imgB],
+            ['Rak Penyimpanan', 2200000, 22000, 12, $imgA],
+            ['Meja Makan', 2900000, 40000, 8, $imgB],
+        ];
+
+        foreach ($items as $order => [$name, $price, $weight, $stock, $img]) {
+            Product::updateOrCreate(
+                ['slug' => Str::slug($name)],
+                [
+                    'sku' => 'FOI-' . str_pad((string) ($order + 1), 3, '0', STR_PAD_LEFT),
+                    'category_id' => $masterCategoryId,
+                    'name' => $name,
+                    'short_description' => $name . ' untuk kebutuhan fit out interior.',
+                    'description' => $name . ' — produk furnitur custom. Harga contoh, silakan sesuaikan.',
+                    'price' => $price,
+                    'weight_grams' => $weight,
+                    'stock' => $stock,
+                    'primary_image' => $img,
+                    'can_be_bundled' => true,
+                    'service_scope' => 'all',
+                    'shipping_method' => 'internal',
+                    'is_active' => true,
+                    'is_featured' => false,
+                ],
+            );
+        }
+
+        $this->command?->info('Seeded ' . count($items) . ' interior items (kategori Fit Out Interior (Item)).');
     }
 }

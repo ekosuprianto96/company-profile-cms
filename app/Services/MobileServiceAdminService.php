@@ -102,6 +102,7 @@ class MobileServiceAdminService
         return [
             'title' => $title,
             'slug' => $slug,
+            'category_id' => ($payload['category_id'] ?? null) ?: null,
             'request_flow_type' => in_array(($payload['request_flow_type'] ?? 'standard'), ['standard', 'event_project'], true)
                 ? $payload['request_flow_type']
                 : 'standard',
@@ -126,6 +127,7 @@ class MobileServiceAdminService
             'is_featured' => (bool) ($payload['is_featured'] ?? true),
             'is_popular' => (bool) ($payload['is_popular'] ?? true),
             'is_active' => (bool) ($payload['is_active'] ?? true),
+            'is_coming_soon' => (bool) ($payload['is_coming_soon'] ?? false),
         ];
     }
 

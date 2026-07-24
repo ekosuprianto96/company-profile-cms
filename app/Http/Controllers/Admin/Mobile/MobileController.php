@@ -171,55 +171,11 @@ class MobileController extends Controller
             ->make(true);
     }
 
-    public function services()
-    {
-        return $this->sectionView(
-            'Layanan Mobile',
-            'Gunakan data layanan existing sebagai titik awal, lalu tambahkan field yang lebih cocok untuk aplikasi order jasa seperti harga mulai, kategori, durasi estimasi, dan CTA pemesanan.',
-            [
-                'Pisahkan layanan website company profile dan layanan order mobile bila kebutuhan kontennya berbeda.',
-                'Tambahkan atribut mobile seperti cover, galeri, harga awal, badge promo, dan langkah kerja.',
-                'Siapkan endpoint API khusus mobile setelah struktur data layanan stabil.',
-            ]
-        );
-    }
-
-    public function banners()
-    {
-        return $this->sectionView(
-            'Banner Mobile',
-            'Banner untuk aplikasi mobile sebaiknya dipisah dari banner website karena rasio, copywriting, dan target aksinya biasanya berbeda.',
-            [
-                'Tambahkan posisi banner seperti home hero, promo strip, dan featured campaign.',
-                'Simpan action type seperti buka detail layanan, buka produk, atau deep link tertentu.',
-                'Sediakan penjadwalan publish agar promo musiman bisa otomatis aktif/nonaktif.',
-            ]
-        );
-    }
-
-    public function furniture()
-    {
-        return $this->sectionView(
-            'Produk Furniture',
-            'Modul ini cocok dipakai untuk katalog furniture atau add-on proyek seperti kitchen set, sofa, meja, dan paket interior.',
-            [
-                'Buat tabel produk dengan SKU, harga, stok opsional, thumbnail, dan galeri.',
-                'Tambahkan kategori produk dan relasi ke layanan bila produk menjadi upsell dari jasa kontraktor.',
-                'Pertimbangkan status preorder, custom order, dan lead time produksi.',
-            ]
-        );
-    }
-
     public function homeLayout()
     {
         return $this->sectionView(
             'Home Layout Mobile',
             'Home aplikasi mobile butuh panel pengaturan yang lebih fleksibel daripada website, karena susunan blok, banner, kategori, dan rekomendasi akan sering berubah.',
-            [
-                'Simpan konfigurasi blok home dalam JSON agar urutan section bisa diatur dari admin.',
-                'Pisahkan setting warna, copy CTA, featured services, dan featured products.',
-                'Kalau ingin sangat fleksibel, buat builder sederhana berbasis section aktif/nonaktif dan urutan tampil.',
-            ]
         );
     }
 
@@ -340,19 +296,6 @@ class MobileController extends Controller
                 ->back()
                 ->with('error', $th->getMessage());
         }
-    }
-
-    public function liveChat()
-    {
-        return $this->sectionView(
-            'Live Chat',
-            'Live chat butuh keputusan arsitektur sejak awal karena menyentuh real-time delivery, assignment admin, histori chat, dan notifikasi.',
-            [
-                'Pilih apakah chat akan dibangun internal atau integrasi ke provider pihak ketiga.',
-                'Kalau internal, siapkan tabel conversation, messages, attachments, dan read status.',
-                'Gunakan websocket atau polling bertahap sesuai kebutuhan performa dan budget infrastruktur.',
-            ]
-        );
     }
 
     public function settings(MobileAppSettingService $mobileAppSettingService)
@@ -530,12 +473,12 @@ class MobileController extends Controller
             ->with('success', 'Pengaturan mobile berhasil disimpan.');
     }
 
-    private function sectionView(string $title, string $description, array $recommendations)
+    /** Halaman "belum tersedia" untuk area yang belum punya pengelolaan sendiri. */
+    private function sectionView(string $title, string $description)
     {
         return $this->view('section', [
             'title' => $title,
             'description' => $description,
-            'recommendations' => $recommendations,
             'sections' => $this->sections(),
         ]);
     }
@@ -589,6 +532,18 @@ class MobileController extends Controller
                 'icon' => 'ri-file-list-3-line',
                 'description' => 'Review pengajuan dari aplikasi mobile.',
             ],
+            ...(auth()->user()?->hasPermission('category:show') ? [[
+                'title' => 'Kategori',
+                'route' => route('admin.mobile.categories'),
+                'icon' => 'ri-node-tree',
+                'description' => 'Master data kategori bertingkat untuk layanan & produk.',
+            ]] : []),
+            ...(auth()->user()?->hasPermission('home-section:show') ? [[
+                'title' => 'Section Home',
+                'route' => route('admin.mobile.home_sections'),
+                'icon' => 'ri-layout-masonry-line',
+                'description' => 'Atur section dinamis yang tampil di home mobile.',
+            ]] : []),
             [
                 'title' => 'Services',
                 'route' => route('admin.mobile.services'),
@@ -612,18 +567,6 @@ class MobileController extends Controller
                 'route' => route('admin.mobile.event_projects'),
                 'icon' => 'ri-calendar-event-line',
                 'description' => 'Master jenis project, kebutuhan, paket, dan anggaran event.',
-            ],
-            [
-                'title' => 'Banners',
-                'route' => route('admin.mobile.banners'),
-                'icon' => 'ri-image-edit-line',
-                'description' => 'Banner dan promo home mobile.',
-            ],
-            [
-                'title' => 'Furniture',
-                'route' => route('admin.mobile.furniture'),
-                'icon' => 'ri-sofa-line',
-                'description' => 'Produk furniture dan add-on proyek.',
             ],
             [
                 'title' => 'Home Layout',
@@ -678,6 +621,18 @@ class MobileController extends Controller
                 'route' => route('admin.mobile.product_orders'),
                 'icon' => 'ri-shopping-cart-2-line',
                 'description' => 'Kelola & proses pesanan produk mobile.',
+            ]] : []),
+            ...(auth()->user()?->hasPermission('product-review:show') ? [[
+                'title' => 'Penilaian Produk',
+                'route' => route('admin.mobile.reviews'),
+                'icon' => 'ri-star-smile-line',
+                'description' => 'Ulasan & bintang pembeli, disaring per produk.',
+            ]] : []),
+            ...(auth()->user()?->hasPermission('promotion:show') ? [[
+                'title' => 'Promosi',
+                'route' => route('admin.mobile.promotions'),
+                'icon' => 'ri-megaphone-line',
+                'description' => 'Banner promosi beranda & halaman detailnya.',
             ]] : []),
             [
                 'title' => 'Settings',

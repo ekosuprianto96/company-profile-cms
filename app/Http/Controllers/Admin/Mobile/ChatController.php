@@ -134,18 +134,6 @@ class ChatController extends Controller
                 'description' => 'Kelola layanan mobile.',
             ],
             [
-                'title' => 'Banners',
-                'route' => route('admin.mobile.banners'),
-                'icon' => 'ri-image-line',
-                'description' => 'Kelola banner aplikasi mobile.',
-            ],
-            [
-                'title' => 'Furniture',
-                'route' => route('admin.mobile.furniture'),
-                'icon' => 'ri-store-2-line',
-                'description' => 'Kelola katalog furniture.',
-            ],
-            [
                 'title' => 'Home Layout',
                 'route' => route('admin.mobile.home_layout'),
                 'icon' => 'ri-layout-2-line',

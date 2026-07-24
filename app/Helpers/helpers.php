@@ -31,6 +31,36 @@ if (!function_exists('assetFrontend')) {
     }
 }
 
+if (!function_exists('storageUrl')) {
+    /**
+     * URL publik untuk file di disk `public`.
+     *
+     * WAJIB dipakai untuk apa pun yang dikirim ke aplikasi mobile. Sengaja
+     * memakai `asset()` dan BUKAN `Storage::disk('public')->url()`:
+     *
+     *   - `asset()`      -> mengikuti host request yang masuk
+     *   - `Storage::url()` -> selalu memakai APP_URL dari .env
+     *
+     * Mobile terhubung lewat tunnel/ngrok, sedangkan APP_URL menunjuk domain
+     * `.test` yang hanya ada di /etc/hosts mesin dev. URL dari `Storage::url()`
+     * jadi HTTP 200 kalau dites dari laptop, tapi mati total di HP — bug yang
+     * sudah tiga kali muncul di proyek ini (banner, bukti transfer, avatar).
+     *
+     * Path yang sudah berupa URL penuh (mis. avatar dari login pihak ketiga)
+     * dikembalikan apa adanya.
+     */
+    function storageUrl(?string $path): ?string
+    {
+        if ($path === null || $path === '') {
+            return null;
+        }
+
+        return str_starts_with($path, 'http')
+            ? $path
+            : asset('storage/' . ltrim($path, '/'));
+    }
+}
+
 if (!function_exists('greetingUser')) {
     function greetingUser()
     {

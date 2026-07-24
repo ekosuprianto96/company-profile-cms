@@ -28,6 +28,12 @@ class MobileInspireCatalogService
             ->values();
     }
 
+    /** Payload satu inspire post (dipakai home section). */
+    public function listItem(InspirePost $post): array
+    {
+        return $this->mapPost($post);
+    }
+
     public function findBySlug(string $slug): ?array
     {
         $post = $this->inspirePostService->findBySlug($slug);

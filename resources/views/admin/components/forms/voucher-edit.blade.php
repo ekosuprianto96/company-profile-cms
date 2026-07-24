@@ -12,7 +12,10 @@
             $(`[data-error="${field}"]`).find('span').text('');
         });
 
+        initVoucherTermsEditor('#voucherFormEdit_terms');
+
         $('#buttonEditVoucher').click(function() {
+            if (window.voucherTermsEditor) window.voucherTermsEditor.updateSourceElement();
             const data = $('#voucherFormEdit').serialize() + '&_token={{ csrf_token() }}';
             $.post('{{ route('admin.mobile.vouchers.update', optional($voucher)->id) }}', data)
                 .done(function(response) {

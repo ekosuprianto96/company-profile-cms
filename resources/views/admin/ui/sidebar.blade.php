@@ -20,8 +20,6 @@
           <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.otp_logs') }}">OTP Logs</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.service_requests.index') }}">Service Requests</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.services') }}">Services</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.banners') }}">Banners</a></li>
-          <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.furniture') }}">Furniture</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.home_layout') }}">Home Layout</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.notifications') }}">Notifications</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.live_chat') }}">Live Chat</a></li>

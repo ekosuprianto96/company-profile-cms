@@ -31,6 +31,11 @@
         <div data-error="description" class="invalid-fedback"><span class="text-danger" style="font-size: 0.8em"></span></div>
     </div>
 
+    @include('admin.components.forms.partials.category-picker', [
+        'categoryTree' => $categoryTree ?? collect(),
+        'selectedCategoryId' => $service->category_id,
+    ])
+
     <div class="form-group">
         <label for="request_flow_type">Tipe Flow Pengajuan</label>
         <select name="request_flow_type" id="request_flow_type" class="form-control">
@@ -40,6 +45,7 @@
         <div data-error="request_flow_type" class="invalid-fedback"><span class="text-danger" style="font-size: 0.8em"></span></div>
         <small class="text-muted">Pilih Event Project untuk layanan seperti Wedding Organizer.</small>
     </div>
+
 
     <div class="form-group">
         <label for="need_types">Jenis Kebutuhan Layanan</label>
@@ -63,11 +69,11 @@
             </div>
         </div>
         <div class="col-md-9" id="icon_text_wrapper" style="display: {{ $service->icon_type === 'icon' ? 'block' : 'none' }};">
-            <div class="form-group">
-                <label for="icon">Nama Icon (MaterialIcons)</label>
-                <input name="icon" type="text" class="form-control" id="icon" value="{{ $service->icon }}" placeholder="Contoh: home-repair-service">
-                <div data-error="icon" class="invalid-fedback"><span class="text-danger" style="font-size: 0.8em"></span></div>
-            </div>
+            @include('admin.components.forms.partials.icon-picker', [
+                'iconFieldName' => 'icon',
+                'iconLabel' => 'Icon (MaterialIcons)',
+                'selectedIcon' => $service->icon,
+            ])
         </div>
     </div>
 
@@ -202,6 +208,16 @@
                 </select>
             </div>
         </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label for="is_coming_soon">Coming Soon</label>
+                <select name="is_coming_soon" id="is_coming_soon" class="form-control">
+                    <option @selected(!$service->is_coming_soon) value="0">Tidak</option>
+                    <option @selected($service->is_coming_soon) value="1">Ya</option>
+                </select>
+                <small class="text-muted">Jika "Ya", klik layanan di mobile memunculkan info "segera hadir".</small>
+            </div>
+        </div>
     </div>
 
     <div class="d-flex justify-content-end">
@@ -268,6 +284,7 @@
                 is_featured: $('[name=is_featured]').val(),
                 is_popular: $('[name=is_popular]').val(),
                 is_active: $('[name=is_active]').val(),
+                is_coming_soon: $('[name=is_coming_soon]').val(),
                 _token: '{{ csrf_token() }}'
             })
             .done(function(response) {
