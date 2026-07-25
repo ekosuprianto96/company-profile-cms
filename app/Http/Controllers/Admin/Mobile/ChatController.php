@@ -62,12 +62,21 @@ class ChatController extends Controller
     public function store(Request $request, int $conversation)
     {
         $validated = $request->validate([
-            'message' => 'required|string|max:5000',
+            'message' => 'nullable|string|max:5000|required_without:attachments',
+            'attachments' => 'nullable|array|max:6',
+            'attachments.*' => 'file|mimes:jpg,jpeg,png,webp,gif,pdf|max:10240',
+        ], [
+            'message.required_without' => 'Tulis pesan atau lampirkan media.',
         ]);
 
         try {
             $chatConversation = $this->chatService->getConversationForAdmin($conversation);
-            $message = $this->chatService->sendAdminMessage($chatConversation, $request->user(), $validated['message']);
+            $message = $this->chatService->sendAdminMessage(
+                $chatConversation,
+                $request->user(),
+                (string) ($validated['message'] ?? ''),
+                $request->file('attachments', []),
+            );
             $chatConversation = $this->chatService->getConversationForAdmin($chatConversation->id);
             $chatConversation->load([
                 'mobileUser',

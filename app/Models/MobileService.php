@@ -35,18 +35,30 @@ class MobileService extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
-    public function needTypes()
-    {
-        return $this->belongsToMany(
-            MobileServiceNeedType::class,
-            'mobile_service_need_type_relations',
-            'mobile_service_id',
-            'mobile_service_need_type_id'
-        )->withTimestamps();
-    }
-
     public function category()
     {
         return $this->belongsTo(Category::class, 'category_id');
+    }
+
+    /** Form pengajuan yang dipakai layanan ini (boleh dipakai bersama layanan lain). */
+    public function form()
+    {
+        return $this->belongsTo(Form::class, 'form_id');
+    }
+
+    /** Skema harga layanan (mis. Biaya Survei / Konsultasi / DP). */
+    public function priceItems()
+    {
+        return $this->hasMany(ServicePriceItem::class, 'mobile_service_id')->orderBy('sort_order')->orderBy('id');
+    }
+
+    /** Total biaya wajib dari skema harga; null bila layanan belum punya skema. */
+    public function requiredPriceTotal(): ?int
+    {
+        if ($this->priceItems->isEmpty()) {
+            return null;
+        }
+
+        return (int) $this->priceItems->where('is_required', true)->sum('amount');
     }
 }

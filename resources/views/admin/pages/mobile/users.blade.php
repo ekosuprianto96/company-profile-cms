@@ -81,6 +81,40 @@
         );
     }
 
+    function unbanUser(id) {
+        postMobileAction(
+            '{{ url("admin/mobile/users") }}/' + id + '/unban',
+            'Blokir user ini akan dibuka sehingga dapat login kembali. Lanjutkan?'
+        );
+    }
+
+    function banUser(id) {
+        Swal.fire({
+            title: 'Blokir User',
+            input: 'textarea',
+            inputLabel: 'Alasan blokir (opsional, ditampilkan ke user)',
+            inputPlaceholder: 'Mis. melanggar ketentuan layanan...',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Blokir'
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+
+            $.post('{{ url("admin/mobile/users") }}/' + id + '/ban', {_token: '{{ csrf_token() }}', reason: result.value || ''})
+                .done(function(response) {
+                    if (window.$mobileUsersTable) window.$mobileUsersTable.ajax.reload();
+                    $.toast({heading: 'Sukses', text: response.message, showHideTransition: 'plain', position: 'top-right', icon: 'success'});
+                    if (!window.$mobileUsersTable) setTimeout(() => window.location.reload(), 800);
+                })
+                .fail(function(error) {
+                    const response = error.responseJSON || {};
+                    $.toast({heading: 'Warning', text: response.message || 'Terjadi kesalahan.', showHideTransition: 'slide', position: 'top-right', icon: 'warning'});
+                });
+        });
+    }
+
     function postMobileAction(url, text) {
         Swal.fire({
             title: 'Konfirmasi',

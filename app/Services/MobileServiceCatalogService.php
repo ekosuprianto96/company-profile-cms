@@ -71,16 +71,15 @@ class MobileServiceCatalogService
                     'is_popular' => (bool) $service->is_popular,
                     'is_active' => (bool) $service->is_active,
                     'is_coming_soon' => (bool) $service->is_coming_soon,
-                    'need_types' => $service->needTypes
-                        ->map(fn ($needType) => [
-                            'id' => $needType->id,
-                            'name' => $needType->name,
-                            'slug' => $needType->slug,
-                            'description' => $needType->description,
-                            'sort_order' => (int) $needType->sort_order,
-                        ])
-                        ->values()
-                        ->toArray(),
+                    'form_id' => $service->form_id,
+                    'price_items' => $service->priceItems->map(fn ($item) => [
+                        'type' => $item->type,
+                        'label' => $item->label,
+                        'amount' => (int) $item->amount,
+                        'is_required' => (bool) $item->is_required,
+                    ])->values()->toArray(),
+                    'price_total' => (int) $service->priceItems->where('is_required', true)->sum('amount'),
+                    'need_types' => [],
                 ];
     }
 }

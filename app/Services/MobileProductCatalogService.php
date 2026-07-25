@@ -3,18 +3,16 @@
 namespace App\Services;
 
 use App\Models\Product;
-use App\Models\ProductCategory;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Facades\Storage;
 
 class MobileProductCatalogService
 {
     public function list(array $filters): LengthAwarePaginator
     {
-        $query = Product::query()->with('category')->where('is_active', true);
+        $query = Product::query()->with('masterCategory')->where('is_active', true);
 
         if (! empty($filters['category'])) {
-            $query->whereHas('category', fn ($c) => $c->where('slug', $filters['category'])->orWhere('id', $filters['category']));
+            $query->whereHas('masterCategory', fn ($c) => $c->where(fn ($w) => $w->where('slug', $filters['category'])->orWhere('id', $filters['category'])));
         }
         if (! empty($filters['q'])) {
             $q = $filters['q'];
@@ -52,12 +50,17 @@ class MobileProductCatalogService
 
     public function findBySlug(string $slug): ?Product
     {
-        return Product::query()->with(['category', 'images', 'services:id,title'])->where('slug', $slug)->where('is_active', true)->first();
+        return Product::query()->with(['masterCategory', 'images', 'services:id,title'])->where('slug', $slug)->where('is_active', true)->first();
     }
 
     public function categories()
     {
-        return ProductCategory::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')
+        // Kategori taksonomi yang benar-benar dipakai produk aktif (untuk filter di app).
+        $ids = Product::query()->where('is_active', true)->whereNotNull('category_id')
+            ->distinct()->pluck('category_id');
+
+        return \App\Models\Category::whereIn('id', $ids)->where('is_active', true)
+            ->orderBy('sort_order')->orderBy('name')
             ->get()->map(fn ($c) => [
                 'id' => $c->id,
                 'name' => $c->name,
@@ -74,7 +77,7 @@ class MobileProductCatalogService
             'slug' => $product->slug,
             'name' => $product->name,
             'brand' => $product->brand,
-            'category' => $product->category?->name,
+            'category' => $product->masterCategory?->name,
             'price' => (int) $product->price,
             'compare_at_price' => $product->compare_at_price ? (int) $product->compare_at_price : null,
             'discount_percent' => $this->discountPercent($product),

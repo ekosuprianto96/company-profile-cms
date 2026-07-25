@@ -146,6 +146,7 @@ class MobileProductOrderCheckoutService
                 'voucher_id' => $voucher?->id,
                 'courier' => $courier->name,
                 'shipping_courier_id' => $courier->id,
+                'mobile_user_address_id' => $payload['mobile_user_address_id'] ?? null,
                 'service_request_id' => $linkedServiceRequest?->id ?? ($payload['service_request_id'] ?? null),
                 'notes' => $payload['notes'] ?? null,
                 'address' => $payload['address'] ?? null,
@@ -292,6 +293,10 @@ class MobileProductOrderCheckoutService
     /** Handler notifikasi Midtrans untuk order produk (dipanggil dari webhook). */
     public function handleMidtransNotification(array $notification): ?ProductOrder
     {
+        // Wajib: verifikasi signature Midtrans sebelum memproses (cegah pemalsuan
+        // status bayar oleh pihak tak berwenang). Melempar bila signature tak valid.
+        $this->mobileMidtransService->handleNotification($notification);
+
         $orderId = (string) ($notification['order_id'] ?? '');
         // order_id = "{order_number}-{timestamp}" → ambil order_number (buang suffix timestamp).
         $orderNumber = preg_replace('/-\d{14}$/', '', $orderId);
@@ -314,21 +319,42 @@ class MobileProductOrderCheckoutService
             $paymentStatus = 'challenge';
         }
 
-        $order->update([
-            'payment_status' => $paymentStatus,
-            'midtrans_transaction_status' => $transactionStatus,
-            'midtrans_payment_type' => (string) ($notification['payment_type'] ?? '') ?: null,
-            'paid_at' => $paymentStatus === 'paid' ? now() : $order->paid_at,
-            'status' => $paymentStatus === 'paid' ? 'diproses' : $order->status,
-            'status_label' => $paymentStatus === 'paid' ? 'Diproses' : $order->status_label,
-        ]);
+        $previousPaymentStatus = $order->payment_status;
 
-        $this->settleVoucher($order, $paymentStatus);
-        if ($paymentStatus === 'paid') {
-            $this->markLinkedServiceRequestPaid($order);
-        }
+        DB::transaction(function () use ($order, $paymentStatus, $previousPaymentStatus, $transactionStatus, $notification) {
+            $order->update([
+                'payment_status' => $paymentStatus,
+                'midtrans_transaction_status' => $transactionStatus,
+                'midtrans_payment_type' => (string) ($notification['payment_type'] ?? '') ?: null,
+                'paid_at' => $paymentStatus === 'paid' ? ($order->paid_at ?? now()) : $order->paid_at,
+                'status' => $paymentStatus === 'paid' ? 'diproses' : $order->status,
+                'status_label' => $paymentStatus === 'paid' ? 'Diproses' : $order->status_label,
+            ]);
+
+            $this->settleVoucher($order, $paymentStatus);
+
+            // Gagal/expire → kembalikan stok yang direservasi saat checkout.
+            // Dedup: hanya saat transisi (status bayar sebelumnya belum 'failed').
+            if ($paymentStatus === 'failed' && $previousPaymentStatus !== 'failed') {
+                $this->restoreStock($order);
+            }
+
+            if ($paymentStatus === 'paid') {
+                $this->markLinkedServiceRequestPaid($order);
+            }
+        });
 
         return $order->fresh(['items']);
+    }
+
+    /** Kembalikan stok produk yang direservasi (dipakai saat order gagal/expire). */
+    protected function restoreStock(ProductOrder $order): void
+    {
+        foreach ($order->loadMissing('items')->items as $item) {
+            if ($item->product_id) {
+                Product::query()->where('id', $item->product_id)->increment('stock', $item->quantity);
+            }
+        }
     }
 
     /** Tandai pengajuan survey yang digabung (service_request_id) sebagai lunas saat order dibayar. */

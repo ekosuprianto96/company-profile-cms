@@ -6,6 +6,7 @@ use App\Models\Blog;
 use App\Models\HomeSection;
 use App\Models\InspirePost;
 use App\Models\MobileService;
+use App\Models\MobileUser;
 use App\Models\Product;
 use App\Models\Voucher;
 use Illuminate\Support\Carbon;
@@ -25,9 +26,14 @@ class HomeSectionResolver
         protected VoucherService $vouchers,
     ) {}
 
+    /** User login (opsional) untuk memfilter voucher per-user. */
+    protected ?MobileUser $currentUser = null;
+
     /** Semua section aktif (urut) yang punya minimal 1 item. */
-    public function feed(): array
+    public function feed(?MobileUser $user = null): array
     {
+        $this->currentUser = $user;
+
         return HomeSection::active()
             ->with('items')
             ->orderBy('sort_order')
@@ -92,11 +98,11 @@ class HomeSectionResolver
 
         [$models, $mapper] = match ($source) {
             'product' => [
-                Product::whereIn('id', $ids)->get()->keyBy('id'),
+                Product::with('masterCategory')->whereIn('id', $ids)->get()->keyBy('id'),
                 fn (Product $p) => $this->products->listItem($p),
             ],
             'service' => [
-                MobileService::with(['category.parent.parent', 'needTypes'])->whereIn('id', $ids)->get()->keyBy('id'),
+                MobileService::with(['category.parent.parent'])->whereIn('id', $ids)->get()->keyBy('id'),
                 fn (MobileService $s) => $this->services->listItem($s),
             ],
             'voucher' => [
@@ -128,7 +134,7 @@ class HomeSectionResolver
 
     private function productQuery(?string $filter)
     {
-        $q = Product::where('is_active', true);
+        $q = Product::with('masterCategory')->where('is_active', true);
 
         return match ($filter) {
             'discount' => $q->whereNotNull('compare_at_price')->whereColumn('compare_at_price', '>', 'price')->latest(),
@@ -141,7 +147,7 @@ class HomeSectionResolver
 
     private function serviceQuery(?string $filter)
     {
-        $q = MobileService::where('is_active', true)->with(['category.parent.parent', 'needTypes']);
+        $q = MobileService::where('is_active', true)->with(['category.parent.parent']);
 
         return match ($filter) {
             'popular' => $q->where('is_popular', true)->orderBy('sort_order'),
@@ -157,7 +163,19 @@ class HomeSectionResolver
         $now = Carbon::now();
         $q = Voucher::where('is_active', true)
             ->where(fn ($w) => $w->whereNull('starts_at')->orWhere('starts_at', '<=', $now))
-            ->where(fn ($w) => $w->whereNull('expires_at')->orWhere('expires_at', '>=', $now));
+            ->where(fn ($w) => $w->whereNull('expires_at')->orWhere('expires_at', '>=', $now))
+            // Kuota total belum habis (usage_limit null = tak terbatas).
+            ->where(fn ($w) => $w->whereNull('usage_limit')
+                ->orWhereRaw('(select count(*) from voucher_redemptions vr where vr.voucher_id = vouchers.id and vr.status in ("reserved","used")) < vouchers.usage_limit'));
+
+        // Bila user login: sembunyikan voucher yang batas pemakaian per-user-nya sudah tercapai.
+        if ($this->currentUser) {
+            $q->where(fn ($w) => $w->where('usage_limit_per_user', 0)
+                ->orWhereRaw(
+                    '(select count(*) from voucher_redemptions vr where vr.voucher_id = vouchers.id and vr.mobile_user_id = ? and vr.status in ("reserved","used")) < vouchers.usage_limit_per_user',
+                    [$this->currentUser->id],
+                ));
+        }
 
         return $filter === 'newest' ? $q->latest() : $q->orderByRaw('expires_at IS NULL, expires_at ASC');
     }

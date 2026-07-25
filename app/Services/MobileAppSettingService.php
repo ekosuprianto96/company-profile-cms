@@ -28,6 +28,40 @@ class MobileAppSettingService
         return $settings;
     }
 
+    public function appName(): string
+    {
+        $name = trim((string) ($this->getSettings()['app_name'] ?? ''));
+
+        return $name !== '' ? $name : 'Maninjau PRO';
+    }
+
+    /** Slide onboarding mentah (dengan image_path). Fallback ke default bila kosong. */
+    public function onboardingSlidesRaw(): array
+    {
+        $slides = $this->getSettings()['onboarding_slides'] ?? [];
+
+        if (empty($slides) || ! is_array($slides)) {
+            $slides = $this->defaults()['onboarding_slides'];
+        }
+
+        return collect($slides)->sortBy(fn ($s) => (int) ($s['sort_order'] ?? 0))->values()->all();
+    }
+
+    /** Slide onboarding (splash) untuk aplikasi — siap dipakai API (dengan image_url). */
+    public function onboardingSlides(): array
+    {
+        return collect($this->onboardingSlidesRaw())
+            ->map(fn ($s) => [
+                'id' => $s['id'] ?? null,
+                'title' => (string) ($s['title'] ?? ''),
+                'subtitle' => (string) ($s['subtitle'] ?? ''),
+                'image_url' => ! empty($s['image_path']) ? storageUrl($s['image_path']) : null,
+            ])
+            ->filter(fn ($s) => $s['title'] !== '' || $s['subtitle'] !== '' || $s['image_url'])
+            ->values()
+            ->all();
+    }
+
     public function surveyFee(): int
     {
         return (int) $this->getSettings()['survey_fee'];
@@ -230,6 +264,12 @@ class MobileAppSettingService
     protected function defaults(): array
     {
         return [
+            'app_name' => 'Maninjau PRO',
+            'onboarding_slides' => [
+                ['id' => 'slide-1', 'title' => 'Wujudkan rumah impian dengan layanan terbaik', 'subtitle' => 'Furnitur, jasa bangun, dan inspirasi rumah dalam satu aplikasi yang hangat & mudah.', 'image_path' => null, 'sort_order' => 1],
+                ['id' => 'slide-2', 'title' => 'Semua kebutuhan rumah, satu genggaman', 'subtitle' => 'Dari desain, bangun, hingga furnitur — dikerjakan tim terpercaya dan transparan.', 'image_path' => null, 'sort_order' => 2],
+                ['id' => 'slide-3', 'title' => 'Aman, transparan, tepat waktu', 'subtitle' => 'Pantau progres pengajuan & pembayaran langsung dari aplikasi.', 'image_path' => null, 'sort_order' => 3],
+            ],
             'survey_fee' => 150000,
             'event_consultation_fee' => 150000,
             'tax_percentage' => 0,

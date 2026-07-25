@@ -21,13 +21,34 @@ abstract class ApiController extends Controller
         ], $this->normalizeStatus($status, 200));
     }
 
-    protected function error(string $message, int $status = 422, array $errors = []): JsonResponse
+    protected function error(string $message, int $status = 422, array $errors = [], ?string $code = null): JsonResponse
     {
-        return response()->json([
+        $payload = [
             'success' => false,
             'message' => $message,
             'errors' => $errors,
-        ], $this->normalizeStatus($status, 500));
+        ];
+
+        // Kode mesin opsional agar klien bisa menangani kasus khusus (mis.
+        // 'account_blocked' → alihkan ke layar informasi blokir).
+        if ($code !== null) {
+            $payload['code'] = $code;
+        }
+
+        return response()->json($payload, $this->normalizeStatus($status, 500));
+    }
+
+    /**
+     * Respons standar untuk akun diblokir (code 'account_blocked') bila exception
+     * yang ditangkap adalah MobileAccountBlockedException; selain itu null.
+     */
+    protected function accountBlockedResponse(\Throwable $th): ?JsonResponse
+    {
+        if ($th instanceof \App\Exceptions\MobileAccountBlockedException) {
+            return $this->error($th->getMessage(), 403, [], 'account_blocked');
+        }
+
+        return null;
     }
 
     protected function userPayload($user): array

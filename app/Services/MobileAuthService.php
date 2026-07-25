@@ -46,9 +46,7 @@ class MobileAuthService
             throw new \Exception('Email/nomor telepon atau password tidak valid.', 422);
         }
 
-        if (! $user->is_active) {
-            throw new \Exception('Akun sedang nonaktif.', 403);
-        }
+        $this->assertCanAccess($user);
 
         if (! $user->isVerified()) {
             throw new \Exception('Akun belum diverifikasi. Silakan verifikasi OTP terlebih dahulu.', 403);
@@ -70,8 +68,13 @@ class MobileAuthService
             throw new \Exception('Akun mobile tidak ditemukan untuk pengiriman OTP.', 404);
         }
 
-        if ($payload['purpose'] === 'login' && ! $user->isVerified()) {
-            throw new \Exception('Akun belum aktif untuk login OTP.', 403);
+        // Jangan kirim OTP login ke akun yang diblokir/nonaktif.
+        if ($payload['purpose'] === 'login') {
+            $this->assertCanAccess($user);
+
+            if (! $user->isVerified()) {
+                throw new \Exception('Akun belum aktif untuk login OTP.', 403);
+            }
         }
 
         if ($payload['purpose'] === 'register' && $user->isVerified()) {
@@ -173,8 +176,28 @@ class MobileAuthService
         return $user->fresh();
     }
 
+    /** Pastikan akun boleh mengakses (tidak diblokir & aktif). */
+    private function assertCanAccess(MobileUser $user): void
+    {
+        if ($user->isBanned()) {
+            throw new \App\Exceptions\MobileAccountBlockedException(
+                $user->ban_reason
+                    ? 'Akun Anda diblokir: ' . $user->ban_reason
+                    : 'Akun Anda telah diblokir. Hubungi admin untuk informasi lebih lanjut.',
+                $user->ban_reason,
+            );
+        }
+
+        if (! $user->is_active) {
+            throw new \Exception('Akun sedang nonaktif.', 403);
+        }
+    }
+
     public function issueToken(MobileUser $user, string $deviceName): array
     {
+        // Choke point semua jalur login (password & OTP): tolak akun banned/nonaktif.
+        $this->assertCanAccess($user);
+
         $token = $user->createToken(
             $deviceName,
             ['mobile:auth'],

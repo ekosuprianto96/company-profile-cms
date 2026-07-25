@@ -14,12 +14,12 @@ class ProductAdminService
 {
     public function queryForAdmin()
     {
-        return Product::query()->with('category')->orderByDesc('id');
+        return Product::query()->with('masterCategory.parent.parent')->orderByDesc('id');
     }
 
     public function find(int $id): Product
     {
-        return Product::query()->with(['category', 'services:id'])->findOrFail($id);
+        return Product::query()->with(['masterCategory.parent.parent', 'services:id'])->findOrFail($id);
     }
 
     public function categories()

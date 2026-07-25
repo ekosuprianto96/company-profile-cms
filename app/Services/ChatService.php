@@ -472,4 +472,21 @@ class ChatService
             })
             ->count();
     }
+
+    /**
+     * Total pesan admin yang belum dibaca user, seluruh percakapan, dalam satu
+     * query (untuk badge di beranda — hindari fetch seluruh daftar chat + N+1).
+     */
+    public function totalUnreadForMobile(MobileUser $mobileUser): int
+    {
+        return \App\Models\ChatMessage::query()
+            ->join('chat_conversations', 'chat_conversations.id', '=', 'chat_messages.chat_conversation_id')
+            ->where('chat_conversations.mobile_user_id', $mobileUser->id)
+            ->where('chat_messages.sender_type', 'admin')
+            ->where(function ($query) {
+                $query->whereNull('chat_conversations.mobile_last_read_at')
+                    ->orWhereColumn('chat_messages.created_at', '>', 'chat_conversations.mobile_last_read_at');
+            })
+            ->count();
+    }
 }

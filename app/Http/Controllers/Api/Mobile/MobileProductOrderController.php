@@ -60,6 +60,7 @@ class MobileProductOrderController extends ApiController
                 'recipient_name' => ['nullable', 'string', 'max:150'],
                 'recipient_phone' => ['nullable', 'string', 'max:30'],
                 'address' => ['required', 'string', 'max:500'],
+                'mobile_user_address_id' => ['nullable', 'integer'],
                 'notes' => ['nullable', 'string', 'max:500'],
                 'service_request_id' => ['nullable', 'integer'],
                 'linked_service_id' => ['nullable', 'integer', 'exists:mobile_services,id'],

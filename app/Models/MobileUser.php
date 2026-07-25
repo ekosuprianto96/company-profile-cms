@@ -22,6 +22,9 @@ class MobileUser extends Authenticatable
         'email_verified_at',
         'phone_verified_at',
         'is_active',
+        'banned_at',
+        'ban_reason',
+        'banned_by',
         'last_login_at',
         'avatar_path',
     ];
@@ -41,9 +44,46 @@ class MobileUser extends Authenticatable
             'email_verified_at' => 'datetime',
             'phone_verified_at' => 'datetime',
             'last_login_at' => 'datetime',
+            'banned_at' => 'datetime',
             'is_active' => 'boolean',
             'password' => 'hashed',
         ];
+    }
+
+    public function isBanned(): bool
+    {
+        return ! is_null($this->banned_at);
+    }
+
+    /** Boleh mengakses aplikasi bila akun aktif dan tidak sedang diblokir. */
+    public function canAccess(): bool
+    {
+        return $this->is_active && ! $this->isBanned();
+    }
+
+    public function bannedBy()
+    {
+        return $this->belongsTo(User::class, 'banned_by');
+    }
+
+    public function serviceRequests()
+    {
+        return $this->hasMany(MobileServiceRequest::class, 'mobile_user_id');
+    }
+
+    public function proposals()
+    {
+        return $this->hasMany(Proposal::class, 'mobile_user_id');
+    }
+
+    public function productOrders()
+    {
+        return $this->hasMany(ProductOrder::class, 'mobile_user_id');
+    }
+
+    public function voucherClaims()
+    {
+        return $this->hasMany(VoucherClaim::class, 'mobile_user_id');
     }
 
     public function otps()
@@ -59,6 +99,16 @@ class MobileUser extends Authenticatable
     public function chatConversations()
     {
         return $this->hasMany(ChatConversation::class, 'mobile_user_id');
+    }
+
+    public function addresses()
+    {
+        return $this->hasMany(MobileUserAddress::class, 'mobile_user_id')->orderByDesc('is_primary')->orderByDesc('id');
+    }
+
+    public function primaryAddress()
+    {
+        return $this->hasOne(MobileUserAddress::class, 'mobile_user_id')->where('is_primary', true);
     }
 
     public function isVerified(): bool

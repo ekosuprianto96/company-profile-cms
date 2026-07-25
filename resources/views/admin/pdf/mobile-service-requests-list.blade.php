@@ -174,10 +174,7 @@
         <tbody>
             @forelse ($records as $record)
                 @php
-                    $isEventProject = ($record->request_flow_type ?? 'standard') === 'event_project';
-                    $serviceSubtitle = $isEventProject
-                        ? trim(($record->eventProjectType?->name ?? '-') . ' / ' . ($record->eventProjectNeed?->name ?? '-'), ' /')
-                        : ($record->needType?->name ?? '-');
+                    $serviceSubtitle = $record->service?->title ?? '-';
                 @endphp
                 <tr>
                     <td>{{ $record->transaction_code_label }}</td>

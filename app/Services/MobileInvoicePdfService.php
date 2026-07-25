@@ -12,7 +12,7 @@ class MobileInvoicePdfService
     /** Invoice untuk pengajuan jasa / layanan. */
     public function forServiceRequest(MobileServiceRequest $serviceRequest): string
     {
-        $serviceRequest->loadMissing(['user', 'service', 'needType', 'products']);
+        $serviceRequest->loadMissing(['user', 'service', 'products']);
 
         $paid = $serviceRequest->payment_status === 'paid' || ! empty($serviceRequest->paid_at);
         $date = $serviceRequest->paid_at
@@ -37,7 +37,7 @@ class MobileInvoicePdfService
             ],
             'item' => [
                 'title' => $serviceRequest->service?->title ?? '-',
-                'subtitle' => trim(($serviceRequest->needType?->name ?? '-') . ' · Survei lokasi'),
+                'subtitle' => trim(($serviceRequest->building_label ?? '-') . ' · Survei lokasi'),
                 'amount' => null,
             ],
             'summary' => array_values(array_filter([

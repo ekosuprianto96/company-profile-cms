@@ -30,9 +30,9 @@ class MobileServiceAdminService
     public function create(array $payload): MobileService
     {
         $service = $this->mobileServiceRepository->store($this->normalizePayload($payload));
-        $service->needTypes()->sync($this->resolveNeedTypeIds($payload));
+        $this->syncPriceItems($service, $payload['price_items'] ?? []);
 
-        return $service->fresh(['needTypes']);
+        return $service->fresh(['priceItems']);
     }
 
     public function update(int $id, array $payload): MobileService
@@ -41,7 +41,7 @@ class MobileServiceAdminService
         $normalized = $this->normalizePayload($payload, $existing);
 
         $updated = $this->mobileServiceRepository->updateById($id, $normalized);
-        $updated->needTypes()->sync($this->resolveNeedTypeIds($payload));
+        $this->syncPriceItems($updated, $payload['price_items'] ?? []);
 
         if (($existing->icon_type === 'image') && ($updated->icon_type !== 'image') && !empty($existing->icon_image)) {
             $this->removeImage($existing->icon_image);
@@ -55,7 +55,7 @@ class MobileServiceAdminService
             $this->removeImage($existing->cover_image);
         }
 
-        return $updated->fresh(['needTypes']);
+        return $updated->fresh(['priceItems']);
     }
 
     public function delete(int $id): bool
@@ -71,6 +71,29 @@ class MobileServiceAdminService
         }
 
         return $this->mobileServiceRepository->deleteById($id);
+    }
+
+    /** Simpan ulang skema harga layanan (label + jenis + nominal). */
+    private function syncPriceItems(MobileService $service, array $items): void
+    {
+        $service->priceItems()->delete();
+
+        $allowed = array_keys(config('form_builder.price_types', []));
+
+        foreach (array_values($items) as $order => $item) {
+            $label = trim((string) ($item['label'] ?? ''));
+            if ($label === '') {
+                continue;
+            }
+
+            $service->priceItems()->create([
+                'type' => in_array($item['type'] ?? '', $allowed, true) ? $item['type'] : 'other',
+                'label' => $label,
+                'amount' => max(0, (int) ($item['amount'] ?? 0)),
+                'is_required' => (bool) ($item['is_required'] ?? true),
+                'sort_order' => $order,
+            ]);
+        }
     }
 
     private function normalizePayload(array $payload, ?MobileService $existing = null): array
@@ -103,6 +126,7 @@ class MobileServiceAdminService
             'title' => $title,
             'slug' => $slug,
             'category_id' => ($payload['category_id'] ?? null) ?: null,
+            'form_id' => ($payload['form_id'] ?? null) ?: null,
             'request_flow_type' => in_array(($payload['request_flow_type'] ?? 'standard'), ['standard', 'event_project'], true)
                 ? $payload['request_flow_type']
                 : 'standard',
@@ -181,13 +205,4 @@ class MobileServiceAdminService
         }
     }
 
-    private function resolveNeedTypeIds(array $payload): array
-    {
-        return collect($payload['need_types'] ?? [])
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
-            ->unique()
-            ->values()
-            ->toArray();
-    }
 }

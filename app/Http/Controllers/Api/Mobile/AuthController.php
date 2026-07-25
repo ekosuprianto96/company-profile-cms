@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Mobile;
 
 use App\Http\Requests\Api\Mobile\UpdateMobileProfileRequest;
+use App\Http\Requests\Api\Mobile\CheckMobileRegistrationRequest;
 use App\Http\Requests\Api\Mobile\LoginMobileRequest;
 use App\Http\Requests\Api\Mobile\RegisterMobileRequest;
 use App\Http\Requests\Api\Mobile\SendMobileOtpRequest;
@@ -19,6 +20,16 @@ class AuthController extends ApiController
         protected MobileAuthService $mobileAuthService,
         protected MobileProfileService $mobileProfileService
     ) {}
+
+    /**
+     * Cek awal registrasi: validasi email/telepon unik + aturan password TANPA
+     * membuat akun. Dipanggil aplikasi sebelum menampilkan pilihan channel OTP.
+     * Bila ada error, FormRequest otomatis mengembalikan 422 + errors per field.
+     */
+    public function checkRegistration(CheckMobileRegistrationRequest $request)
+    {
+        return $this->success([], 'Data dapat digunakan.');
+    }
 
     public function register(RegisterMobileRequest $request)
     {
@@ -45,8 +56,6 @@ class AuthController extends ApiController
     public function login(LoginMobileRequest $request)
     {
         try {
-
-            Log::info(config("mail"));
             $result = $this->mobileAuthService->login($request->validated());
 
             return $this->success([
@@ -56,6 +65,10 @@ class AuthController extends ApiController
                 'expires_at' => $result['expires_at'],
             ], 'Login berhasil.');
         } catch (\Throwable $th) {
+            if ($blocked = $this->accountBlockedResponse($th)) {
+                return $blocked;
+            }
+
             return $this->error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
@@ -75,6 +88,10 @@ class AuthController extends ApiController
                 ],
             ], 'OTP berhasil dikirim ulang.');
         } catch (\Throwable $th) {
+            if ($blocked = $this->accountBlockedResponse($th)) {
+                return $blocked;
+            }
+
             return $this->error($th->getMessage(), $th->getCode() ?: 500);
         }
     }
@@ -91,6 +108,10 @@ class AuthController extends ApiController
                 'expires_at' => $result['expires_at'],
             ], 'OTP berhasil diverifikasi.');
         } catch (\Throwable $th) {
+            if ($blocked = $this->accountBlockedResponse($th)) {
+                return $blocked;
+            }
+
             return $this->error($th->getMessage(), $th->getCode() ?: 500);
         }
     }

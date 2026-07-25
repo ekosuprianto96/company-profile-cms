@@ -20,6 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const messageSubmit = document.getElementById('chat-message-submit');
   const sidebarToggle = document.getElementById('chat-sidebar-toggle');
   const sidebarToggleLabel = sidebarToggle?.querySelector('[data-role="sidebar-toggle-label"]');
+  const attachInput = document.getElementById('chat-attach-input');
+  const attachBtn = document.getElementById('chat-attach-btn');
+  const attachPreview = document.getElementById('chat-attach-preview');
   const avatarTones = ['tone-1', 'tone-2', 'tone-3', 'tone-4', 'tone-5', 'tone-6'];
   const sidebarStorageKey = 'maninjau-admin-live-chat-sidebar-collapsed';
 
@@ -285,6 +288,116 @@ document.addEventListener('DOMContentLoaded', () => {
     if (messageInput) {
       messageInput.disabled = isSending;
     }
+
+    if (attachBtn) {
+      attachBtn.disabled = isSending;
+    }
+  }
+
+  // ---- Lampiran media ----
+  // Simpan pilihan di DataTransfer agar bisa hapus per-item dan tetap terkirim
+  // lewat FormData (input.files disinkronkan dari sini).
+  const attachStore = typeof DataTransfer !== 'undefined' ? new DataTransfer() : null;
+
+  function syncAttachInput() {
+    if (attachStore && attachInput) {
+      attachInput.files = attachStore.files;
+    }
+  }
+
+  function formatFileSize(bytes) {
+    if (!bytes) return '';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  function renderAttachPreview() {
+    if (!attachPreview) {
+      return;
+    }
+
+    const files = attachStore ? Array.from(attachStore.files) : [];
+    attachPreview.classList.toggle('d-none', files.length === 0);
+    attachPreview.innerHTML = files
+      .map((file, index) => {
+        const remove = `<button type="button" class="chat-attach-remove" data-attach-index="${index}" aria-label="Hapus">&times;</button>`;
+
+        if (file.type.startsWith('image/')) {
+          return `<div class="chat-attach-thumb"><img src="${URL.createObjectURL(file)}" alt="">${remove}</div>`;
+        }
+
+        const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+        const icon = isPdf ? 'ri-file-pdf-2-line' : 'ri-file-text-line';
+        return `<div class="chat-attach-file">
+            <span class="chat-attach-file__icon"><i class="${icon}"></i></span>
+            <span class="chat-attach-file__meta">
+              <span class="chat-attach-file__name">${escapeHtml(file.name)}</span>
+              <span class="chat-attach-file__size">${formatFileSize(file.size)}</span>
+            </span>
+            ${remove}
+          </div>`;
+      })
+      .join('');
+  }
+
+  function addAttachments(fileList) {
+    if (!attachStore) {
+      return;
+    }
+
+    const MAX = 6;
+    for (const file of Array.from(fileList)) {
+      if (attachStore.items.length >= MAX) {
+        break;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        setMessageError(`${file.name} melebihi 10MB.`);
+        continue;
+      }
+      attachStore.items.add(file);
+    }
+
+    syncAttachInput();
+    renderAttachPreview();
+  }
+
+  function removeAttachment(index) {
+    if (!attachStore) {
+      return;
+    }
+    attachStore.items.remove(index);
+    syncAttachInput();
+    renderAttachPreview();
+  }
+
+  function clearAttachments() {
+    if (attachStore) {
+      attachStore.items.clear();
+      syncAttachInput();
+    }
+    if (attachInput) {
+      attachInput.value = '';
+    }
+    renderAttachPreview();
+  }
+
+  if (attachBtn && attachInput) {
+    attachBtn.addEventListener('click', () => attachInput.click());
+    attachInput.addEventListener('change', (event) => {
+      if (event.target.files?.length) {
+        addAttachments(event.target.files);
+      }
+    });
+  }
+
+  if (attachPreview) {
+    attachPreview.addEventListener('click', (event) => {
+      const removeBtn = event.target.closest('[data-attach-index]');
+      if (removeBtn) {
+        removeAttachment(Number(removeBtn.dataset.attachIndex));
+      }
+    });
   }
 
   function setSidebarCollapsed(collapsed) {
@@ -347,9 +460,10 @@ document.addEventListener('DOMContentLoaded', () => {
   async function sendAdminMessage(form) {
     const body = new FormData(form);
     const rawMessage = String(body.get('message') ?? '').trim();
+    const hasAttachments = attachStore ? attachStore.files.length > 0 : (attachInput?.files?.length ?? 0) > 0;
 
-    if (!rawMessage) {
-      setMessageError('Pesan tidak boleh kosong.');
+    if (!rawMessage && !hasAttachments) {
+      setMessageError('Tulis pesan atau lampirkan media.');
       messageInput?.focus();
       return;
     }
@@ -386,6 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       form.reset();
+      clearAttachments();
       setMessageError('');
       messageInput?.focus();
     } catch (error) {

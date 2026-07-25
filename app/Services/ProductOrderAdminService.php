@@ -18,14 +18,61 @@ class ProductOrderAdminService
         'cancelled' => 'Dibatalkan',
     ];
 
-    public function queryForAdmin()
+    public function queryForAdmin(array $filters = [])
     {
-        return ProductOrder::query()->withCount('items')->with('user:id,name')->orderByDesc('id');
+        return $this->query($filters);
+    }
+
+    /** Query terfilter untuk tabel, export, dan PDF. */
+    public function query(array $filters = [])
+    {
+        $query = ProductOrder::query()->withCount('items')->with('user:id,name')->orderByDesc('id');
+
+        $search = trim((string) ($filters['search'] ?? ''));
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                    ->orWhere('customer_name', 'like', "%{$search}%")
+                    ->orWhere('customer_email', 'like', "%{$search}%")
+                    ->orWhere('customer_phone', 'like', "%{$search}%")
+                    ->orWhere('product_name', 'like', "%{$search}%")
+                    ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        if (! empty($filters['status']) && array_key_exists($filters['status'], $this->labels)) {
+            $query->where('status', $filters['status']);
+        }
+        if (! empty($filters['payment_status']) && in_array($filters['payment_status'], ['pending', 'paid', 'failed'], true)) {
+            $query->where('payment_status', $filters['payment_status']);
+        }
+        if (! empty($filters['date_from'])) {
+            $query->whereDate('created_at', '>=', $filters['date_from']);
+        }
+        if (! empty($filters['date_to'])) {
+            $query->whereDate('created_at', '<=', $filters['date_to']);
+        }
+
+        return $query;
+    }
+
+    /** @return array<int, array{value:string,label:string}> */
+    public function statusOptions(): array
+    {
+        return collect($this->labels)
+            ->map(fn ($label, $value) => ['value' => $value, 'label' => $label])
+            ->values()->all();
+    }
+
+    /** @return array<string,string> */
+    public function statusLabels(): array
+    {
+        return $this->labels;
     }
 
     public function find(int $id): ProductOrder
     {
-        return ProductOrder::query()->with(['items', 'user'])->findOrFail($id);
+        return ProductOrder::query()->with(['items', 'user', 'shippingCourier'])->findOrFail($id);
     }
 
     public function updateStatus(int $id, array $payload): ProductOrder

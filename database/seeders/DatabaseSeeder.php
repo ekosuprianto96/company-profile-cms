@@ -14,14 +14,13 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             MobileAppSettingsSeeder::class,
-            MobileServiceNeedTypeSeeder::class,
-            MobileBudgetOptionSeeder::class,
-            MobileEventProjectSeeder::class,
             MobileServiceSeeder::class,
             InspirePostSeeder::class,
             HomeSectionPermissionSeeder::class,
             HomeSectionSeeder::class,
             VoucherTermsSeeder::class,
+            FormPermissionSeeder::class,
+            FormSeeder::class,
         ]);
     }
 }

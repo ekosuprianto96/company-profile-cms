@@ -41,13 +41,35 @@
     <div class="col-md-12">
         <div class="card shadow-sm border-0">
             <div class="card-body">
-                <h4 class="mb-1">Menu</h4>
-                <p class="text-muted mb-4">Pilih area yang ingin dikelola.</p>
+                <div class="d-flex flex-wrap justify-content-between align-items-start mb-3" style="gap:12px;">
+                    <div>
+                        <h4 class="mb-1">Menu</h4>
+                        <p class="text-muted mb-0">Pilih area yang ingin dikelola.</p>
+                    </div>
+                    <div class="d-flex align-items-center flex-wrap" style="gap:10px;">
+                        {{-- Cari menu --}}
+                        <div class="position-relative" style="min-width:220px;">
+                            <i class="ri-search-line position-absolute text-muted" style="left:12px; top:50%; transform:translateY(-50%);"></i>
+                            <input type="text" class="form-control form-control-sm" id="menuSearch"
+                                   style="padding-left:32px;" placeholder="Cari menu…" autocomplete="off">
+                        </div>
+                        {{-- Toggle tampilan grid / list --}}
+                        <div class="btn-group btn-group-sm" role="group" id="menuViewToggle">
+                            <button type="button" class="btn btn-outline-secondary active" data-view="grid" title="Tampilan grid">
+                                <i class="ri-grid-fill"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" data-view="list" title="Tampilan daftar">
+                                <i class="ri-list-check"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-                <div class="row g-3">
+                {{-- Grid --}}
+                <div class="row g-3" id="menuGrid">
                     @foreach ($sections as $section)
                         @php $tileColor = $tilePalette[$loop->index % count($tilePalette)]; @endphp
-                        <div class="col-4 col-sm-3 col-md-2">
+                        <div class="col-4 col-sm-3 col-md-2 menu-item" data-menu-name="{{ \Illuminate\Support\Str::lower($section['title'] . ' ' . ($section['description'] ?? '')) }}">
                             <a href="{{ $section['route'] }}"
                                class="mobile-tile"
                                title="{{ $section['description'] ?? $section['title'] }}">
@@ -58,6 +80,30 @@
                             </a>
                         </div>
                     @endforeach
+                </div>
+
+                {{-- List --}}
+                <div class="mobile-menu-list d-none" id="menuList">
+                    @foreach ($sections as $section)
+                        @php $tileColor = $tilePalette[$loop->index % count($tilePalette)]; @endphp
+                        <a href="{{ $section['route'] }}" class="mobile-row menu-item" data-menu-name="{{ \Illuminate\Support\Str::lower($section['title'] . ' ' . ($section['description'] ?? '')) }}">
+                            <span class="mobile-row__icon" style="background: {{ $tileColor }};">
+                                <i class="{{ $section['icon'] }}"></i>
+                            </span>
+                            <span class="mobile-row__text">
+                                <span class="mobile-row__title">{{ $section['title'] }}</span>
+                                @if (!empty($section['description']))
+                                    <span class="mobile-row__desc">{{ $section['description'] }}</span>
+                                @endif
+                            </span>
+                            <i class="ri-arrow-right-s-line mobile-row__chev"></i>
+                        </a>
+                    @endforeach
+                </div>
+
+                <div id="menuEmpty" class="text-center text-muted py-4 d-none">
+                    <i class="ri-search-line" style="font-size:22px;"></i>
+                    <div class="mt-1" style="font-size:.9rem;">Menu tidak ditemukan.</div>
                 </div>
             </div>
         </div>
@@ -103,5 +149,83 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
+
+    /* ---- Tampilan daftar ---- */
+    .mobile-menu-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 10px;
+    }
+    .mobile-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border: 1px solid #eef0f3;
+        border-radius: 12px;
+        text-decoration: none;
+        transition: background-color .15s ease, border-color .15s ease;
+    }
+    .mobile-row:hover { background-color: rgba(31, 111, 139, .06); border-color: #dbe3e2; }
+    .mobile-row__icon {
+        flex: none;
+        display: flex; align-items: center; justify-content: center;
+        width: 42px; height: 42px; border-radius: 11px;
+        color: #fff; font-size: 20px;
+    }
+    .mobile-row__text { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+    .mobile-row__title { font-size: 13.5px; font-weight: 600; color: #3f4254; }
+    .mobile-row__desc {
+        font-size: 11.5px; color: #8a94a6; margin-top: 1px;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .mobile-row__chev { flex: none; color: #c2c9d3; font-size: 18px; }
 </style>
+
+@push('admin-scripts')
+<script>
+    (function () {
+        const KEY = 'maninjau-admin-menu-view';
+        const grid = document.getElementById('menuGrid');
+        const list = document.getElementById('menuList');
+        const toggle = document.getElementById('menuViewToggle');
+        if (!grid || !list || !toggle) return;
+
+        function apply(view) {
+            const isList = view === 'list';
+            grid.classList.toggle('d-none', isList);
+            list.classList.toggle('d-none', !isList);
+            toggle.querySelectorAll('button').forEach((btn) => {
+                btn.classList.toggle('active', btn.dataset.view === view);
+            });
+        }
+
+        apply(localStorage.getItem(KEY) === 'list' ? 'list' : 'grid');
+
+        toggle.addEventListener('click', function (event) {
+            const btn = event.target.closest('button[data-view]');
+            if (!btn) return;
+            localStorage.setItem(KEY, btn.dataset.view);
+            apply(btn.dataset.view);
+        });
+
+        // Cari menu (filter judul + deskripsi di grid & list sekaligus)
+        const search = document.getElementById('menuSearch');
+        const empty = document.getElementById('menuEmpty');
+        if (search) {
+            search.addEventListener('input', function () {
+                const q = this.value.trim().toLowerCase();
+                let visible = 0;
+                document.querySelectorAll('.menu-item').forEach((item) => {
+                    const match = !q || (item.dataset.menuName || '').includes(q);
+                    item.classList.toggle('d-none', !match);
+                    if (match) visible++;
+                });
+                // .menu-item ada 2x (grid+list) → bagi 2 untuk hitung real
+                if (empty) empty.classList.toggle('d-none', visible > 0);
+            });
+        }
+    })();
+</script>
+@endpush
 @endsection

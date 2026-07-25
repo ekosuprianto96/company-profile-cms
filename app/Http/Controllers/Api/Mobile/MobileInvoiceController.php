@@ -30,13 +30,15 @@ class MobileInvoiceController extends ApiController
 
     public function productOrder(Request $request, string $orderNumber)
     {
-        $order = ProductOrder::query()->where('order_number', $orderNumber)->first();
+        // Batasi ke pemilik order (cegah IDOR — invoice memuat data pribadi).
+        $order = ProductOrder::query()
+            ->where('order_number', $orderNumber)
+            ->where('mobile_user_id', $request->user()->id)
+            ->first();
 
         if (! $order) {
             return $this->error('Order tidak ditemukan.', 404);
         }
-
-        // TODO: batasi ke pemilik order saat fitur Order Produk final dibangun.
 
         return $this->pdfResponse(
             $this->invoicePdf->forProductOrder($order),

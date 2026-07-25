@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\Api\Mobile\AppContentController;
 use App\Http\Controllers\Api\Mobile\AuthController;
-use App\Http\Controllers\Api\Mobile\MobileBudgetOptionController;
 use App\Http\Controllers\Api\Mobile\SearchController;
 use App\Http\Controllers\Api\Mobile\MapsController;
 use App\Http\Controllers\Api\Mobile\MobileServiceController;
@@ -14,6 +13,7 @@ use App\Http\Controllers\Api\Mobile\VoucherController;
 use App\Http\Controllers\Api\Mobile\ProductController as ProductApiController;
 use App\Http\Controllers\Api\Mobile\ProductReviewController;
 use App\Http\Controllers\Api\Mobile\ChatController;
+use App\Http\Controllers\Api\Mobile\ProposalController;
 use App\Http\Controllers\Api\Mobile\PushTokenController;
 use App\Http\Controllers\Api\Mobile\NotificationController;
 use App\Http\Controllers\Api\Mobile\MidtransController;
@@ -23,8 +23,7 @@ use App\Http\Controllers\Api\Mobile\BlogController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('v1/mobile/services', [MobileServiceController::class, 'index']);
-Route::get('v1/mobile/services/event-options', [MobileServiceController::class, 'eventOptions']);
-Route::get('v1/mobile/budget-options', [MobileBudgetOptionController::class, 'index']);
+Route::get('v1/mobile/services/{slug}/form', [MobileServiceController::class, 'formSchema'])->where('slug', '[A-Za-z0-9\-]+');
 Route::get('v1/mobile/search/popular', [SearchController::class, 'popular']);
 Route::post('v1/mobile/maps/autocomplete', [MapsController::class, 'autocomplete']);
 Route::post('v1/mobile/maps/resolve', [MapsController::class, 'resolve']);
@@ -40,16 +39,24 @@ Route::get('v1/mobile/product-categories', [ProductApiController::class, 'catego
 Route::get('v1/mobile/products/{slug}', [ProductApiController::class, 'show'])->where('slug', '[A-Za-z0-9\-]+');
 Route::get('v1/mobile/products/{slug}/reviews', [ProductReviewController::class, 'index'])->where('slug', '[A-Za-z0-9\-]+');
 Route::get('v1/mobile/service-requests/meta', [MobileServiceRequestController::class, 'meta']);
-Route::middleware('auth:sanctum')->post('v1/mobile/service-requests/upload-photo', [MobileServiceRequestController::class, 'uploadIssuePhoto']);
+Route::middleware(['auth:sanctum', 'mobile.active'])->post('v1/mobile/service-requests/upload-photo', [MobileServiceRequestController::class, 'uploadIssuePhoto']);
 Route::post('v1/mobile/midtrans/notification', [MidtransController::class, 'notification']);
 
 // Promosi (banner beranda + halaman detail) — publik, tidak perlu login.
 Route::get('v1/mobile/promotions', [MobilePromotionController::class, 'index'])->name('promotions.index');
 Route::get('v1/mobile/promotions/{slug}', [MobilePromotionController::class, 'show'])->name('promotions.show');
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'mobile.active'])->group(function () {
     Route::post('v1/mobile/push-tokens', [PushTokenController::class, 'store']);
     Route::delete('v1/mobile/push-tokens/current', [PushTokenController::class, 'destroyCurrent']);
+
+    Route::prefix('v1/mobile/addresses')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Api\Mobile\MobileUserAddressController::class, 'index'])->name('addresses.index');
+        Route::post('/', [\App\Http\Controllers\Api\Mobile\MobileUserAddressController::class, 'store'])->name('addresses.store');
+        Route::put('/{id}', [\App\Http\Controllers\Api\Mobile\MobileUserAddressController::class, 'update'])->whereNumber('id')->name('addresses.update');
+        Route::patch('/{id}/primary', [\App\Http\Controllers\Api\Mobile\MobileUserAddressController::class, 'setPrimary'])->whereNumber('id')->name('addresses.primary');
+        Route::delete('/{id}', [\App\Http\Controllers\Api\Mobile\MobileUserAddressController::class, 'destroy'])->whereNumber('id')->name('addresses.destroy');
+    });
 
     Route::prefix('v1/mobile/service-requests')->group(function () {
         Route::get('/', [MobileServiceRequestController::class, 'index'])->name('service-requests.index');
@@ -60,6 +67,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/{id}/payment-method', [MobileServiceRequestController::class, 'updatePaymentMethod'])->name('service-requests.payment-method');
         Route::post('/{id}/payment-proof', [MobileServiceRequestController::class, 'uploadPaymentProof'])->whereNumber('id')->name('service-requests.payment-proof');
         Route::patch('/{id}/cancel', [MobileServiceRequestController::class, 'cancel'])->whereNumber('id')->name('service-requests.cancel');
+    });
+
+    Route::prefix('v1/mobile/proposals')->group(function () {
+        Route::get('/', [ProposalController::class, 'index'])->name('proposals.index');
+        Route::post('/', [ProposalController::class, 'store'])->name('proposals.store');
+        Route::post('/upload', [ProposalController::class, 'upload'])->name('proposals.upload');
+        Route::get('/{id}', [ProposalController::class, 'show'])->whereNumber('id')->name('proposals.show');
     });
 
     Route::prefix('v1/mobile/vouchers')->group(function () {
@@ -90,6 +104,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('v1/mobile/chats')->group(function () {
         Route::get('/', [ChatController::class, 'index']);
+        Route::get('/unread-count', [ChatController::class, 'unreadCount']);
         Route::post('/', [ChatController::class, 'store']);
         Route::get('/{id}', [ChatController::class, 'show'])->whereNumber('id');
         Route::get('/{id}/messages', [ChatController::class, 'messages'])->whereNumber('id');
@@ -99,12 +114,13 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::prefix('v1/mobile/auth')->group(function () {
+    Route::post('/register/check', [AuthController::class, 'checkRegistration']);
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/otp/send', [AuthController::class, 'sendOtp']);
     Route::post('/otp/verify', [AuthController::class, 'verifyOtp']);
 
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', 'mobile.active'])->group(function () {
         Route::get('/me', [AuthController::class, 'me']);
         Route::post('/profile', [AuthController::class, 'updateProfile']);
         Route::post('/password/otp', [AuthController::class, 'sendPasswordOtp']);

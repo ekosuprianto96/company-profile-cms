@@ -4,10 +4,15 @@ namespace App\Http\Controllers\Api\Mobile;
 
 use App\Models\MobileContent;
 use App\Models\MobileSupportContact;
+use App\Services\MobileAppSettingService;
 use Illuminate\Http\Request;
 
 class AppContentController extends ApiController
 {
+    public function __construct(
+        protected MobileAppSettingService $mobileAppSettingService,
+    ) {}
+
     public function index(Request $request)
     {
         $contents = MobileContent::query()->whereIn('key', ['about', 'terms'])->get()->keyBy('key');
@@ -26,6 +31,8 @@ class AppContentController extends ApiController
             ->values();
 
         return $this->success([
+            'app_name' => $this->mobileAppSettingService->appName(),
+            'onboarding' => $this->mobileAppSettingService->onboardingSlides(),
             'about' => $this->contentPayload($contents->get('about')),
             'terms' => $this->contentPayload($contents->get('terms')),
             'support_contacts' => $support,

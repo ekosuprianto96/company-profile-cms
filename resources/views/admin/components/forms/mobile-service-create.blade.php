@@ -28,6 +28,8 @@
         'selectedCategoryId' => null,
     ])
 
+    @include('admin.components.forms.partials.service-form-price')
+
     <div class="form-group">
         <label for="request_flow_type">Tipe Flow Pengajuan</label>
         <select name="request_flow_type" id="request_flow_type" class="form-control">
@@ -39,15 +41,6 @@
     </div>
 
 
-    <div class="form-group">
-        <label for="need_types">Jenis Kebutuhan Layanan</label>
-        <select name="need_types[]" id="need_types" class="form-control" multiple="multiple">
-            @foreach($needTypes as $needType)
-                <option value="{{ $needType->id }}">{{ $needType->name }}</option>
-            @endforeach
-        </select>
-        <div data-error="need_types" class="invalid-fedback"><span class="text-danger" style="font-size: 0.8em"></span></div>
-    </div>
 
     <div class="row">
         <div class="col-md-3">
@@ -234,12 +227,6 @@
             if (field) resetValidation(field);
         });
 
-        $('#need_types').select2({
-            width: '100%',
-            placeholder: 'Pilih jenis kebutuhan layanan',
-            dropdownParent: $('#modalMobileServiceCreate')
-        });
-
         $('#buttonAddMobileService').click(function() {
             $.post('{{ route('admin.mobile.services.store') }}', {
                 title: $('[name=title]').val(),
@@ -259,17 +246,16 @@
                 estimated_duration: $('[name=estimated_duration]').val(),
                 cta_text: $('[name=cta_text]').val(),
                 sort_order: $('[name=sort_order]').val(),
-                need_types: $('[name="need_types[]"]').val(),
                 is_new: $('[name=is_new]').val(),
                 is_featured: $('[name=is_featured]').val(),
                 is_popular: $('[name=is_popular]').val(),
                 is_active: $('[name=is_active]').val(),
                 is_coming_soon: $('[name=is_coming_soon]').val(),
+                form_id: $('[name=form_id]').val(),
+                price_items: (window.collectServicePriceItems ? window.collectServicePriceItems() : []),
                 _token: '{{ csrf_token() }}'
             })
             .done(function(response) {
-                $('#modalMobileServiceCreate').modal('hide');
-                window.$mobileServicesTable.ajax.reload();
                 $.toast({
                     heading: 'Sukses!',
                     text: response.message,
@@ -277,6 +263,13 @@
                     position: 'top-right',
                     icon: 'success'
                 });
+                // Halaman sendiri → redirect ke daftar; (fallback modal bila masih dipakai).
+                if (window.$mobileServicesTable) {
+                    $('#modalMobileServiceCreate').modal('hide');
+                    window.$mobileServicesTable.ajax.reload();
+                } else {
+                    setTimeout(function() { window.location = '{{ route("admin.mobile.services") }}'; }, 600);
+                }
             })
             .fail(function(error) {
                 const response = error.responseJSON || {};

@@ -51,7 +51,11 @@ class MobileController extends Controller
                 return implode(' ', $badges);
             })
             ->addColumn('status', function ($user) {
-                return '<span class="badge badge-sm badge-' . ($user->is_active ? 'success' : 'danger') . '">' . ($user->is_active ? 'Aktif' : 'Nonaktif') . '</span>';
+                if ($user->banned_at) {
+                    return '<span class="badge badge-sm badge-danger">Banned</span>';
+                }
+
+                return '<span class="badge badge-sm badge-' . ($user->is_active ? 'success' : 'secondary') . '">' . ($user->is_active ? 'Aktif' : 'Nonaktif') . '</span>';
             })
             ->addColumn('contacts', function ($user) {
                 $email = $user->email ?: '-';
@@ -64,14 +68,22 @@ class MobileController extends Controller
             })
             ->addColumn('registered_at', fn ($user) => $user->created_at?->format('d M Y H:i'))
             ->addColumn('action', function ($user) {
+                $banButton = $user->banned_at
+                    ? '<button type="button" onclick="unbanUser(' . $user->id . ')" class="btn btn-success btn-xs" title="Buka Blokir"><i class="ri-shield-check-line"></i></button>'
+                    : '<button type="button" onclick="banUser(' . $user->id . ')" class="btn btn-danger btn-xs" title="Blokir User"><i class="ri-forbid-2-line"></i></button>';
+
                 return '
-                    <div class="d-flex justify-content-center align-items-center" style="gap: 10px">
-                        <button type="button" onclick="toggleStatus(' . $user->id . ')" class="btn btn-' . ($user->is_active ? 'warning' : 'success') . ' btn-xs" title="Toggle Status">
+                    <div class="d-flex justify-content-center align-items-center" style="gap: 8px">
+                        <a href="' . route('admin.mobile.users.show', $user->id) . '" class="btn btn-info btn-xs" title="Detail">
+                            <i class="ri-eye-line"></i>
+                        </a>
+                        <button type="button" onclick="toggleStatus(' . $user->id . ')" class="btn btn-' . ($user->is_active ? 'warning' : 'secondary') . ' btn-xs" title="Toggle Status">
                             <i class="ri-' . ($user->is_active ? 'pause-circle-line' : 'play-circle-line') . '"></i>
                         </button>
-                        <button type="button" onclick="revokeTokens(' . $user->id . ')" class="btn btn-danger btn-xs" title="Revoke Tokens">
+                        <button type="button" onclick="revokeTokens(' . $user->id . ')" class="btn btn-dark btn-xs" title="Revoke Tokens">
                             <i class="ri-key-line"></i>
                         </button>
+                        ' . $banButton . '
                     </div>
                 ';
             })
@@ -104,6 +116,57 @@ class MobileController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'Semua token user berhasil dihapus.',
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage(),
+            ], $th->getCode() ?: 500);
+        }
+    }
+
+    public function showUser(int $id)
+    {
+        try {
+            $detail = $this->mobileUserAdminService->userDetail($id);
+
+            return $this->view('users.show', array_merge($detail, [
+                'sections' => $this->sections(),
+            ]));
+        } catch (\Throwable $th) {
+            return redirect()->route('admin.mobile.users')->with('error', $th->getMessage());
+        }
+    }
+
+    public function banUser(Request $request, int $id)
+    {
+        try {
+            $validated = $request->validate([
+                'reason' => ['nullable', 'string', 'max:500'],
+            ]);
+
+            $this->mobileUserAdminService->banUser($id, (string) ($validated['reason'] ?? ''), auth()->id());
+
+            return response()->json([
+                'status' => true,
+                'message' => 'User berhasil diblokir. Semua sesi login dicabut.',
+            ]);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage(),
+            ], $th->getCode() ?: 500);
+        }
+    }
+
+    public function unbanUser(int $id)
+    {
+        try {
+            $this->mobileUserAdminService->unbanUser($id);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Blokir user berhasil dibuka.',
             ]);
         } catch (\Throwable $th) {
             return response()->json([
@@ -305,6 +368,7 @@ class MobileController extends Controller
             'settings' => $mobileAppSettingService->getSettings(),
             'surveyCoverage' => $mobileAppSettingService->surveyCoverage(),
             'manualTransfers' => $mobileAppSettingService->manualTransfers(),
+            'onboardingSlides' => $mobileAppSettingService->onboardingSlidesRaw(),
         ]);
     }
 
@@ -355,6 +419,15 @@ class MobileController extends Controller
     public function updateSettings(Request $request, MobileAppSettingService $mobileAppSettingService)
     {
         $validated = $request->validate([
+            'app_name' => 'nullable|string|max:100',
+            'onboarding_slides' => 'nullable|array',
+            'onboarding_slides.*.id' => 'nullable|string|max:100',
+            'onboarding_slides.*.title' => 'nullable|string|max:150',
+            'onboarding_slides.*.subtitle' => 'nullable|string|max:300',
+            'onboarding_slides.*.image_path' => 'nullable|string|max:255',
+            'onboarding_slides.*.sort_order' => 'nullable|integer|min:0',
+            'onboarding_images' => 'nullable|array',
+            'onboarding_images.*' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
             'survey_fee' => 'required|integer|min:0',
             'event_consultation_fee' => 'required|integer|min:0',
             'tax_percentage' => 'required|integer|min:0|max:100',
@@ -448,7 +521,41 @@ class MobileController extends Controller
             ->values()
             ->all();
 
+        $onboardingSlides = collect($validated['onboarding_slides'] ?? [])
+            ->map(function ($slide, $index) use ($request) {
+                if (! is_array($slide)) {
+                    return null;
+                }
+
+                $title = trim((string) ($slide['title'] ?? ''));
+                $subtitle = trim((string) ($slide['subtitle'] ?? ''));
+                $imagePath = $slide['image_path'] ?? null;
+
+                // Gambar baru diunggah untuk baris ini → simpan, ganti path lama.
+                $uploaded = $request->file("onboarding_images.$index");
+                if ($uploaded) {
+                    $imagePath = $uploaded->store('mobile/onboarding', 'public');
+                }
+
+                if ($title === '' && $subtitle === '' && ! $imagePath) {
+                    return null;
+                }
+
+                return [
+                    'id' => $slide['id'] ?? 'slide-' . ($index + 1),
+                    'title' => $title,
+                    'subtitle' => $subtitle,
+                    'image_path' => $imagePath,
+                    'sort_order' => (int) ($slide['sort_order'] ?? ($index + 1)),
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
+
         $mobileAppSettingService->update([
+            'app_name' => trim((string) ($validated['app_name'] ?? '')) ?: 'Maninjau PRO',
+            'onboarding_slides' => $onboardingSlides,
             'survey_fee' => (int) $validated['survey_fee'],
             'event_consultation_fee' => (int) $validated['event_consultation_fee'],
             'tax_percentage' => (int) $validated['tax_percentage'],
@@ -544,6 +651,18 @@ class MobileController extends Controller
                 'icon' => 'ri-layout-masonry-line',
                 'description' => 'Atur section dinamis yang tampil di home mobile.',
             ]] : []),
+            ...(auth()->user()?->hasPermission('proposal:show') ? [[
+                'title' => 'Proposal',
+                'route' => route('admin.mobile.proposals'),
+                'icon' => 'ri-file-text-line',
+                'description' => 'Pengajuan layanan dari form dinamis + rincian biaya.',
+            ]] : []),
+            ...(auth()->user()?->hasPermission('form:show') ? [[
+                'title' => 'Form Builder',
+                'route' => route('admin.mobile.forms'),
+                'icon' => 'ri-file-list-3-line',
+                'description' => 'Susun form pengajuan yang dipakai layanan.',
+            ]] : []),
             [
                 'title' => 'Services',
                 'route' => route('admin.mobile.services'),
@@ -551,22 +670,10 @@ class MobileController extends Controller
                 'description' => 'Layanan kontraktor untuk mobile ordering.',
             ],
             [
-                'title' => 'Need Types',
-                'route' => route('admin.mobile.service_need_types'),
-                'icon' => 'ri-list-check-3',
-                'description' => 'Master jenis kebutuhan layanan per service.',
-            ],
-            [
-                'title' => 'Budget Options',
-                'route' => route('admin.mobile.budget_options'),
-                'icon' => 'ri-money-dollar-circle-line',
-                'description' => 'Master pilihan perkiraan anggaran pengajuan.',
-            ],
-            [
-                'title' => 'Event Projects',
-                'route' => route('admin.mobile.event_projects'),
-                'icon' => 'ri-calendar-event-line',
-                'description' => 'Master jenis project, kebutuhan, paket, dan anggaran event.',
+                'title' => 'Koleksi Data',
+                'route' => route('admin.mobile.collections'),
+                'icon' => 'ri-database-2-line',
+                'description' => 'Master-data dinamis (jenis kebutuhan, budget, dll) sebagai sumber Form Builder.',
             ],
             [
                 'title' => 'Home Layout',

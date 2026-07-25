@@ -196,7 +196,7 @@ class MobileServiceRequestAdminService
                 $reserved->update(['status' => 'released', 'released_at' => now()]);
             }
 
-            return $serviceRequest->fresh(['user', 'service', 'needType', 'budgetOption', 'eventProjectType', 'eventProjectNeed', 'eventPackage', 'eventBudgetOption', 'handledBy']);
+            return $serviceRequest->fresh(['user', 'service', 'handledBy']);
         });
 
         $this->notifyDecision($serviceRequest, $status, $status === 'rejected' ? ($rejectionReason ?: $note) : $note);
@@ -209,14 +209,14 @@ class MobileServiceRequestAdminService
     {
         if ($serviceRequest->user?->email) {
             Mail::to($serviceRequest->user->email)
-                ->queue(new MobileServiceRequestSubmittedMail($serviceRequest->fresh(['user', 'service', 'eventProjectType', 'eventProjectNeed', 'eventPackage', 'eventBudgetOption'])));
+                ->queue(new MobileServiceRequestSubmittedMail($serviceRequest->fresh(['user', 'service'])));
         }
 
         $adminEmail = config('mail.from.address');
 
         if ($adminEmail) {
             Mail::to($adminEmail)
-                ->queue(new MobileServiceRequestSubmittedMail($serviceRequest->fresh(['user', 'service', 'eventProjectType', 'eventProjectNeed', 'eventPackage', 'eventBudgetOption']), 'admin'));
+                ->queue(new MobileServiceRequestSubmittedMail($serviceRequest->fresh(['user', 'service']), 'admin'));
         }
     }
 
@@ -224,14 +224,14 @@ class MobileServiceRequestAdminService
     {
         if ($serviceRequest->user?->email) {
             Mail::to($serviceRequest->user->email)
-                ->queue(new MobileServiceRequestDecisionMail($serviceRequest->fresh(['user', 'service', 'eventProjectType', 'eventProjectNeed', 'eventPackage', 'eventBudgetOption']), $decision, $note));
+                ->queue(new MobileServiceRequestDecisionMail($serviceRequest->fresh(['user', 'service']), $decision, $note));
         }
 
         $adminEmail = config('mail.from.address');
 
         if ($adminEmail) {
             Mail::to($adminEmail)
-                ->queue(new MobileServiceRequestDecisionMail($serviceRequest->fresh(['user', 'service', 'eventProjectType', 'eventProjectNeed', 'eventPackage', 'eventBudgetOption']), $decision, $note));
+                ->queue(new MobileServiceRequestDecisionMail($serviceRequest->fresh(['user', 'service']), $decision, $note));
         }
     }
 

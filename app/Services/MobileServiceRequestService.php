@@ -11,14 +11,8 @@ use App\Services\VoucherService;
 use App\Services\MobileMidtransService;
 use App\Services\MobileAppSettingService;
 use App\Services\MobileServiceRequestAdminService;
-use App\Repositories\MobileBudgetOptionRepository;
-use App\Repositories\MobileEventBudgetOptionRepository;
-use App\Repositories\MobileEventPackageRepository;
-use App\Repositories\MobileEventProjectNeedRepository;
-use App\Repositories\MobileEventProjectTypeRepository;
 use App\Repositories\MobileServiceRepository;
 use App\Repositories\MobileServiceRequestRepository;
-use App\Repositories\MobileServiceNeedTypeRepository;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -31,12 +25,6 @@ class MobileServiceRequestService
     public function __construct(
         protected MobileServiceRequestRepository $mobileServiceRequestRepository,
         protected MobileServiceRepository $mobileServiceRepository,
-        protected MobileServiceNeedTypeRepository $mobileServiceNeedTypeRepository,
-        protected MobileBudgetOptionRepository $mobileBudgetOptionRepository,
-        protected MobileEventProjectTypeRepository $mobileEventProjectTypeRepository,
-        protected MobileEventProjectNeedRepository $mobileEventProjectNeedRepository,
-        protected MobileEventPackageRepository $mobileEventPackageRepository,
-        protected MobileEventBudgetOptionRepository $mobileEventBudgetOptionRepository,
         protected MobileAppSettingService $mobileAppSettingService,
         protected MobileMidtransService $mobileMidtransService,
         protected MobileServiceRequestAdminService $mobileServiceRequestAdminService,
@@ -95,21 +83,10 @@ class MobileServiceRequestService
             $productsAmount = array_sum(array_map(fn ($item) => $item['subtotal'], $resolvedProducts));
             $totalAmount = $surveyFee + $taxAmount + $productsAmount;
 
-            if ($flowType === 'event_project') {
-                $this->validateEventSelection($payload);
-            }
-
             $request = $this->mobileServiceRequestRepository->store([
                 'mobile_user_id' => $user->id,
                 'mobile_service_id' => $payload['mobile_service_id'],
-                'mobile_service_need_type_id' => $flowType === 'event_project' ? null : ($payload['mobile_service_need_type_id'] ?? null),
-                'mobile_budget_option_id' => $flowType === 'event_project' ? null : ($payload['mobile_budget_option_id'] ?? null),
                 'request_flow_type' => $flowType,
-                'mobile_event_project_type_id' => $flowType === 'event_project' ? $payload['mobile_event_project_type_id'] : null,
-                'mobile_event_project_need_id' => $flowType === 'event_project' ? $payload['mobile_event_project_need_id'] : null,
-                'mobile_event_package_id' => $flowType === 'event_project' ? $payload['mobile_event_package_id'] : null,
-                'mobile_event_budget_option_id' => $flowType === 'event_project' ? $payload['mobile_event_budget_option_id'] : null,
-                'event_date' => $flowType === 'event_project' ? $payload['event_date'] : null,
                 'building_key' => $flowType === 'event_project' ? null : ($payload['building_key'] ?? null),
                 'building_label' => $flowType === 'event_project' ? null : ($payload['building_label'] ?? null),
                 'description' => $payload['description'] ?? null,
@@ -139,17 +116,7 @@ class MobileServiceRequestService
                 $request->products()->create($item);
             }
 
-            $freshRequest = $request->fresh([
-                'service',
-                'needType',
-                'budgetOption',
-                'eventProjectType',
-                'eventProjectNeed',
-                'eventPackage',
-                'eventBudgetOption',
-                'user',
-                'products',
-            ]);
+            $freshRequest = $request->fresh(['service', 'user', 'products.product']);
 
             return $freshRequest;
         });
@@ -175,19 +142,13 @@ class MobileServiceRequestService
     public function listForUser(MobileUser $user): Collection
     {
         return $this->mobileServiceRequestRepository->listByUser($user->id)
-            ->loadMissing(['service', 'needType', 'budgetOption', 'eventProjectType', 'eventProjectNeed', 'eventPackage', 'eventBudgetOption', 'handledBy', 'user', 'products.product']);
+            ->loadMissing(['service', 'handledBy', 'user', 'products.product']);
     }
 
     public function findForUser(MobileUser $user, int $requestId): ?MobileServiceRequest
     {
         return $this->mobileServiceRequestRepository->findByUserAndId($user->id, $requestId)?->loadMissing([
             'service',
-            'needType',
-            'budgetOption',
-            'eventProjectType',
-            'eventProjectNeed',
-            'eventPackage',
-            'eventBudgetOption',
             'handledBy',
             'user',
             'products.product',
@@ -305,12 +266,6 @@ class MobileServiceRequestService
 
         $freshServiceRequest = $serviceRequest->fresh([
             'service',
-            'needType',
-            'budgetOption',
-            'eventProjectType',
-            'eventProjectNeed',
-            'eventPackage',
-            'eventBudgetOption',
             'user',
         ]);
 
@@ -358,7 +313,7 @@ class MobileServiceRequestService
             'status' => 'waiting_verification',
         ]);
 
-        return $serviceRequest->fresh(['service', 'needType', 'user']) ?? $serviceRequest;
+        return $serviceRequest->fresh(['service', 'user', 'products.product']) ?? $serviceRequest;
     }
 
     /** Admin menyetujui bukti transfer manual: tandai lunas + settle voucher jadi used. */
@@ -382,7 +337,10 @@ class MobileServiceRequestService
 
         $this->settleVoucherRedemption($serviceRequest, 'paid');
 
-        return $serviceRequest->fresh(['service', 'needType', 'user']) ?? $serviceRequest;
+        $fresh = $serviceRequest->fresh(['service', 'user', 'products.product']) ?? $serviceRequest;
+        $this->systemNotificationService->notifyServiceRequestPaymentUpdated($fresh);
+
+        return $fresh;
     }
 
     /** Admin menolak bukti transfer manual: kembalikan ke status menunggu transfer. */
@@ -398,7 +356,10 @@ class MobileServiceRequestService
             'admin_note' => $reason ?: $serviceRequest->admin_note,
         ]);
 
-        return $serviceRequest->fresh(['service', 'needType', 'user']) ?? $serviceRequest;
+        $fresh = $serviceRequest->fresh(['service', 'user', 'products.product']) ?? $serviceRequest;
+        $this->systemNotificationService->notifyServiceRequestPaymentUpdated($fresh);
+
+        return $fresh;
     }
 
     protected function findOrFailById(int $requestId): MobileServiceRequest
@@ -524,12 +485,6 @@ class MobileServiceRequestService
 
         return $serviceRequest->fresh([
             'service',
-            'needType',
-            'budgetOption',
-            'eventProjectType',
-            'eventProjectNeed',
-            'eventPackage',
-            'eventBudgetOption',
             'user',
         ]) ?? $serviceRequest;
     }
@@ -578,31 +533,11 @@ class MobileServiceRequestService
 
         if ($transactionStatus !== 'pending') {
             $this->systemNotificationService->notifyServiceRequestPaymentUpdated(
-                $serviceRequest->fresh(['service', 'needType', 'budgetOption', 'eventProjectType', 'eventProjectNeed', 'eventPackage', 'eventBudgetOption', 'user'])
+                $serviceRequest->fresh(['service', 'user', 'products.product'])
             );
         }
 
-        return $serviceRequest->fresh(['service', 'needType', 'budgetOption', 'eventProjectType', 'eventProjectNeed', 'eventPackage', 'eventBudgetOption', 'user']);
-    }
-
-    private function validateEventSelection(array $payload): void
-    {
-        $type = $this->mobileEventProjectTypeRepository->find((int) $payload['mobile_event_project_type_id']);
-        $need = $this->mobileEventProjectNeedRepository->find((int) $payload['mobile_event_project_need_id']);
-        $package = $this->mobileEventPackageRepository->find((int) $payload['mobile_event_package_id']);
-        $budget = $this->mobileEventBudgetOptionRepository->find((int) $payload['mobile_event_budget_option_id']);
-
-        if (! $type?->is_active || ! $need?->is_active || ! $package?->is_active || ! $budget?->is_active) {
-            throw new \Exception('Pilihan event tidak aktif.', 422);
-        }
-
-        if ((int) $need->mobile_event_project_type_id !== (int) $type->id) {
-            throw new \Exception('Kebutuhan event tidak sesuai dengan jenis project.', 422);
-        }
-
-        if ((int) $package->mobile_event_project_need_id !== (int) $need->id) {
-            throw new \Exception('Paket event tidak sesuai dengan kebutuhan project.', 422);
-        }
+        return $serviceRequest->fresh(['service', 'user', 'products.product']);
     }
 
     /**

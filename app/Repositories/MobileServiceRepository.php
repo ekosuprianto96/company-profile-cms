@@ -42,7 +42,7 @@ class MobileServiceRepository extends BaseRepositori
     public function queryForAdmin(): Builder
     {
         return $this->model
-            ->with(['createdBy.account', 'updatedBy.account', 'needTypes'])
+            ->with(['createdBy.account', 'updatedBy.account'])
             ->orderBy('sort_order')
             ->orderBy('title');
     }
@@ -53,12 +53,7 @@ class MobileServiceRepository extends BaseRepositori
             ->where('is_active', true)
             ->with([
                 'category.parent.parent', // rantai kategori untuk resolusi induk (maks. 3 tingkat)
-                'needTypes' => function ($query) {
-                    $query
-                        ->where('is_active', true)
-                        ->orderBy('sort_order')
-                        ->orderBy('name');
-                }
+                'priceItems',
             ])
             ->orderBy('sort_order')
             ->orderBy('title')

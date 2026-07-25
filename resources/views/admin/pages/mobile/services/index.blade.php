@@ -10,7 +10,7 @@
                     <p class="text-muted mb-0">Kelola layanan khusus aplikasi mobile. Data ini otomatis dipakai di Home dan Form Pengajuan mobile app.</p>
                 </div>
                 <div class="d-flex align-items-center" style="gap: 10px;">
-                    <a href="javascript:void(0)" id="tambahMobileService" class="btn btn-primary btn-sm">
+                    <a href="{{ route('admin.mobile.services.create') }}" class="btn btn-primary btn-sm">
                         <i class="ri-add-line me-1"></i> Tambah Layanan Mobile
                     </a>
                     <a href="{{ route('admin.mobile.index') }}" class="btn btn-light btn-sm">
@@ -109,7 +109,6 @@
                                 <th>Layanan</th>
                                 <th>Visual</th>
                                 <th>Flags</th>
-                                <th>Jenis Kebutuhan</th>
                                 <th>Urutan</th>
                                 <th>Status</th>
                                 <th>Updated By</th>
@@ -123,29 +122,6 @@
         </div>
     </div>
 
-    <div class="modal fade" id="modalMobileServiceEdit" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" data-bind-title></h5>
-              <button type="button" class="btn-close-edit btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" data-bind-content></div>
-          </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="modalMobileServiceCreate" tabindex="-1">
-        <div class="modal-dialog modal-xl">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" data-bind-title></h5>
-              <button type="button" class="btn-close-create btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" data-bind-content></div>
-          </div>
-        </div>
-    </div>
 </div>
 
 <script>
@@ -172,7 +148,6 @@
                 {data: 'title', name: 'title'},
                 {data: 'visual', name: 'visual', orderable: false, searchable: false},
                 {data: 'flags', name: 'flags', orderable: false, searchable: false},
-                {data: 'need_types', name: 'need_types', orderable: false, searchable: false},
                 {data: 'sort_order', name: 'sort_order'},
                 {data: 'status', name: 'status', orderable: false, searchable: false},
                 {data: 'updated_by', name: 'updated_by', orderable: false, searchable: false},
@@ -198,67 +173,6 @@
             window.$mobileServicesTable.ajax.reload();
         });
 
-        window.$mobileServicesTable.on('draw', function() {
-            const modalCreate = $.modalCustom({
-                trigger: '#tambahMobileService',
-                modal: '#modalMobileServiceCreate',
-                options: {
-                    title: 'Tambah Layanan Mobile',
-                    backdrop: 'static',
-                    keyboard: false,
-                    focus: false,
-                    show: false
-                }
-            });
-
-            const modalEdit = $.modalCustom({
-                trigger: '.editMobileService',
-                modal: '#modalMobileServiceEdit',
-                options: {
-                    title: 'Edit Layanan Mobile',
-                    bind: 'mobile-service',
-                    backdrop: 'static',
-                    keyboard: false,
-                    focus: false,
-                    show: false
-                }
-            });
-
-            modalCreate.onShow(function() {
-                $('#tambahMobileService').spinner('show');
-                $.get('{{ route("admin.mobile.services.forms") }}', {
-                    view: 'mobile-service-create'
-                })
-                .done(function(response) {
-                    modalCreate.render(response);
-                })
-                .fail(function(error) {
-                    const response = error.responseJSON || {};
-                    modalCreate.render(`<span class="alert my-3 d-block alert-danger">${response.message || 'Gagal memuat form.'}</span>`);
-                })
-                .always(function() {
-                    $('#tambahMobileService').spinner('hide');
-                });
-            });
-
-            modalEdit.onShow(function(id) {
-                $(`[data-bind-mobile-service=${id}]`).spinner();
-                $.get('{{ route("admin.mobile.services.forms") }}', {
-                    view: 'mobile-service-edit',
-                    id_mobile_service: id
-                })
-                .done(function(response) {
-                    modalEdit.render(response);
-                })
-                .fail(function(error) {
-                    const response = error.responseJSON || {};
-                    modalEdit.render(`<span class="alert my-3 d-block alert-danger">${response.message || 'Gagal memuat form.'}</span>`);
-                })
-                .always(function() {
-                    $(`[data-bind-mobile-service=${id}]`).spinner('hide');
-                });
-            });
-        });
     });
 
     function deleteMobileService(id_mobile_service) {

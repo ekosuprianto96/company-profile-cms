@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\MobileService;
-use App\Models\MobileServiceNeedType;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -21,11 +20,9 @@ class MobileServiceSeeder extends Seeder
     {
         $this->call([
             CategorySeeder::class,
-            MobileServiceNeedTypeSeeder::class,
         ]);
 
         $categoryIds = Category::pluck('id', 'slug');
-        $needTypeIds = MobileServiceNeedType::pluck('id', 'slug');
 
         $palette = [
             'sipil' => ['card' => '#6ec7d0', 'text' => '#0e4751'],
@@ -100,15 +97,6 @@ class MobileServiceSeeder extends Seeder
                     'is_coming_soon' => false,
                 ],
             );
-
-            $ids = collect($service['needs'] ?? [])
-                ->map(fn ($s) => $needTypeIds[$s] ?? null)
-                ->filter()
-                ->map(fn ($id) => (int) $id)
-                ->values()
-                ->all();
-
-            $saved->needTypes()->sync($ids);
         }
 
         $this->pruneStaleServices($keepSlugs);
@@ -127,8 +115,6 @@ class MobileServiceSeeder extends Seeder
         foreach ($stale as $service) {
             $referenced = DB::table('mobile_service_requests')->where('mobile_service_id', $service->id)->exists()
                 || DB::table('product_service')->where('mobile_service_id', $service->id)->exists();
-
-            $service->needTypes()->detach();
 
             if ($referenced) {
                 $service->update(['is_active' => false]);

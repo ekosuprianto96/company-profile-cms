@@ -58,6 +58,75 @@ class MobileUserAdminService
         return $user->fresh();
     }
 
+    /**
+     * Blokir user: catat alasan/pelaku. Token TIDAK langsung dicabut massal —
+     * middleware EnsureMobileUserActive menolak (403 + code account_blocked +
+     * alasan) setiap request akun terblokir SEKALIGUS menghapus token yang
+     * dipakai, sehingga aplikasi bisa menampilkan layar blokir beralasan lalu
+     * auto-logout. Ini menutup semua aktivitas tanpa menghilangkan alasan.
+     */
+    public function banUser(int $id, string $reason, ?int $adminId): MobileUser
+    {
+        $user = $this->findUser($id);
+
+        $user->update([
+            'banned_at' => now(),
+            'ban_reason' => $reason !== '' ? $reason : null,
+            'banned_by' => $adminId,
+        ]);
+
+        return $user->fresh('bannedBy');
+    }
+
+    public function unbanUser(int $id): MobileUser
+    {
+        $user = $this->findUser($id);
+        $user->update([
+            'banned_at' => null,
+            'ban_reason' => null,
+            'banned_by' => null,
+        ]);
+
+        return $user->fresh();
+    }
+
+    /** Detail lengkap user untuk halaman admin: profil, statistik, & daftar terkait. */
+    public function userDetail(int $id): array
+    {
+        $user = $this->mobileUserRepository->newQuery()
+            ->withCount(['serviceRequests', 'proposals', 'productOrders', 'voucherClaims', 'addresses', 'tokens', 'otps'])
+            ->with([
+                'bannedBy:id,name',
+                'addresses',
+                'serviceRequests' => fn ($q) => $q->with('service:id,title')->latest()->limit(10),
+                'productOrders' => fn ($q) => $q->latest()->limit(10),
+                'proposals' => fn ($q) => $q->with('service:id,title')->latest()->limit(10),
+                'voucherClaims' => fn ($q) => $q->with('voucher:id,name,code')->latest()->limit(10),
+                'tokens' => fn ($q) => $q->latest('last_used_at')->limit(15),
+            ])
+            ->find($id);
+
+        if (! $user) {
+            throw new \Exception('User mobile tidak ditemukan.', 404);
+        }
+
+        $recentOtps = $this->mobileUserOtpRepository->newQuery()
+            ->where('mobile_user_id', $id)->latest()->limit(10)->get();
+
+        return [
+            'user' => $user,
+            'recentOtps' => $recentOtps,
+            'stats' => [
+                ['label' => 'Order Layanan', 'value' => $user->service_requests_count, 'icon' => 'ri-file-list-3-line', 'tone' => 'primary'],
+                ['label' => 'Proposal', 'value' => $user->proposals_count, 'icon' => 'ri-draft-line', 'tone' => 'info'],
+                ['label' => 'Order Produk', 'value' => $user->product_orders_count, 'icon' => 'ri-shopping-bag-3-line', 'tone' => 'success'],
+                ['label' => 'Voucher Diklaim', 'value' => $user->voucher_claims_count, 'icon' => 'ri-coupon-3-line', 'tone' => 'warning'],
+                ['label' => 'Alamat', 'value' => $user->addresses_count, 'icon' => 'ri-map-pin-line', 'tone' => 'secondary'],
+                ['label' => 'Sesi Aktif', 'value' => $user->tokens_count, 'icon' => 'ri-device-line', 'tone' => 'dark'],
+            ],
+        ];
+    }
+
     public function stats(): array
     {
         return [

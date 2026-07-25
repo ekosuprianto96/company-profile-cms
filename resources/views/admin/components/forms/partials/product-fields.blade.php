@@ -26,16 +26,7 @@
 
     <div class="row">
         <div class="col-md-6 form-group">
-            <label class="form-label">Kategori Katalog <small class="text-muted">(opsional)</small></label>
-            <select name="product_category_id" class="form-control">
-                <option value="">— Tanpa kategori katalog —</option>
-                @foreach ($categories as $category)
-                    <option value="{{ $category->id }}" @selected(optional($product)->product_category_id == $category->id)>{{ $category->name }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div class="col-md-6 form-group">
-            <label class="form-label">Brand</label>
+            <label class="form-label">Brand <small class="text-muted">(opsional)</small></label>
             <input name="brand" type="text" class="form-control" value="{{ optional($product)->brand }}" placeholder="HAKATA">
         </div>
     </div>

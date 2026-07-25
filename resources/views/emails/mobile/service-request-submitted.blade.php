@@ -35,8 +35,8 @@
             <td style="padding:12px 0;border-bottom:1px solid #e5e7eb;font-size:14px;font-weight:600;color:#111827;">{{ $serviceRequest->service?->title ?? '-' }}</td>
         </tr>
         <tr>
-            <td style="padding:12px 0;border-bottom:1px solid #e5e7eb;color:#6b7280;font-size:13px;">Jenis Kebutuhan</td>
-            <td style="padding:12px 0;border-bottom:1px solid #e5e7eb;font-size:14px;color:#111827;">{{ $serviceRequest->needType?->name ?? '-' }}</td>
+            <td style="padding:12px 0;border-bottom:1px solid #e5e7eb;color:#6b7280;font-size:13px;">Jenis Bangunan</td>
+            <td style="padding:12px 0;border-bottom:1px solid #e5e7eb;font-size:14px;color:#111827;">{{ $serviceRequest->building_label ?? '-' }}</td>
         </tr>
         <tr>
             <td style="padding:12px 0;border-bottom:1px solid #e5e7eb;color:#6b7280;font-size:13px;">Status Pengajuan</td>

@@ -30,8 +30,20 @@ class MobileServiceRequestController extends Controller
 
     public function index()
     {
+        // Ringkasan cepat untuk kartu di atas tabel (kelola berdasarkan prioritas).
+        $base = \App\Models\MobileServiceRequest::query();
+        $summary = [
+            'waiting_payment' => (clone $base)->where('status', 'waiting_payment')->count(),
+            'verify_transfer' => (clone $base)->whereIn('status', ['waiting_transfer', 'payment_challenge'])->count(),
+            'need_review' => (clone $base)->where('payment_status', 'paid')
+                ->whereNotIn('status', ['approved', 'completed', 'rejected', 'failed'])->count(),
+            'active' => (clone $base)->where('status', 'approved')->count(),
+            'completed' => (clone $base)->where('status', 'completed')->count(),
+        ];
+
         return $this->view('service-requests.index', [
             'sections' => $this->sections(),
+            'summary' => $summary,
             'services' => $this->mobileServiceRepository->queryForAdmin()
                 ->select(['id', 'title'])
                 ->orderBy('title')
@@ -86,6 +98,17 @@ class MobileServiceRequestController extends Controller
         $filters = $this->filters(request());
 
         return DataTables::of($this->mobileServiceRequestAdminService->query($filters))
+            ->addColumn('order', function ($request) {
+                $code = $request->transaction_code_label ?? $request->transaction_code ?? ('SR-' . $request->id);
+                $proposalTag = $request->proposal_id
+                    ? '<div class="mt-1"><span class="d-inline-flex align-items-center rounded-pill px-2 py-0 fw-semibold" style="font-size:9.5px;background:#eef5f4;color:#275a56;border:1px solid #d7e7e4;"><i class="ri-file-list-3-line me-1"></i>Proposal</span></div>'
+                    : '';
+
+                return '
+                    <div class="fw-semibold text-dark">' . e($code) . '</div>
+                    <div class="text-muted" style="font-size: 11px;">' . e(optional($request->created_at)?->format('d M Y H:i') ?? '-') . '</div>'
+                    . $proposalTag;
+            })
             ->addColumn('requester', function ($request) {
                 return '<div class="small service-request-cell" style="line-height: 1.35;">
                     <div class="fw-semibold text-dark service-request-clamp-1">' . e($request->user?->name ?? '-') . '</div>
@@ -93,9 +116,7 @@ class MobileServiceRequestController extends Controller
                 </div>';
             })
             ->addColumn('service', function ($request) {
-                $secondary = ($request->request_flow_type ?? 'standard') === 'event_project'
-                    ? ($request->eventProjectType?->name . ' / ' . $request->eventProjectNeed?->name)
-                    : ($request->needType?->name ?? '-');
+                $secondary = $request->building_label ?? '-';
 
                 return '<div class="small service-request-cell" style="line-height: 1.35;">
                     <div class="fw-semibold text-dark service-request-clamp-1">' . e($request->service?->title ?? '-') . '</div>
@@ -103,15 +124,28 @@ class MobileServiceRequestController extends Controller
                 </div>';
             })
             ->addColumn('schedule', function ($request) {
-                return '<div class="small service-request-cell" style="line-height: 1.35; max-width: 320px;">
-                    <div class="fw-semibold text-dark service-request-clamp-1">' . e(optional($request->survey_date)?->format('d M Y') ?? '-') . '</div>
-                    <div class="text-muted service-request-clamp-2" style="max-width: 320px;">' . e($request->survey_address ?? '-') . '</div>
-                </div>';
-            })
-            ->addColumn('region', function ($request) {
+                // survey_region tersimpan sebagai array {province,regency,district,village}.
                 $surveyRegion = $request->survey_region ?? data_get($request->draft_payload, 'surveyRegion');
+                $region = is_array($surveyRegion)
+                    ? collect([
+                        data_get($surveyRegion, 'village.name'),
+                        data_get($surveyRegion, 'district.name'),
+                        data_get($surveyRegion, 'regency.name'),
+                        data_get($surveyRegion, 'province.name'),
+                    ])->filter(fn ($value) => is_string($value) && trim($value) !== '')->implode(', ')
+                    : (is_string($surveyRegion) ? $surveyRegion : '');
+                $date = optional($request->survey_date)?->format('d M Y');
+                $address = is_string($request->survey_address) ? $request->survey_address : '';
 
-                return '<div class="small text-muted service-request-cell service-request-clamp-2" style="max-width: 260px; line-height: 1.35;" title="' . e($this->formatRegion($surveyRegion)) . '">' . e($this->formatRegion($surveyRegion)) . '</div>';
+                if (! $date && ! $address && ! $region) {
+                    return '<span class="text-muted">Tanpa survei</span>';
+                }
+
+                return '
+                    <div class="fw-semibold text-dark">' . e($date ?? '-') . '</div>
+                    <div class="text-muted service-request-clamp-2" style="font-size: 11px;">'
+                        . e(trim(($address ?? '-') . ($region ? ' · ' . $region : ''))) . '</div>
+                ';
             })
             ->addColumn('status_badge', function ($request) {
                 $statusStyles = [
@@ -143,20 +177,52 @@ class MobileServiceRequestController extends Controller
 
                 return '<span class="d-inline-flex align-items-center rounded-pill px-3 py-1 fw-semibold" style="font-size: 11px; line-height: 1.2; background: ' . e($background) . '; color: ' . e($color) . '; border: 1px solid ' . e($border) . ';">' . e($label) . '</span>';
             })
-            ->addColumn('amount', fn ($request) => 'Rp' . number_format((int) $request->total_amount, 0, ',', '.'))
+            ->addColumn('status_cell', function ($request) {
+                $pill = fn ($label, $style) => '<span class="d-inline-flex align-items-center rounded-pill px-2 py-1 fw-semibold" style="font-size: 10.5px; line-height: 1.2; background: ' . e($style[0]) . '; color: ' . e($style[1]) . '; border: 1px solid ' . e($style[2]) . ';">' . e($label) . '</span>';
+
+                $statusStyles = [
+                    'draft' => ['#e2e8f0', '#334155', '#cbd5e1'],
+                    'waiting_payment' => ['#eff6ff', '#1d4ed8', '#bfdbfe'],
+                    'waiting_transfer' => ['#fff7ed', '#c2410c', '#fdba74'],
+                    'payment_challenge' => ['#fef2f2', '#b91c1c', '#fecaca'],
+                    'approved' => ['#ecfdf5', '#047857', '#a7f3d0'],
+                    'completed' => ['#ecfdf5', '#047857', '#a7f3d0'],
+                    'rejected' => ['#fef2f2', '#b91c1c', '#fecaca'],
+                    'failed' => ['#fef2f2', '#b91c1c', '#fecaca'],
+                ];
+                $paymentStyles = [
+                    'paid' => ['#ecfdf5', '#047857', '#a7f3d0'],
+                    'pending' => ['#eff6ff', '#1d4ed8', '#bfdbfe'],
+                    'challenge' => ['#fef2f2', '#b91c1c', '#fecaca'],
+                    'failed' => ['#fef2f2', '#b91c1c', '#fecaca'],
+                ];
+
+                $neutral = ['#f1f5f9', '#334155', '#e2e8f0'];
+
+                return '<div class="d-flex flex-column align-items-start" style="gap:4px;">'
+                    . $pill(str_replace('_', ' ', ucfirst($request->status)), $statusStyles[$request->status] ?? $neutral)
+                    . $pill('Bayar: ' . str_replace('_', ' ', ucfirst($request->payment_status)), $paymentStyles[$request->payment_status] ?? $neutral)
+                    . '</div>';
+            })
+            ->addColumn('amount', fn ($request) => '<span class="fw-semibold text-nowrap">Rp' . number_format((int) $request->total_amount, 0, ',', '.') . '</span>')
             ->addColumn('action', function ($request) {
+                $proposalBtn = $request->proposal_id
+                    ? '<a href="' . route('admin.mobile.proposals.show', $request->proposal_id) . '" class="btn btn-outline-primary btn-xs" title="Lihat Proposal"><i class="ri-file-list-3-line"></i></a>'
+                    : '';
+
                 return '
-                    <div class="d-flex justify-content-center align-items-center" style="gap: 10px">
+                    <div class="d-flex justify-content-center align-items-center flex-nowrap" style="gap: 5px">
                         <a href="' . route('admin.mobile.service_requests.show', $request->id) . '" class="btn btn-success btn-xs" title="Detail">
                             <i class="ri-eye-line"></i>
-                        </a>
-                        <a href="' . route('admin.mobile.service_requests.download', $request->id) . '" class="btn btn-primary btn-xs" title="Download PDF">
+                        </a>'
+                        . $proposalBtn .
+                        '<a href="' . route('admin.mobile.service_requests.download', $request->id) . '" class="btn btn-primary btn-xs" title="Download PDF">
                             <i class="ri-download-2-line"></i>
                         </a>
                     </div>
                 ';
             })
-            ->rawColumns(['requester', 'service', 'schedule', 'region', 'status_badge', 'payment_badge', 'action'])
+            ->rawColumns(['order', 'requester', 'service', 'schedule', 'amount', 'status_cell', 'status_badge', 'payment_badge', 'action'])
             ->make(true);
     }
 
@@ -191,9 +257,17 @@ class MobileServiceRequestController extends Controller
     {
         $serviceRequest = $this->mobileServiceRequestAdminService->findOrFail($id);
 
+        // Isian dinamis dari proposal (bila order lahir dari form builder).
+        $proposal = $serviceRequest->proposal;
+        $proposalAnswers = $proposal
+            ? app(\App\Services\ProposalService::class)->readableAnswers($proposal)
+            : [];
+
         return $this->view('service-requests.show', [
             'serviceRequest' => $serviceRequest,
             'sections' => $this->sections(),
+            'proposal' => $proposal,
+            'proposalAnswers' => $proposalAnswers,
         ]);
     }
 
@@ -433,22 +507,10 @@ class MobileServiceRequestController extends Controller
                 'description' => 'Layanan kontraktor untuk mobile ordering.',
             ],
             [
-                'title' => 'Need Types',
-                'route' => route('admin.mobile.service_need_types'),
-                'icon' => 'ri-list-check-3',
-                'description' => 'Master jenis kebutuhan layanan per service.',
-            ],
-            [
-                'title' => 'Budget Options',
-                'route' => route('admin.mobile.budget_options'),
-                'icon' => 'ri-money-dollar-circle-line',
-                'description' => 'Master pilihan perkiraan anggaran pengajuan.',
-            ],
-            [
-                'title' => 'Event Projects',
-                'route' => route('admin.mobile.event_projects'),
-                'icon' => 'ri-calendar-event-line',
-                'description' => 'Master jenis project, kebutuhan, paket, dan anggaran event.',
+                'title' => 'Koleksi Data',
+                'route' => route('admin.mobile.collections'),
+                'icon' => 'ri-database-2-line',
+                'description' => 'Master-data dinamis (jenis kebutuhan, budget, dll) sebagai sumber Form Builder.',
             ],
             [
                 'title' => 'Home Layout',

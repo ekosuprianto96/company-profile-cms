@@ -43,6 +43,19 @@ class ChatController extends ApiController
         }
     }
 
+    public function unreadCount(Request $request)
+    {
+        try {
+            return $this->success([
+                'unread_count' => $this->chatService->totalUnreadForMobile($request->user()),
+            ], 'Jumlah chat belum dibaca berhasil dimuat.');
+        } catch (\Throwable $th) {
+            Log::error('Chat unread-count error: ' . $th->getMessage());
+
+            return $this->error($th->getMessage(), $th->getCode() ?: 500);
+        }
+    }
+
     public function store(Request $request)
     {
         try {

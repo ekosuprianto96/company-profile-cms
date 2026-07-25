@@ -23,7 +23,6 @@ use App\Http\Controllers\Admin\InformasiPageController;
 use App\Http\Controllers\Admin\Mobile\MobileController;
 use App\Http\Controllers\Admin\Mobile\ChatController as MobileChatController;
 use App\Http\Controllers\Admin\Mobile\InspireController as MobileInspireController;
-use App\Http\Controllers\Admin\Mobile\MobileBudgetOptionController;
 use App\Http\Controllers\Admin\Mobile\MobileContentController;
 use App\Http\Controllers\Admin\Mobile\MobileSupportContactController;
 use App\Http\Controllers\Admin\Mobile\VoucherController;
@@ -35,10 +34,10 @@ use App\Http\Controllers\Admin\Mobile\ReviewController;
 use App\Http\Controllers\Admin\Mobile\PromotionController;
 use App\Http\Controllers\Admin\Mobile\CategoryController;
 use App\Http\Controllers\Admin\Mobile\HomeSectionController;
-use App\Http\Controllers\Admin\Mobile\MobileEventProjectController;
+use App\Http\Controllers\Admin\Mobile\FormController;
+use App\Http\Controllers\Admin\Mobile\ProposalController;
 use App\Http\Controllers\Admin\Mobile\MobileServiceRequestController;
 use App\Http\Controllers\Admin\Mobile\MobileServiceController;
-use App\Http\Controllers\Admin\Mobile\MobileServiceNeedTypeController;
 use App\Http\Controllers\Admin\Widget\WidgetController;
 use App\Http\Controllers\Admin\Banners\BannerController;
 use App\Http\Controllers\Admin\Blogs\KategoriController;
@@ -248,28 +247,21 @@ Route::middleware(['auth'])->group(function () {
         Route::get('', [MobileController::class, 'index'])->name('index');
         Route::get('users', [MobileController::class, 'users'])->name('users');
         Route::get('users/data', [MobileController::class, 'usersData'])->name('users.data');
+        Route::get('users/{id}', [MobileController::class, 'showUser'])->whereNumber('id')->name('users.show');
         Route::post('users/{id}/toggle-status', [MobileController::class, 'toggleUserStatus'])->name('users.toggle_status');
         Route::post('users/{id}/revoke-tokens', [MobileController::class, 'revokeUserTokens'])->name('users.revoke_tokens');
+        Route::post('users/{id}/ban', [MobileController::class, 'banUser'])->whereNumber('id')->name('users.ban');
+        Route::post('users/{id}/unban', [MobileController::class, 'unbanUser'])->whereNumber('id')->name('users.unban');
         Route::get('otp-logs', [MobileController::class, 'otpLogs'])->name('otp_logs');
         Route::get('otp-logs/data', [MobileController::class, 'otpLogsData'])->name('otp_logs.data');
         Route::get('services', [MobileServiceController::class, 'index'])->name('services');
         Route::get('services/data', [MobileServiceController::class, 'data'])->name('services.data');
         Route::get('services/forms', [MobileServiceController::class, 'forms'])->name('services.forms');
+        Route::get('services/create', [MobileServiceController::class, 'create'])->name('services.create');
+        Route::get('services/edit/{id}', [MobileServiceController::class, 'edit'])->whereNumber('id')->name('services.edit');
         Route::post('services/store', [MobileServiceController::class, 'store'])->name('services.store');
         Route::post('services/update/{id}', [MobileServiceController::class, 'update'])->name('services.update');
         Route::post('services/destroy', [MobileServiceController::class, 'destroy'])->name('services.destroy');
-        Route::get('service-need-types', [MobileServiceNeedTypeController::class, 'index'])->name('service_need_types');
-        Route::get('service-need-types/data', [MobileServiceNeedTypeController::class, 'data'])->name('service_need_types.data');
-        Route::get('service-need-types/forms', [MobileServiceNeedTypeController::class, 'forms'])->name('service_need_types.forms');
-        Route::post('service-need-types/store', [MobileServiceNeedTypeController::class, 'store'])->name('service_need_types.store');
-        Route::post('service-need-types/update/{id}', [MobileServiceNeedTypeController::class, 'update'])->name('service_need_types.update');
-        Route::post('service-need-types/destroy', [MobileServiceNeedTypeController::class, 'destroy'])->name('service_need_types.destroy');
-        Route::get('budget-options', [MobileBudgetOptionController::class, 'index'])->name('budget_options');
-        Route::get('budget-options/data', [MobileBudgetOptionController::class, 'data'])->name('budget_options.data');
-        Route::get('budget-options/forms', [MobileBudgetOptionController::class, 'forms'])->name('budget_options.forms');
-        Route::post('budget-options/store', [MobileBudgetOptionController::class, 'store'])->name('budget_options.store');
-        Route::post('budget-options/update/{id}', [MobileBudgetOptionController::class, 'update'])->name('budget_options.update');
-        Route::post('budget-options/destroy', [MobileBudgetOptionController::class, 'destroy'])->name('budget_options.destroy');
 
         // App content (Tentang / Syarat & Ketentuan)
         Route::get('contents', [MobileContentController::class, 'index'])->name('contents');
@@ -295,9 +287,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('products', [ProductController::class, 'index'])->name('products')->middleware('permission:product:show');
         Route::get('products/data', [ProductController::class, 'data'])->name('products.data')->middleware('permission:product:show');
         Route::get('products/forms', [ProductController::class, 'forms'])->name('products.forms')->middleware('permission:product:show');
+        Route::get('products/create', [ProductController::class, 'create'])->name('products.create')->middleware('permission:product:create');
+        Route::get('products/edit/{id}', [ProductController::class, 'edit'])->whereNumber('id')->name('products.edit')->middleware('permission:product:update');
         Route::post('products/store', [ProductController::class, 'store'])->name('products.store')->middleware('permission:product:create');
         Route::post('products/update/{id}', [ProductController::class, 'update'])->whereNumber('id')->name('products.update')->middleware('permission:product:update');
         Route::post('products/destroy', [ProductController::class, 'destroy'])->name('products.destroy')->middleware('permission:product:destroy');
+        Route::get('products/import/template', [ProductController::class, 'importTemplate'])->name('products.import.template')->middleware('permission:product:create');
+        Route::post('products/import/upload', [ProductController::class, 'importUpload'])->name('products.import.upload')->middleware('permission:product:create');
+        Route::post('products/import/execute', [ProductController::class, 'importExecute'])->name('products.import.execute')->middleware('permission:product:create');
 
         // Kategori Produk
         Route::get('product-categories', [ProductCategoryController::class, 'index'])->name('product_categories')->middleware('permission:product-category:show');
@@ -337,27 +334,52 @@ Route::middleware(['auth'])->group(function () {
         Route::post('home-sections/destroy', [HomeSectionController::class, 'destroy'])->name('home_sections.destroy')->middleware('permission:home-section:delete');
         Route::post('home-sections/reorder', [HomeSectionController::class, 'reorder'])->name('home_sections.reorder')->middleware('permission:home-section:update');
 
+        // Proposal (hasil isian form pengajuan)
+        Route::get('proposals', [ProposalController::class, 'index'])->name('proposals')->middleware('permission:proposal:show');
+        Route::get('proposals/{id}', [ProposalController::class, 'show'])->whereNumber('id')->name('proposals.show')->middleware('permission:proposal:show');
+        Route::get('proposals/{id}/pdf', [ProposalController::class, 'pdf'])->whereNumber('id')->name('proposals.pdf')->middleware('permission:proposal:show');
+        Route::get('proposals/{id}/download', [ProposalController::class, 'download'])->whereNumber('id')->name('proposals.download')->middleware('permission:proposal:show');
+        Route::post('proposals/{id}/status', [ProposalController::class, 'updateStatus'])->whereNumber('id')->name('proposals.status')->middleware('permission:proposal:update');
+
+        // Form builder (khusus layanan)
+        Route::get('forms', [FormController::class, 'index'])->name('forms')->middleware('permission:form:show');
+        Route::get('forms/{id}/builder', [FormController::class, 'builder'])->whereNumber('id')->name('forms.builder')->middleware('permission:form:show');
+        Route::get('forms/{id}/preview', [FormController::class, 'preview'])->whereNumber('id')->name('forms.preview')->middleware('permission:form:show');
+        Route::get('forms/forms', [FormController::class, 'forms'])->name('forms.forms')->middleware('permission:form:show');
+        Route::post('forms/store', [FormController::class, 'store'])->name('forms.store')->middleware('permission:form:create');
+        Route::post('forms/update/{id}', [FormController::class, 'update'])->whereNumber('id')->name('forms.update')->middleware('permission:form:update');
+        Route::post('forms/destroy', [FormController::class, 'destroy'])->name('forms.destroy')->middleware('permission:form:delete');
+        Route::post('forms/duplicate', [FormController::class, 'duplicate'])->name('forms.duplicate')->middleware('permission:form:create');
+        Route::post('forms/fields/store', [FormController::class, 'storeField'])->name('forms.fields.store')->middleware('permission:form:update');
+        Route::post('forms/fields/update/{id}', [FormController::class, 'updateField'])->whereNumber('id')->name('forms.fields.update')->middleware('permission:form:update');
+        Route::post('forms/fields/destroy', [FormController::class, 'destroyField'])->name('forms.fields.destroy')->middleware('permission:form:update');
+        Route::post('forms/fields/reorder', [FormController::class, 'reorderField'])->name('forms.fields.reorder')->middleware('permission:form:update');
+        Route::post('forms/fields/reorder-bulk', [FormController::class, 'reorderFields'])->name('forms.fields.reorder_bulk')->middleware('permission:form:update');
+
+        // Koleksi data dinamis (master-data buatan admin → source form builder).
+        Route::get('collections', [\App\Http\Controllers\Admin\Mobile\CollectionController::class, 'index'])->name('collections');
+        Route::post('collections/store', [\App\Http\Controllers\Admin\Mobile\CollectionController::class, 'store'])->name('collections.store');
+        Route::get('collections/{id}', [\App\Http\Controllers\Admin\Mobile\CollectionController::class, 'manage'])->whereNumber('id')->name('collections.manage');
+        Route::post('collections/update/{id}', [\App\Http\Controllers\Admin\Mobile\CollectionController::class, 'update'])->whereNumber('id')->name('collections.update');
+        Route::post('collections/destroy', [\App\Http\Controllers\Admin\Mobile\CollectionController::class, 'destroy'])->name('collections.destroy');
+        Route::post('collections/fields/store', [\App\Http\Controllers\Admin\Mobile\CollectionController::class, 'storeField'])->name('collections.fields.store');
+        Route::post('collections/fields/update/{id}', [\App\Http\Controllers\Admin\Mobile\CollectionController::class, 'updateField'])->whereNumber('id')->name('collections.fields.update');
+        Route::post('collections/fields/destroy', [\App\Http\Controllers\Admin\Mobile\CollectionController::class, 'destroyField'])->name('collections.fields.destroy');
+        Route::post('collections/entries/store', [\App\Http\Controllers\Admin\Mobile\CollectionController::class, 'storeEntry'])->name('collections.entries.store');
+        Route::post('collections/entries/update/{id}', [\App\Http\Controllers\Admin\Mobile\CollectionController::class, 'updateEntry'])->whereNumber('id')->name('collections.entries.update');
+        Route::post('collections/entries/destroy', [\App\Http\Controllers\Admin\Mobile\CollectionController::class, 'destroyEntry'])->name('collections.entries.destroy');
+
         Route::get('product-orders', [ProductOrderController::class, 'index'])->name('product_orders')->middleware('permission:product-order:show');
         Route::get('product-orders/data', [ProductOrderController::class, 'data'])->name('product_orders.data')->middleware('permission:product-order:show');
-        Route::get('product-orders/forms', [ProductOrderController::class, 'forms'])->name('product_orders.forms')->middleware('permission:product-order:show');
         Route::post('product-orders/update/{id}', [ProductOrderController::class, 'update'])->whereNumber('id')->name('product_orders.update')->middleware('permission:product-order:update');
+        Route::get('product-orders/{id}', [ProductOrderController::class, 'show'])->whereNumber('id')->name('product_orders.show')->middleware('permission:product-order:show');
+        Route::get('product-orders/{id}/invoice', [ProductOrderController::class, 'invoice'])->whereNumber('id')->name('product_orders.invoice')->middleware('permission:product-order:show');
+        Route::get('product-orders-export/excel', [ProductOrderController::class, 'exportExcel'])->name('product_orders.export_excel')->middleware('permission:product-order:show');
+        Route::get('product-orders-export/pdf', [ProductOrderController::class, 'exportPdf'])->name('product_orders.export_pdf')->middleware('permission:product-order:show');
 
         Route::get('reviews', [ReviewController::class, 'index'])->name('reviews')->middleware('permission:product-review:show');
         Route::get('reviews/data', [ReviewController::class, 'data'])->name('reviews.data')->middleware('permission:product-review:show');
         Route::get('reviews/forms', [ReviewController::class, 'forms'])->name('reviews.forms')->middleware('permission:product-review:show');
-        Route::get('event-projects', [MobileEventProjectController::class, 'index'])->name('event_projects');
-        Route::post('event-projects/types', [MobileEventProjectController::class, 'storeType'])->name('event_projects.types.store');
-        Route::post('event-projects/types/{id}', [MobileEventProjectController::class, 'updateType'])->whereNumber('id')->name('event_projects.types.update');
-        Route::post('event-projects/types/{id}/destroy', [MobileEventProjectController::class, 'destroyType'])->whereNumber('id')->name('event_projects.types.destroy');
-        Route::post('event-projects/needs', [MobileEventProjectController::class, 'storeNeed'])->name('event_projects.needs.store');
-        Route::post('event-projects/needs/{id}', [MobileEventProjectController::class, 'updateNeed'])->whereNumber('id')->name('event_projects.needs.update');
-        Route::post('event-projects/needs/{id}/destroy', [MobileEventProjectController::class, 'destroyNeed'])->whereNumber('id')->name('event_projects.needs.destroy');
-        Route::post('event-projects/packages', [MobileEventProjectController::class, 'storePackage'])->name('event_projects.packages.store');
-        Route::post('event-projects/packages/{id}', [MobileEventProjectController::class, 'updatePackage'])->whereNumber('id')->name('event_projects.packages.update');
-        Route::post('event-projects/packages/{id}/destroy', [MobileEventProjectController::class, 'destroyPackage'])->whereNumber('id')->name('event_projects.packages.destroy');
-        Route::post('event-projects/budgets', [MobileEventProjectController::class, 'storeBudget'])->name('event_projects.budgets.store');
-        Route::post('event-projects/budgets/{id}', [MobileEventProjectController::class, 'updateBudget'])->whereNumber('id')->name('event_projects.budgets.update');
-        Route::post('event-projects/budgets/{id}/destroy', [MobileEventProjectController::class, 'destroyBudget'])->whereNumber('id')->name('event_projects.budgets.destroy');
         Route::get('service-requests', [MobileServiceRequestController::class, 'index'])->name('service_requests.index');
         Route::get('service-requests/data', [MobileServiceRequestController::class, 'data'])->name('service_requests.data');
         Route::get('service-requests/export', [MobileServiceRequestController::class, 'exportExcel'])->name('service_requests.export');

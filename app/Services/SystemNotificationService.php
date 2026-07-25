@@ -83,6 +83,43 @@ class SystemNotificationService
         ]);
     }
 
+    /** Notifikasi pengajuan (proposal) baru — pesan lengkap dgn data proposal, untuk user & admin. */
+    public function notifyProposalSubmitted(\App\Models\Proposal $proposal, $serviceRequest): void
+    {
+        $user = $serviceRequest->user;
+        $name = $user?->name ?? 'Pelanggan';
+        $serviceTitle = $serviceRequest->service?->title ?? $proposal->service?->title ?? 'layanan';
+        $code = $serviceRequest->transaction_code_label;
+        $total = 'Rp' . number_format((int) $proposal->total_amount, 0, ',', '.');
+        $submittedAt = optional($proposal->submitted_at)?->format('d M Y, H:i') ?? now()->format('d M Y, H:i');
+
+        $title = 'Pengajuan diterima';
+
+        $meta = [
+            'service_request_id' => $serviceRequest->id,
+            'service_request_code' => $code,
+            'proposal_number' => $proposal->proposal_number,
+            'service_title' => $serviceTitle,
+            'total_amount' => $total,
+            'submitted_at' => $submittedAt,
+            'user_name' => $name,
+        ];
+
+        if ($user) {
+            $userMessage = "Halo {$name}, pengajuan Anda untuk layanan \"{$serviceTitle}\" sudah kami terima dan tercatat "
+                . "dengan nomor pengajuan {$proposal->proposal_number} (order {$code}). Perkiraan biaya {$total}, "
+                . "diajukan pada {$submittedAt}. Tim kami akan meninjau dan menghubungi Anda paling lambat 1×24 jam kerja. "
+                . "Anda juga bisa langsung menyelesaikan pembayaran agar pengajuan lebih cepat diproses.";
+
+            $this->notifyMobileUser($user, $title, $userMessage, SystemNotification::TYPE_CONFIRMATION, null, $meta);
+        }
+
+        $adminMessage = "Pengajuan baru dari {$name} untuk layanan \"{$serviceTitle}\". Nomor {$proposal->proposal_number} "
+            . "(order {$code}), perkiraan biaya {$total}, diajukan {$submittedAt}. Mohon segera ditinjau.";
+
+        $this->notifyAdmins($title, $adminMessage, SystemNotification::TYPE_INFORMATION, '/admin/mobile/service-requests/' . $serviceRequest->id, $meta);
+    }
+
     public function notifyServiceRequestPaymentUpdated($serviceRequest): void
     {
         $title = 'Status pembayaran diperbarui';

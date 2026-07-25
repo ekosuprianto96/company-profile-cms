@@ -41,7 +41,25 @@ class ProductController extends Controller
                     return '<div class="d-flex align-items-center" style="gap:10px">' . $img . '
                         <div class="d-flex flex-column"><span class="fw-semibold">' . e($product->name) . '</span><small class="text-muted">' . e($product->sku) . '</small></div></div>';
                 })
-                ->addColumn('category', fn ($product) => e($product->category->name ?? '—'))
+                ->addColumn('category', function ($product) {
+                    $cat = $product->masterCategory;
+                    if (! $cat) {
+                        return '<span class="text-muted">—</span>';
+                    }
+                    // Susun jalur penuh: Kategori › Sub › Sub 2 (dari akar ke daun).
+                    $names = [];
+                    $node = $cat;
+                    $guard = 0;
+                    while ($node && $guard < 6) {
+                        array_unshift($names, $node->name);
+                        $node = $node->parent;
+                        $guard++;
+                    }
+                    $path = implode(' › ', $names);
+
+                    // Clip dengan ellipsis; jalur penuh tampil sebagai tooltip.
+                    return '<span title="' . e($path) . '" style="display:inline-block;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;">' . e($path) . '</span>';
+                })
                 ->addColumn('price', function ($product) {
                     $price = 'Rp' . number_format($product->price, 0, ',', '.');
                     if ($product->compare_at_price) {
@@ -70,11 +88,11 @@ class ProductController extends Controller
                     : '<span class="badge badge-danger badge-sm">' . Status::NONAKTIF->text() . '</span>')
                 ->addColumn('action', function ($product) {
                     return '<div class="d-flex w-full justify-content-center align-items-center" style="gap:10px">
-                        <a href="javascript:void(0)" data-bind-product="' . $product->id . '" class="btn btn-success btn-xs editProduct" title="Edit"><i class="ri-pencil-line"></i></a>
+                        <a href="' . route('admin.mobile.products.edit', $product->id) . '" class="btn btn-success btn-xs" title="Edit"><i class="ri-pencil-line"></i></a>
                         <a href="javascript:void(0)" onclick="deleteProduct(' . $product->id . ')" class="btn btn-danger btn-xs" title="Hapus"><i class="ri-delete-bin-5-line"></i></a>
                     </div>';
                 })
-                ->rawColumns(['product', 'price', 'settings', 'status', 'action'])
+                ->rawColumns(['product', 'category', 'price', 'settings', 'status', 'action'])
                 ->make(true);
         } catch (\Exception $error) {
             return response()->json(['message' => $error->getMessage()], $this->statusCode);
@@ -98,6 +116,28 @@ class ProductController extends Controller
         } catch (\Exception $error) {
             return response()->json(['message' => $error->getMessage()], 500);
         }
+    }
+
+    /** Data pendukung form produk (kategori, layanan, pohon kategori). */
+    private function formData(): array
+    {
+        return [
+            'categories' => $this->service->categories(),
+            'services' => $this->service->services(),
+            'categoryTree' => \App\Models\Category::orderBy('sort_order')->orderBy('name')->get(['id', 'parent_id', 'name']),
+        ];
+    }
+
+    /** Halaman tambah produk (bukan modal). */
+    public function create()
+    {
+        return $this->view('create', array_merge(['product' => null], $this->formData()));
+    }
+
+    /** Halaman edit produk (bukan modal). */
+    public function edit(int $id)
+    {
+        return $this->view('edit', array_merge(['product' => $this->service->find($id)], $this->formData()));
     }
 
     public function store(Request $request)
@@ -148,7 +188,6 @@ class ProductController extends Controller
             'sku' => ['nullable', 'string', 'max:60', Rule::unique('products', 'sku')->ignore($id)],
             'name' => ['required', 'string', 'max:180'],
             'brand' => ['nullable', 'string', 'max:120'],
-            'product_category_id' => ['nullable', 'integer', 'exists:product_categories,id'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'short_description' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
@@ -177,5 +216,87 @@ class ProductController extends Controller
         $data['internal_shipping_fee'] = $validated['shipping_method'] === 'internal' ? ($validated['internal_shipping_fee'] ?? null) : null;
 
         return [$data, $serviceIds, $image];
+    }
+
+    // ============ Import produk dari Excel ============
+
+    /** Unduh template Excel produk. */
+    public function importTemplate()
+    {
+        return \Maatwebsite\Excel\Facades\Excel::download(
+            new \App\Exports\ProductImportTemplateExport,
+            'template-import-produk.xlsx'
+        );
+    }
+
+    /** Upload Excel → simpan sementara, kembalikan header + saran pemetaan. */
+    public function importUpload(Request $request)
+    {
+        try {
+            $request->validate([
+                'file' => ['required', 'file', 'mimes:xlsx,xls,csv', 'max:10240'],
+            ]);
+
+            $file = $request->file('file');
+            $token = \Illuminate\Support\Str::uuid() . '.' . $file->getClientOriginalExtension();
+            Storage::disk('local')->putFileAs('imports', $file, $token);
+            $path = Storage::disk('local')->path('imports/' . $token);
+
+            $service = app(\App\Services\ProductImportService::class);
+            $headers = $service->readHeaders($path);
+
+            if (empty($headers)) {
+                Storage::disk('local')->delete('imports/' . $token);
+                return response()->json(['message' => 'File tidak memiliki baris header.'], 422);
+            }
+
+            return response()->json([
+                'token' => $token,
+                'headers' => $headers,
+                'columns' => \App\Services\ProductImportService::COLUMNS,
+                'suggestion' => $service->suggest($headers),
+            ]);
+        } catch (ValidationException $error) {
+            return response()->json(['message' => 'File tidak valid.', 'errors' => $error->errors()], 422);
+        } catch (\Throwable $th) {
+            return response()->json(['message' => 'Gagal membaca file: ' . $th->getMessage()], 500);
+        }
+    }
+
+    /** Eksekusi import dengan pemetaan kolom. */
+    public function importExecute(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'token' => ['required', 'string'],
+                'mapping' => ['required', 'array'],
+            ]);
+
+            $token = basename($validated['token']);
+            $relative = 'imports/' . $token;
+            if (! Storage::disk('local')->exists($relative)) {
+                return response()->json(['message' => 'Sesi upload kedaluwarsa. Silakan unggah ulang file.'], 422);
+            }
+
+            // Buang pemetaan kosong.
+            $mapping = collect($validated['mapping'])->filter(fn ($v) => is_string($v) && $v !== '')->all();
+            if (empty($mapping['name'] ?? null) || empty($mapping['price'] ?? null)) {
+                return response()->json(['message' => 'Kolom Nama Produk dan Harga wajib dipetakan.'], 422);
+            }
+
+            $result = app(\App\Services\ProductImportService::class)
+                ->import(Storage::disk('local')->path($relative), $mapping);
+
+            Storage::disk('local')->delete($relative);
+
+            return response()->json([
+                'message' => "Import selesai: {$result['created']} baru, {$result['updated']} diperbarui, " . count($result['errors']) . ' gagal.',
+                'result' => $result,
+            ]);
+        } catch (ValidationException $error) {
+            return response()->json(['message' => 'Data tidak valid.', 'errors' => $error->errors()], 422);
+        } catch (\Throwable $th) {
+            return response()->json(['message' => 'Gagal import: ' . $th->getMessage()], 500);
+        }
     }
 }

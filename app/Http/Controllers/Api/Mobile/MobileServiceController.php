@@ -3,15 +3,48 @@
 namespace App\Http\Controllers\Api\Mobile;
 
 use App\Services\MobileServiceCatalogService;
-use App\Services\MobileEventProjectOptionsService;
 use Illuminate\Support\Facades\Log;
 
 class MobileServiceController extends ApiController
 {
     public function __construct(
         protected MobileServiceCatalogService $mobileServiceCatalogService,
-        protected MobileEventProjectOptionsService $mobileEventProjectOptionsService,
     ) {}
+
+    /** Schema form pengajuan milik sebuah layanan (dirender mobile). */
+    public function formSchema(string $slug)
+    {
+        try {
+            $service = \App\Models\MobileService::with(['form.fields', 'priceItems'])
+                ->where('slug', $slug)->where('is_active', true)->first();
+
+            if (! $service) {
+                return $this->error('Layanan tidak ditemukan.', 404);
+            }
+
+            return $this->success([
+                'service' => ['id' => $service->id, 'title' => $service->title, 'slug' => $service->slug],
+                // Layanan tanpa form dari builder memakai form standar generik,
+                // sehingga seluruh layanan aktif konsisten lewat alur form dinamis.
+                'form' => $service->form
+                    ? app(\App\Services\FormSchemaService::class)->schema($service->form)
+                    : app(\App\Services\FormSchemaService::class)->defaultSchema($service),
+                'price_items' => $service->priceItems->map(fn ($item) => [
+                    'type' => $item->type,
+                    'label' => $item->label,
+                    'amount' => (int) $item->amount,
+                    'is_required' => (bool) $item->is_required,
+                ])->values()->toArray(),
+                'price_total' => (int) $service->priceItems->where('is_required', true)->sum('amount'),
+                // Cakupan wilayah survei (untuk validasi lokasi di form).
+                'survey_coverage' => app(\App\Services\MobileAppSettingService::class)->surveyCoverage(),
+            ], 'Schema form berhasil dimuat.');
+        } catch (\Throwable $th) {
+            Log::error('Load service form schema error: ' . $th->getMessage());
+
+            return $this->error('Gagal memuat schema form.', 500);
+        }
+    }
 
     public function index(\Illuminate\Http\Request $request)
     {
@@ -43,18 +76,4 @@ class MobileServiceController extends ApiController
         }
     }
 
-    public function eventOptions()
-    {
-        try {
-            return $this->success([
-                'event_options' => $this->mobileEventProjectOptionsService->options(),
-            ], 'Pilihan event project berhasil dimuat.');
-        } catch (\Throwable $th) {
-            Log::error('Load mobile event options error: ' . $th->getMessage(), [
-                'stack' => $th->getTraceAsString(),
-            ]);
-
-            return $this->error('Gagal memuat pilihan event project.', 500);
-        }
-    }
 }

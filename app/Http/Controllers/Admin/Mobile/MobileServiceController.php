@@ -9,7 +9,6 @@ use App\Http\Requests\MobileServiceUpdateRequest;
 use App\Models\Category;
 use App\Models\MobileService;
 use App\Services\MobileServiceAdminService;
-use App\Services\MobileServiceNeedTypeAdminService;
 use App\Traits\AdminView;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -25,8 +24,7 @@ class MobileServiceController extends Controller
     protected $statusCode = 500;
 
     public function __construct(
-        protected MobileServiceAdminService $mobileServiceAdminService,
-        protected MobileServiceNeedTypeAdminService $mobileServiceNeedTypeAdminService
+        protected MobileServiceAdminService $mobileServiceAdminService
     ) {
         $this->setView('admin.pages.mobile.services');
     }
@@ -73,21 +71,6 @@ class MobileServiceController extends Controller
                         </div>
                     ';
                 })
-                ->addColumn('need_types', function ($service) {
-                    if ($service->needTypes->isEmpty()) {
-                        return '<span class="badge badge-light badge-sm">Belum dipilih</span>';
-                    }
-
-                    $badges = $service->needTypes
-                        ->map(fn ($needType) => '<span class="badge badge-outline-info badge-sm">' . e($needType->name) . '</span>')
-                        ->implode('');
-
-                    return '
-                        <div class="d-flex flex-wrap align-items-start" style="gap:6px;max-width:260px;white-space:normal;">
-                            ' . $badges . '
-                        </div>
-                    ';
-                })
                 ->addColumn('sort_order', fn ($service) => (int) $service->sort_order)
                 ->addColumn('status', function ($service) {
                     if ($service->is_active) {
@@ -102,12 +85,12 @@ class MobileServiceController extends Controller
                 ->addColumn('action', function ($service) {
                     return '
                         <div class="d-flex w-full justify-content-center align-items-center" style="gap: 10px">
-                            <a href="javascript:void(0)" data-bind-mobile-service="' . $service->id . '" class="btn btn-success btn-xs editMobileService" title="Edit"><i class="ri-pencil-line"></i></a>
+                            <a href="' . route('admin.mobile.services.edit', $service->id) . '" class="btn btn-success btn-xs" title="Edit"><i class="ri-pencil-line"></i></a>
                             <a href="javascript:void(0)" onclick="deleteMobileService(' . $service->id . ')" class="btn btn-danger btn-xs" title="Hapus"><i class="ri-delete-bin-5-line"></i></a>
                         </div>
                     ';
                 })
-                ->rawColumns(['title', 'visual', 'flags', 'need_types', 'status', 'action'])
+                ->rawColumns(['title', 'visual', 'flags', 'status', 'action'])
                 ->make(true);
         } catch (\Exception $error) {
             return response()->json([
@@ -186,25 +169,48 @@ class MobileServiceController extends Controller
     public function forms(Request $request)
     {
         $service = null;
-        $selectedNeedTypeIds = [];
 
         try {
             if ($request->filled('id_mobile_service')) {
                 $service = $this->mobileServiceAdminService->find((int) $request->id_mobile_service);
-                $selectedNeedTypeIds = $service->needTypes()
-                    ->pluck('mobile_service_need_types.id')
-                    ->map(fn ($id) => (int) $id)
-                    ->toArray();
             }
 
-            $needTypes = $this->mobileServiceNeedTypeAdminService->listActive();
             $categoryTree = \App\Models\Category::orderBy('sort_order')->orderBy('name')->get(['id', 'parent_id', 'name']);
+            $formOptions = \App\Models\Form::active()->orderBy('name')->get(['id', 'name']);
+            $priceTypes = config('form_builder.price_types');
+            $priceItems = $service ? $service->priceItems()->get() : collect();
 
             return $this->setView('admin.components.forms.')
-                ->view($request->view, compact('service', 'needTypes', 'selectedNeedTypeIds', 'categoryTree'));
+                ->view($request->view, compact(
+                    'service', 'categoryTree', 'formOptions', 'priceTypes', 'priceItems',
+                ));
         } catch (\Exception $error) {
             return response()->json(['message' => $error->getMessage()], 500);
         }
+    }
+
+    /** Data pendukung form layanan. */
+    private function formData($service = null): array
+    {
+        return [
+            'service' => $service,
+            'categoryTree' => \App\Models\Category::orderBy('sort_order')->orderBy('name')->get(['id', 'parent_id', 'name']),
+            'formOptions' => \App\Models\Form::active()->orderBy('name')->get(['id', 'name']),
+            'priceTypes' => config('form_builder.price_types'),
+            'priceItems' => $service ? $service->priceItems()->get() : collect(),
+        ];
+    }
+
+    /** Halaman tambah layanan (bukan modal). */
+    public function create()
+    {
+        return $this->view('create', $this->formData());
+    }
+
+    /** Halaman edit layanan (bukan modal). */
+    public function edit(int $id)
+    {
+        return $this->view('edit', $this->formData($this->mobileServiceAdminService->find($id)));
     }
 
     public function store(MobileServiceStoreRequest $request)

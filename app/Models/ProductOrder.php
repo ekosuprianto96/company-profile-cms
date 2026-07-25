@@ -21,6 +21,7 @@ class ProductOrder extends Model
         'grand_total',
         'courier',
         'shipping_courier_id',
+        'mobile_user_address_id',
         'service_request_id',
         'notes',
         'tracking_number',

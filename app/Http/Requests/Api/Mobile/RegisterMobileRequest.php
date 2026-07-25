@@ -25,7 +25,8 @@ class RegisterMobileRequest extends FormRequest
             'name' => 'required|string|min:3|max:150',
             'email' => 'nullable|email|max:150|required_without:phone|unique:mobile_users,email',
             'phone' => 'nullable|string|min:10|max:25|required_without:email|unique:mobile_users,phone',
-            'password' => 'required|string|min:6|max:150|confirmed',
+            // Password kuat: min 8 + wajib mengandung huruf, angka, dan simbol.
+            'password' => ['required', 'string', 'min:8', 'max:150', 'confirmed', 'regex:/^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/'],
             'otp_channel' => 'required|in:email,sms',
         ];
     }
@@ -53,6 +54,8 @@ class RegisterMobileRequest extends FormRequest
             'phone.required_without' => 'Isi nomor telepon atau email.',
             'phone.unique' => 'Nomor telepon sudah terdaftar.',
             'password.required' => 'Password tidak boleh kosong.',
+            'password.min' => 'Password minimal 8 karakter.',
+            'password.regex' => 'Password harus mengandung huruf, angka, dan simbol.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
             'otp_channel.required' => 'Channel OTP wajib dipilih.',
             'otp_channel.in' => 'Channel OTP tidak valid.',

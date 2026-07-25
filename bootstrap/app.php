@@ -33,7 +33,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'share-modules' => ShareGroupModules::class,
             'permission' => PermissionMiddleware::class,
-            'track-visitor' => VisitorTrackingMiddleware::class
+            'track-visitor' => VisitorTrackingMiddleware::class,
+            'mobile.active' => \App\Http\Middleware\EnsureMobileUserActive::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
