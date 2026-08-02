@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Services\NotificationTemplateService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -12,24 +13,16 @@ class ContactFormMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    /**
-     * Create a new message instance.
-     */
+    protected ?array $renderedCache = null;
+
     public function __construct(
         public array $contactData = [],
         public string $messageID = ''
-    ) {
-        //
-    }
+    ) {}
 
-    /**
-     * Get the message envelope.
-     */
     public function envelope(): Envelope
     {
-        return new Envelope(
-            subject: 'Pesan Dari Kontak Form',
-        );
+        return new Envelope(subject: $this->rendered()['subject']);
     }
 
     public function withSwiftMessage($message)
@@ -37,25 +30,34 @@ class ContactFormMail extends Mailable
         $message->getHeaders()->addTextHeader('Message-ID', $this->messageID);
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content(): Content
     {
+        $rendered = $this->rendered();
+
         return new Content(
-            view: 'frontend.mails.contact-form',
-            markdown: 'frontend.mails.contact-form',
-            with: [
-                'contactData' => $this->contactData
-            ]
+            view: 'emails.templated',
+            with: ['headline' => $rendered['subject'], 'body' => $rendered['body']],
         );
     }
 
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
+    protected function rendered(): array
+    {
+        if ($this->renderedCache !== null) {
+            return $this->renderedCache;
+        }
+
+        $d = $this->contactData;
+
+        return $this->renderedCache = app(NotificationTemplateService::class)->render('contact_form', 'email', 'admin', [
+            'recipient_name' => 'Admin',
+            'sender_name' => $d['name'] ?? '-',
+            'sender_email' => $d['email'] ?? '-',
+            'sender_phone' => $d['phone'] ?? '-',
+            'subject' => $d['subject'] ?? '-',
+            'sender_message' => $d['message'] ?? '-',
+        ]);
+    }
+
     public function attachments(): array
     {
         return [];

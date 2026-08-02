@@ -91,57 +91,9 @@
         </div>
         <div class="col-md-3">
             <div class="form-group">
-                <label for="badge_text">Badge Text</label>
-                <input name="badge_text" type="text" class="form-control" id="badge_text" placeholder="Contoh: Best Seller">
-                <div data-error="badge_text" class="invalid-fedback"><span class="text-danger" style="font-size: 0.8em"></span></div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="form-group">
                 <label for="sort_order">Urutan</label>
                 <input name="sort_order" type="number" min="0" class="form-control" id="sort_order" value="0">
                 <div data-error="sort_order" class="invalid-fedback"><span class="text-danger" style="font-size: 0.8em"></span></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-4">
-            <div class="form-group">
-                <label for="price_label">Price Label</label>
-                <input name="price_label" type="text" class="form-control" id="price_label" placeholder="Contoh: Mulai Rp15jt">
-                <div data-error="price_label" class="invalid-fedback"><span class="text-danger" style="font-size: 0.8em"></span></div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="form-group">
-                <label for="rating">Rating</label>
-                <input name="rating" type="number" min="0" max="5" step="0.1" class="form-control" id="rating" placeholder="4.9">
-                <div data-error="rating" class="invalid-fedback"><span class="text-danger" style="font-size: 0.8em"></span></div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="form-group">
-                <label for="projects_label">Projects Label</label>
-                <input name="projects_label" type="text" class="form-control" id="projects_label" placeholder="Contoh: 320 proyek">
-                <div data-error="projects_label" class="invalid-fedback"><span class="text-danger" style="font-size: 0.8em"></span></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-6">
-            <div class="form-group">
-                <label for="estimated_duration">Estimasi Durasi</label>
-                <input name="estimated_duration" type="text" class="form-control" id="estimated_duration" placeholder="Contoh: 30 - 45 hari">
-                <div data-error="estimated_duration" class="invalid-fedback"><span class="text-danger" style="font-size: 0.8em"></span></div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <label for="cta_text">CTA Text</label>
-                <input name="cta_text" type="text" class="form-control" id="cta_text" placeholder="Contoh: Ajukan Sekarang">
-                <div data-error="cta_text" class="invalid-fedback"><span class="text-danger" style="font-size: 0.8em"></span></div>
             </div>
         </div>
     </div>
@@ -230,6 +182,7 @@
         $('#buttonAddMobileService').click(function() {
             $.post('{{ route('admin.mobile.services.store') }}', {
                 title: $('[name=title]').val(),
+                category_id: $('[name=category_id]').val(),
                 request_flow_type: $('[name=request_flow_type]').val(),
                 summary: $('[name=summary]').val(),
                 description: $('[name=description]').val(),
@@ -239,12 +192,6 @@
                 cover_image: $('[name=file_name_input_mobile_service_cover_image]').val(),
                 card_color: $('[name=card_color]').val(),
                 text_color: $('[name=text_color]').val(),
-                badge_text: $('[name=badge_text]').val(),
-                price_label: $('[name=price_label]').val(),
-                rating: $('[name=rating]').val(),
-                projects_label: $('[name=projects_label]').val(),
-                estimated_duration: $('[name=estimated_duration]').val(),
-                cta_text: $('[name=cta_text]').val(),
                 sort_order: $('[name=sort_order]').val(),
                 is_new: $('[name=is_new]').val(),
                 is_featured: $('[name=is_featured]').val(),

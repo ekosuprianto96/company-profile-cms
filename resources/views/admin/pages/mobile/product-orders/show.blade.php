@@ -39,6 +39,7 @@
                     </p>
                 </div>
                 <div class="d-flex flex-wrap align-items-center justify-content-end" style="gap:8px;">
+                    <a href="{{ route('admin.mobile.product_orders.chat_user', $order->id) }}" class="btn btn-success btn-sm"><i class="ri-message-3-line me-1"></i> Chat Pelanggan</a>
                     <a href="{{ route('admin.mobile.product_orders.invoice', $order->id) }}" target="_blank" class="btn btn-info btn-sm"><i class="ri-printer-line me-1"></i> Cetak Invoice</a>
                     <a href="{{ route('admin.mobile.product_orders.invoice', ['id' => $order->id, 'download' => 1]) }}" class="btn btn-primary btn-sm"><i class="ri-download-2-line me-1"></i> Unduh Invoice</a>
                     <a href="{{ route('admin.mobile.product_orders') }}" class="btn btn-light btn-sm"><i class="ri-arrow-left-line me-1"></i> Daftar</a>
@@ -138,6 +139,10 @@
             @endif
             <div class="po-info-label">Alamat Pengiriman</div>
             <div class="po-info-value" style="font-weight:500; line-height:1.5;">{{ $order->address ?: '-' }}</div>
+            @if ($order->address_detail)
+                <div class="po-info-label mt-2">Detail Alamat</div>
+                <div class="po-info-value" style="font-weight:500; line-height:1.5;">{{ $order->address_detail }}</div>
+            @endif
         </div></div>
 
         <div class="card shadow-sm border-0 mb-4"><div class="card-body">

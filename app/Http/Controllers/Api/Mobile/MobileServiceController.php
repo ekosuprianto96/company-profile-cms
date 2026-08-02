@@ -36,8 +36,9 @@ class MobileServiceController extends ApiController
                     'is_required' => (bool) $item->is_required,
                 ])->values()->toArray(),
                 'price_total' => (int) $service->priceItems->where('is_required', true)->sum('amount'),
-                // Cakupan wilayah survei (untuk validasi lokasi di form).
-                'survey_coverage' => app(\App\Services\MobileAppSettingService::class)->surveyCoverage(),
+                // Cakupan wilayah survei (untuk validasi lokasi di form) — hanya
+                // rule yang berlaku untuk layanan ini (scope semua / layanan tertentu).
+                'survey_coverage' => app(\App\Services\MobileAppSettingService::class)->surveyCoverageForService($service->id),
             ], 'Schema form berhasil dimuat.');
         } catch (\Throwable $th) {
             Log::error('Load service form schema error: ' . $th->getMessage());

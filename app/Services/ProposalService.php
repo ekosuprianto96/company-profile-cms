@@ -139,6 +139,7 @@ class ProposalService
             'description' => is_string($descriptionVal) ? $descriptionVal : null,
             'issue_photos' => $photos,
             'survey_address' => $location['address'] ?? null,
+            'survey_address_detail' => $location['detail'] ?? null,
             'survey_region' => $location['region'] ?? null,
             'survey_latitude' => $location['latitude'] ?? null,
             'survey_longitude' => $location['longitude'] ?? null,

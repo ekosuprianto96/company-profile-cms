@@ -113,12 +113,63 @@ Route::middleware(['auth:sanctum', 'mobile.active'])->group(function () {
     });
 });
 
+/*
+|--------------------------------------------------------------------------
+| Aplikasi ADMIN (mobile) — login pakai akun users + credential key + OTP email.
+|--------------------------------------------------------------------------
+*/
+Route::prefix('v1/admin')->group(function () {
+    // Rate-limit auth publik: cegah brute-force login/OTP & flooding email OTP.
+    Route::middleware('throttle:6,1')->group(function () {
+        Route::post('auth/login', [\App\Http\Controllers\Api\Admin\AuthController::class, 'login']);
+        Route::post('auth/otp/verify', [\App\Http\Controllers\Api\Admin\AuthController::class, 'verifyOtp']);
+        Route::post('auth/otp/resend', [\App\Http\Controllers\Api\Admin\AuthController::class, 'resendOtp']);
+    });
+
+    // Invoice PDF (token via query supaya bisa dibuka in-app browser). Divalidasi manual.
+    Route::get('invoice/{type}/{id}', [\App\Http\Controllers\Api\Admin\InvoiceController::class, 'show'])->whereNumber('id')->where('type', 'service|product');
+
+    Route::middleware(['auth:sanctum', 'admin.access'])->group(function () {
+        Route::get('auth/me', [\App\Http\Controllers\Api\Admin\AuthController::class, 'me']);
+        Route::post('auth/logout', [\App\Http\Controllers\Api\Admin\AuthController::class, 'logout']);
+
+        Route::get('dashboard', [\App\Http\Controllers\Api\Admin\DashboardController::class, 'index']);
+        Route::get('analytics', [\App\Http\Controllers\Api\Admin\DashboardController::class, 'analytics']);
+
+        // Orders
+        Route::get('orders', [\App\Http\Controllers\Api\Admin\OrderController::class, 'index']);
+        Route::get('orders/service/{id}', [\App\Http\Controllers\Api\Admin\OrderController::class, 'showService'])->whereNumber('id');
+        Route::get('orders/product/{id}', [\App\Http\Controllers\Api\Admin\OrderController::class, 'showProduct'])->whereNumber('id');
+        Route::patch('orders/service/{id}/status', [\App\Http\Controllers\Api\Admin\OrderController::class, 'updateServiceStatus'])->whereNumber('id');
+        Route::post('orders/service/{id}/verify-payment', [\App\Http\Controllers\Api\Admin\OrderController::class, 'verifyServicePayment'])->whereNumber('id');
+        Route::patch('orders/product/{id}/status', [\App\Http\Controllers\Api\Admin\OrderController::class, 'updateProductStatus'])->whereNumber('id');
+
+        // Payments
+        Route::get('payments/pending', [\App\Http\Controllers\Api\Admin\PaymentController::class, 'pending']);
+
+        // Chat
+        Route::get('chats', [\App\Http\Controllers\Api\Admin\ChatController::class, 'index']);
+        Route::post('chats/start', [\App\Http\Controllers\Api\Admin\ChatController::class, 'start']);
+        Route::get('chats/{id}', [\App\Http\Controllers\Api\Admin\ChatController::class, 'show'])->whereNumber('id');
+        Route::post('chats/{id}/messages', [\App\Http\Controllers\Api\Admin\ChatController::class, 'send'])->whereNumber('id');
+        Route::patch('chats/{id}/read', [\App\Http\Controllers\Api\Admin\ChatController::class, 'markRead'])->whereNumber('id');
+
+        // Customers
+        Route::get('customers/{id}', [\App\Http\Controllers\Api\Admin\CustomerController::class, 'show'])->whereNumber('id');
+        Route::post('customers/{id}/ban', [\App\Http\Controllers\Api\Admin\CustomerController::class, 'ban'])->whereNumber('id');
+        Route::post('customers/{id}/unban', [\App\Http\Controllers\Api\Admin\CustomerController::class, 'unban'])->whereNumber('id');
+    });
+});
+
 Route::prefix('v1/mobile/auth')->group(function () {
-    Route::post('/register/check', [AuthController::class, 'checkRegistration']);
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/otp/send', [AuthController::class, 'sendOtp']);
-    Route::post('/otp/verify', [AuthController::class, 'verifyOtp']);
+    // Rate-limit auth publik: cegah brute-force & flooding OTP/email.
+    Route::middleware('throttle:6,1')->group(function () {
+        Route::post('/register/check', [AuthController::class, 'checkRegistration']);
+        Route::post('/register', [AuthController::class, 'register']);
+        Route::post('/login', [AuthController::class, 'login']);
+        Route::post('/otp/send', [AuthController::class, 'sendOtp']);
+        Route::post('/otp/verify', [AuthController::class, 'verifyOtp']);
+    });
 
     Route::middleware(['auth:sanctum', 'mobile.active'])->group(function () {
         Route::get('/me', [AuthController::class, 'me']);

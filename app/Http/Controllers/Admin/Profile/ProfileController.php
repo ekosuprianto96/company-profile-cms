@@ -22,7 +22,34 @@ class ProfileController extends Controller
     public function index()
     {
         $pengguna = $this->penggunaService->getPengguna(auth()->user()->id);
-        return $this->view('index', compact('pengguna'));
+        $me = \App\Models\User::with('role')->find(auth()->id());
+        return $this->view('index', compact('pengguna', 'me'));
+    }
+
+    /** Superadmin: generate/aktifkan credential akses aplikasi admin untuk dirinya sendiri. */
+    public function generateCredential()
+    {
+        try {
+            $me = \App\Models\User::with('role')->find(auth()->id());
+
+            if (! $me->isSuperAdmin()) {
+                return response()->json(['status' => false, 'message' => 'Hanya superadmin yang dapat generate credential sendiri.'], 403);
+            }
+
+            $me->update([
+                'credential_key' => \App\Models\User::generateUniqueCredentialKey(),
+                'mobile_admin_access' => true,
+            ]);
+            $me->tokens()->delete();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Credential berhasil digenerate.',
+                'credential_key' => $me->fresh()->credential_key,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function update(Request $request)

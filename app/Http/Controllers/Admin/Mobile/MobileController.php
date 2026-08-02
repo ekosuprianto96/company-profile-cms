@@ -369,6 +369,8 @@ class MobileController extends Controller
             'surveyCoverage' => $mobileAppSettingService->surveyCoverage(),
             'manualTransfers' => $mobileAppSettingService->manualTransfers(),
             'onboardingSlides' => $mobileAppSettingService->onboardingSlidesRaw(),
+            // Untuk pilihan cakupan layanan per-area (semua / layanan tertentu).
+            'serviceOptions' => \App\Models\MobileService::orderBy('title')->get(['id', 'title']),
         ]);
     }
 
@@ -446,6 +448,9 @@ class MobileController extends Controller
             'survey_coverage_rules.*.regency_name' => 'nullable|string|max:150',
             'survey_coverage_rules.*.sort_order' => 'nullable|integer|min:0',
             'survey_coverage_rules.*.is_active' => 'nullable|boolean',
+            'survey_coverage_rules.*.applies_to' => 'nullable|in:all,specific',
+            'survey_coverage_rules.*.service_ids' => 'nullable|array',
+            'survey_coverage_rules.*.service_ids.*' => 'integer|exists:mobile_services,id',
             'manual_transfers' => 'nullable|array',
             'manual_transfers.*.id' => 'nullable|string|max:100',
             'manual_transfers.*.bank_name' => 'nullable|string|max:100',
@@ -502,6 +507,14 @@ class MobileController extends Controller
                     return null;
                 }
 
+                $appliesTo = ($rule['applies_to'] ?? 'all') === 'specific' ? 'specific' : 'all';
+                $serviceIds = collect($rule['service_ids'] ?? [])
+                    ->map(fn ($id) => (int) $id)
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+
                 return [
                     'id' => $rule['id'] ?? 'survey-coverage-' . ($index + 1),
                     'area_name' => $areaName,
@@ -513,6 +526,9 @@ class MobileController extends Controller
                         'code' => $regencyCode,
                         'name' => $regencyName,
                     ],
+                    // Cakupan layanan: 'all' = semua layanan, 'specific' = hanya service_ids.
+                    'applies_to' => $appliesTo,
+                    'service_ids' => $serviceIds,
                     'sort_order' => (int) ($rule['sort_order'] ?? ($index + 1)),
                     'is_active' => filter_var($rule['is_active'] ?? true, FILTER_VALIDATE_BOOLEAN),
                 ];
@@ -686,6 +702,12 @@ class MobileController extends Controller
                 'route' => route('admin.mobile.notifications'),
                 'icon' => 'ri-notification-3-line',
                 'description' => 'Push notification dan campaign.',
+            ],
+            [
+                'title' => 'Template Notifikasi',
+                'route' => route('admin.mobile.notification_templates'),
+                'icon' => 'ri-mail-settings-line',
+                'description' => 'Template teks email, push, dan in-app + variabel dinamis.',
             ],
             [
                 'title' => 'Inspire',

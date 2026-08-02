@@ -11,8 +11,7 @@ use Illuminate\Support\Facades\Hash;
 class MobileUserOtpService
 {
     public function __construct(
-        protected MobileUserOtpRepository $otpRepository,
-        protected TwilioVerifyService $twilioVerifyService
+        protected MobileUserOtpRepository $otpRepository
     ) {}
 
     public function createAndSend(MobileUser $user, string $channel, string $purpose): MobileUserOtp
@@ -38,12 +37,11 @@ class MobileUserOtpService
             'status' => 'pending',
         ];
 
-        if ($channel === 'email') {
-            $code = $this->generateCode();
-
-            $attributes['code_hash'] = Hash::make($code);
-            $attributes['code_encrypted'] = Crypt::encryptString($code);
-        }
+        // Email & SMS sama-sama memakai kode yang kita generate sendiri (SMS via
+        // Zenziva mengirim teks dari template). Disimpan hash + terenkripsi.
+        $code = $this->generateCode();
+        $attributes['code_hash'] = Hash::make($code);
+        $attributes['code_encrypted'] = Crypt::encryptString($code);
 
         return $this->otpRepository->store($attributes);
     }
@@ -73,20 +71,9 @@ class MobileUserOtpService
         $otp->increment('attempts');
         $otp->refresh();
 
-        if ($channel === 'email') {
-            if (! Hash::check($code, (string) $otp->code_hash)) {
-                throw new \Exception('Kode OTP email tidak valid.', 422);
-            }
-        }
-
-        if ($channel === 'sms') {
-            $result = $this->twilioVerifyService->checkVerification($recipient, $code);
-
-            if (($result['valid'] ?? false) !== true || ($result['status'] ?? '') !== 'approved') {
-                throw new \Exception('Kode OTP SMS tidak valid.', 422);
-            }
-
-            $otp->provider_response = $result;
+        // Email & SMS diverifikasi terhadap kode yang kita simpan (hash).
+        if (! Hash::check($code, (string) $otp->code_hash)) {
+            throw new \Exception('Kode OTP tidak valid.', 422);
         }
 
         $otp->verified_at = now();

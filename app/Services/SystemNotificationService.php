@@ -14,8 +14,58 @@ use Illuminate\Support\Str;
 class SystemNotificationService
 {
     public function __construct(
-        protected ExpoPushNotificationService $expoPushNotificationService
+        protected ExpoPushNotificationService $expoPushNotificationService,
+        protected NotificationTemplateService $templates
     ) {}
+
+    /**
+     * Kirim ke satu pengguna memakai TEMPLATE: in-app (database) pakai template
+     * `in_app`, push pakai template `push`. Teks tak lagi hardcoded.
+     */
+    private function dispatchToUser(MobileUser $user, string $eventKey, array $context, string $type = SystemNotification::TYPE_INFORMATION, ?string $url = null): void
+    {
+        $context = array_merge([
+            'recipient_name' => $user->name,
+            'customer_name' => $user->name,
+        ], $context);
+
+        $inApp = $this->templates->render($eventKey, 'in_app', 'user', $context);
+        if (trim($inApp['subject'] . $inApp['body']) !== '') {
+            $user->notify(new SystemNotification($inApp['subject'], $inApp['body'], $type, $url, $context));
+        }
+
+        $push = $this->templates->render($eventKey, 'push', 'user', $context);
+        if (trim($push['subject'] . $push['body']) !== '') {
+            $this->sendExpoPushToUsers(collect([$user]), $push['subject'], $push['body'], $type, $url, $context);
+        }
+    }
+
+    /** Kirim ke semua admin memakai template in-app admin. */
+    private function dispatchToAdmins(string $eventKey, array $context, string $type = SystemNotification::TYPE_INFORMATION, ?string $url = null): void
+    {
+        $inApp = $this->templates->render($eventKey, 'in_app', 'admin', $context);
+        if (trim($inApp['subject'] . $inApp['body']) !== '') {
+            $this->notifyAdmins($inApp['subject'], $inApp['body'], $type, $url, $context);
+        }
+    }
+
+    /** Context standar dari sebuah pengajuan (service request). */
+    private function serviceRequestContext($sr, array $extra = []): array
+    {
+        return array_merge([
+            'transaction_code' => $sr->transaction_code_label,
+            'service_title' => $sr->service?->title ?? '-',
+            'customer_name' => $sr->user?->name,
+            'survey_date' => optional($sr->survey_date)?->format('d M Y') ?? '-',
+            'survey_address' => $sr->survey_address ?? '-',
+            'total_amount' => 'Rp' . number_format((int) $sr->total_amount, 0, ',', '.'),
+            'admin_note' => $sr->admin_note ?? '',
+            'rejection_reason' => $sr->rejection_reason ?? '',
+            'payment_status' => $sr->payment_status ?? '',
+            'service_request_id' => $sr->id,
+            'service_request_code' => $sr->transaction_code_label,
+        ], $extra);
+    }
 
     public function notifyAllMobileUsers(string $title, string $message, string $type = SystemNotification::TYPE_INFORMATION, ?string $url = null, array $meta = []): void
     {
@@ -64,111 +114,56 @@ class SystemNotificationService
 
     public function notifyServiceRequestCreated($serviceRequest): void
     {
-        $title = 'Pengajuan baru masuk';
-        $message = 'Pengajuan survey ' . $serviceRequest->transaction_code_label . ' untuk layanan ' . ($serviceRequest->service?->title ?? '-') . ' baru saja dibuat.';
+        $url = '/admin/mobile/service-requests/' . $serviceRequest->id;
+        $ctx = $this->serviceRequestContext($serviceRequest);
+
+        if ($serviceRequest->user) {
+            $this->dispatchToUser($serviceRequest->user, 'service_request.submitted', $ctx, SystemNotification::TYPE_INFORMATION);
+        }
+        $this->dispatchToAdmins('service_request.submitted', $ctx, SystemNotification::TYPE_INFORMATION, $url);
+    }
+
+    /** Notifikasi pengajuan (proposal) baru — untuk user & admin, dari template. */
+    public function notifyProposalSubmitted(\App\Models\Proposal $proposal, $serviceRequest): void
+    {
+        $ctx = $this->serviceRequestContext($serviceRequest, [
+            'proposal_number' => $proposal->proposal_number,
+            'total_amount' => 'Rp' . number_format((int) $proposal->total_amount, 0, ',', '.'),
+        ]);
         $url = '/admin/mobile/service-requests/' . $serviceRequest->id;
 
         if ($serviceRequest->user) {
-            $this->notifyMobileUser($serviceRequest->user, $title, $message, SystemNotification::TYPE_INFORMATION, null, [
-                'service_request_id' => $serviceRequest->id,
-                'service_request_code' => $serviceRequest->transaction_code_label,
-                'user_name' => $serviceRequest->user->name,
-            ]);
+            $this->dispatchToUser($serviceRequest->user, 'proposal.submitted', $ctx, SystemNotification::TYPE_CONFIRMATION);
         }
-
-        $this->notifyAdmins($title, $message, SystemNotification::TYPE_INFORMATION, $url, [
-            'service_request_id' => $serviceRequest->id,
-            'service_request_code' => $serviceRequest->transaction_code_label,
-            'user_name' => $serviceRequest->user?->name,
-        ]);
-    }
-
-    /** Notifikasi pengajuan (proposal) baru — pesan lengkap dgn data proposal, untuk user & admin. */
-    public function notifyProposalSubmitted(\App\Models\Proposal $proposal, $serviceRequest): void
-    {
-        $user = $serviceRequest->user;
-        $name = $user?->name ?? 'Pelanggan';
-        $serviceTitle = $serviceRequest->service?->title ?? $proposal->service?->title ?? 'layanan';
-        $code = $serviceRequest->transaction_code_label;
-        $total = 'Rp' . number_format((int) $proposal->total_amount, 0, ',', '.');
-        $submittedAt = optional($proposal->submitted_at)?->format('d M Y, H:i') ?? now()->format('d M Y, H:i');
-
-        $title = 'Pengajuan diterima';
-
-        $meta = [
-            'service_request_id' => $serviceRequest->id,
-            'service_request_code' => $code,
-            'proposal_number' => $proposal->proposal_number,
-            'service_title' => $serviceTitle,
-            'total_amount' => $total,
-            'submitted_at' => $submittedAt,
-            'user_name' => $name,
-        ];
-
-        if ($user) {
-            $userMessage = "Halo {$name}, pengajuan Anda untuk layanan \"{$serviceTitle}\" sudah kami terima dan tercatat "
-                . "dengan nomor pengajuan {$proposal->proposal_number} (order {$code}). Perkiraan biaya {$total}, "
-                . "diajukan pada {$submittedAt}. Tim kami akan meninjau dan menghubungi Anda paling lambat 1×24 jam kerja. "
-                . "Anda juga bisa langsung menyelesaikan pembayaran agar pengajuan lebih cepat diproses.";
-
-            $this->notifyMobileUser($user, $title, $userMessage, SystemNotification::TYPE_CONFIRMATION, null, $meta);
-        }
-
-        $adminMessage = "Pengajuan baru dari {$name} untuk layanan \"{$serviceTitle}\". Nomor {$proposal->proposal_number} "
-            . "(order {$code}), perkiraan biaya {$total}, diajukan {$submittedAt}. Mohon segera ditinjau.";
-
-        $this->notifyAdmins($title, $adminMessage, SystemNotification::TYPE_INFORMATION, '/admin/mobile/service-requests/' . $serviceRequest->id, $meta);
+        $this->dispatchToAdmins('proposal.submitted', $ctx, SystemNotification::TYPE_INFORMATION, $url);
     }
 
     public function notifyServiceRequestPaymentUpdated($serviceRequest): void
     {
-        $title = 'Status pembayaran diperbarui';
-        $message = 'Status pembayaran pengajuan survey ' . $serviceRequest->transaction_code_label . ' sekarang ' . $serviceRequest->payment_status . '.';
+        $ctx = $this->serviceRequestContext($serviceRequest);
+        $url = '/admin/mobile/service-requests/' . $serviceRequest->id;
 
         if ($serviceRequest->user) {
-            $this->notifyMobileUser($serviceRequest->user, $title, $message, SystemNotification::TYPE_CONFIRMATION, null, [
-                'service_request_id' => $serviceRequest->id,
-                'service_request_code' => $serviceRequest->transaction_code_label,
-                'user_name' => $serviceRequest->user->name,
-            ]);
+            $this->dispatchToUser($serviceRequest->user, 'service_request.payment_updated', $ctx, SystemNotification::TYPE_CONFIRMATION);
         }
-
-        $this->notifyAdmins($title, $message, SystemNotification::TYPE_CONFIRMATION, '/admin/mobile/service-requests/' . $serviceRequest->id, [
-            'service_request_id' => $serviceRequest->id,
-            'service_request_code' => $serviceRequest->transaction_code_label,
-            'user_name' => $serviceRequest->user?->name,
-        ]);
+        $this->dispatchToAdmins('service_request.payment_updated', $ctx, SystemNotification::TYPE_CONFIRMATION, $url);
     }
 
     public function notifyServiceRequestDecision($serviceRequest, string $decision): void
     {
-        $title = match ($decision) {
-            'approved' => 'Pengajuan disetujui',
-            'completed' => 'Pengajuan selesai',
-            default => 'Pengajuan ditolak',
+        $eventKey = match ($decision) {
+            'approved' => 'service_request.approved',
+            'completed' => 'service_request.completed',
+            default => 'service_request.rejected',
         };
-
-        $message = match ($decision) {
-            'approved' => 'Pengajuan survey ' . $serviceRequest->transaction_code_label . ' telah disetujui oleh admin.',
-            'completed' => 'Pengajuan survey ' . $serviceRequest->transaction_code_label . ' telah selesai diproses.',
-            default => 'Pengajuan survey ' . $serviceRequest->transaction_code_label . ' ditolak oleh admin.',
-        };
+        $ctx = $this->serviceRequestContext($serviceRequest, ['decision' => $decision]);
+        $url = '/admin/mobile/service-requests/' . $serviceRequest->id;
 
         if ($serviceRequest->user) {
-            $this->notifyMobileUser($serviceRequest->user, $title, $message, SystemNotification::TYPE_CONFIRMATION, null, [
-                'service_request_id' => $serviceRequest->id,
-                'service_request_code' => $serviceRequest->transaction_code_label,
-                'decision' => $decision,
-                'user_name' => $serviceRequest->user->name,
-            ]);
+            $this->dispatchToUser($serviceRequest->user, $eventKey, $ctx, SystemNotification::TYPE_CONFIRMATION);
         }
-
-        $this->notifyAdmins($title, $message, SystemNotification::TYPE_CONFIRMATION, '/admin/mobile/service-requests/' . $serviceRequest->id, [
-            'service_request_id' => $serviceRequest->id,
-            'service_request_code' => $serviceRequest->transaction_code_label,
-            'decision' => $decision,
-            'user_name' => $serviceRequest->user?->name,
-        ]);
+        // Admin: sebagian event keputusan tak punya template admin → fallback aman (skip bila kosong).
+        $this->dispatchToAdmins($eventKey, $ctx, SystemNotification::TYPE_CONFIRMATION, $url);
     }
 
     public function notifyCampaign(string $title, string $message, string $type, bool $sendToAll, array $userIds = [], ?string $url = null, array $meta = [], ?string $contentHtml = null): void
@@ -205,13 +200,20 @@ class SystemNotificationService
             return;
         }
 
-        $title = 'Pesan baru dari admin';
         $preview = Str::limit(strip_tags($message->body), 120);
         $tokens = $conversation->mobileUser->pushTokens()->where('is_active', true)->get();
 
         if ($tokens->isEmpty()) {
             return;
         }
+
+        $rendered = $this->templates->render('chat.message_to_user', 'push', 'user', [
+            'recipient_name' => $conversation->mobileUser->name,
+            'sender_name' => $admin->name,
+            'message_preview' => $preview,
+        ]);
+        $title = $rendered['subject'] !== '' ? $rendered['subject'] : $admin->name;
+        $preview = $rendered['body'] !== '' ? $rendered['body'] : $preview;
 
         $this->expoPushNotificationService->sendToTokens($tokens, [
             'title' => $title,
@@ -235,8 +237,13 @@ class SystemNotificationService
 
     public function notifyChatMessageToAdmins(ChatConversation $conversation, ChatMessage $message, MobileUser $mobileUser): void
     {
-        $title = 'Pesan baru dari user';
         $preview = Str::limit(strip_tags($message->body), 120);
+        $rendered = $this->templates->render('chat.message_to_admins', 'in_app', 'admin', [
+            'sender_name' => $mobileUser->name,
+            'message_preview' => $preview,
+        ]);
+        $title = $rendered['subject'] !== '' ? $rendered['subject'] : 'Pesan baru dari user';
+        $preview = $rendered['body'] !== '' ? $rendered['body'] : $preview;
 
         $this->notifyAdmins($title, $preview, SystemNotification::TYPE_INFORMATION, '/admin/mobile/live-chat/' . $conversation->id, [
             'conversation_id' => $conversation->id,

@@ -172,6 +172,14 @@ class MobileAppSettingService
                     return null;
                 }
 
+                $appliesTo = ($rule['applies_to'] ?? 'all') === 'specific' ? 'specific' : 'all';
+                $serviceIds = collect($rule['service_ids'] ?? [])
+                    ->map(fn ($id) => (int) $id)
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+
                 return [
                     'id' => (string) ($rule['id'] ?? ('survey-coverage-' . ($index + 1))),
                     'area_name' => $areaName,
@@ -179,6 +187,8 @@ class MobileAppSettingService
                     'regency' => $regency,
                     'district' => $district,
                     'village' => $village,
+                    'applies_to' => $appliesTo,
+                    'service_ids' => $serviceIds,
                     'is_active' => (bool) ($rule['is_active'] ?? true),
                     'sort_order' => (int) ($rule['sort_order'] ?? ($index + 1)),
                 ];
@@ -194,6 +204,32 @@ class MobileAppSettingService
             'whatsapp_message' => $normalizeText($coverage['whatsapp_message'] ?? ''),
             'rules' => $rules,
         ];
+    }
+
+    /**
+     * Cakupan survei untuk satu layanan: hanya rule yang berlaku untuk layanan itu.
+     * Rule berlaku bila scope-nya 'all', atau 'specific' dengan service_ids memuat
+     * layanan tsb. Rule 'specific' tanpa layanan terpilih diperlakukan sebagai 'all'
+     * (default aman: cakupan tidak hilang karena admin lupa memilih layanan).
+     */
+    public function surveyCoverageForService(int $serviceId): array
+    {
+        $coverage = $this->surveyCoverage();
+
+        $coverage['rules'] = collect($coverage['rules'])
+            ->filter(function ($rule) use ($serviceId) {
+                if (($rule['applies_to'] ?? 'all') !== 'specific') {
+                    return true;
+                }
+
+                $ids = $rule['service_ids'] ?? [];
+
+                return empty($ids) || in_array($serviceId, $ids, true);
+            })
+            ->values()
+            ->all();
+
+        return $coverage;
     }
 
     public function paymentMethods(): array

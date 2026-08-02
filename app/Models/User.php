@@ -6,11 +6,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -21,7 +22,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'id_role'
+        'id_role',
+        'mobile_admin_access',
+        'credential_key',
     ];
 
     /**
@@ -32,6 +35,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'credential_key',
     ];
 
     /**
@@ -44,7 +48,34 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'mobile_admin_access' => 'boolean',
         ];
+    }
+
+    /** Boleh mengakses aplikasi Admin (mobile). */
+    public function canAccessMobileAdmin(): bool
+    {
+        return (bool) $this->mobile_admin_access;
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return strtolower((string) optional($this->role)->nama) === 'superadmin';
+    }
+
+    /** Generate credential key unik untuk akses aplikasi admin. */
+    public static function generateUniqueCredentialKey(): string
+    {
+        do {
+            $key = 'MJ-ADM-' . strtoupper(\Illuminate\Support\Str::random(4)) . '-' . strtoupper(\Illuminate\Support\Str::random(3));
+        } while (static::where('credential_key', $key)->exists());
+
+        return $key;
+    }
+
+    public function adminLoginOtps()
+    {
+        return $this->hasMany(AdminLoginOtp::class);
     }
 
     public function account()

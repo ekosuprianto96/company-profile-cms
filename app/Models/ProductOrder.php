@@ -26,6 +26,7 @@ class ProductOrder extends Model
         'notes',
         'tracking_number',
         'address',
+        'address_detail',
         'payment_method',
         'payment_gateway_provider',
         'payment_status',

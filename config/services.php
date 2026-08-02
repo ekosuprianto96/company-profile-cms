@@ -41,6 +41,12 @@ return [
         'verify_service_sid' => env('TWILIO_VERIFY_SERVICE_SID'),
     ],
 
+    'zenziva' => [
+        'base_url' => env('ZENZIVA_BASE_URL', 'https://console.zenziva.net/reguler/api/sendSMS/'),
+        'userkey' => env('ZENZIVA_USERKEY'),
+        'passkey' => env('ZENZIVA_PASSKEY'),
+    ],
+
     'midtrans' => [
         'is_production' => env('MIDTRANS_IS_PRODUCTION', false),
         'server_key' => env('MIDTRANS_SERVER_KEY'),

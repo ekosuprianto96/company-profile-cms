@@ -23,36 +23,6 @@ class UserRepositorie extends BaseRepositori
         parent::__construct();
     }
 
-    public function createUserFack()
-    {
-        DB::beginTransaction();
-        try {
-
-            $user = User::create([
-                'id_role' => 1,
-                'username' => 'examplemitra',
-                'email' => 'example-mitra@gmail.com',
-                'password' => Hash::make('123456'),
-                'email_verified_at' => Carbon::now()->format('Y-m-d H:i:s')
-            ]);
-
-            $superAdmin = DetailAccount::create([
-                'user_id' => $user->id,
-                'no_telpon' => '6567657546456',
-                'no_ktp' => 546456456456456,
-                'nama_lengkap' => 'Example Mitra',
-                'alamat' => 'Jakarta, Kali Baru',
-                'tanggal_lahir' => '14-09-1996'
-            ]);
-
-            DB::commit();
-            dd('Ok');
-        } catch (\Exception $err) {
-            DB::rollback();
-            dd($err->getMessage() . '-' . $err->getLine());
-        }
-    }
-
     public function dataTable()
     {
         try {
@@ -63,6 +33,19 @@ class UserRepositorie extends BaseRepositori
                 })
                 ->addColumn('role', function ($list) {
                     return '<span class="badge badge-sm badge-primary">' . $list->role->nama . '</span>';
+                })
+                ->addColumn('mobile_access', function ($list) {
+                    if ($list->mobile_admin_access) {
+                        $key = e($list->credential_key ?? '-');
+
+                        return '<span class="badge badge-sm badge-success">Aktif</span>'
+                            . '<div class="mt-1 d-flex align-items-center" style="gap:6px;">'
+                            . '<code style="font-size:11px;">' . $key . '</code>'
+                            . '<a href="javascript:void(0)" onclick="copyCredential(\'' . $key . '\')" title="Salin"><i class="ri-file-copy-line"></i></a>'
+                            . '</div>';
+                    }
+
+                    return '<span class="badge badge-sm badge-secondary">Nonaktif</span>';
                 })
                 ->addColumn('tgl_lahir', function ($list) {
                     return $list->account->tanggal_lahir ?? '-';
@@ -80,14 +63,20 @@ class UserRepositorie extends BaseRepositori
                     return $list->account->no_nip ?? '-';
                 })
                 ->addColumn('action', function ($list) {
+                    $mobileBtn = $list->mobile_admin_access
+                        ? '<button type="button" onclick="toggleMobileAccess(' . $list->id . ', false)" class="btn btn-warning btn-xs" title="Cabut Akses Mobile"><i class="ri-smartphone-line"></i></button>'
+                        . '<button type="button" onclick="regenerateCredential(' . $list->id . ')" class="btn btn-info btn-xs" title="Regenerate Credential"><i class="ri-refresh-line"></i></button>'
+                        : '<button type="button" onclick="toggleMobileAccess(' . $list->id . ', true)" class="btn btn-outline-primary btn-xs" title="Beri Akses Mobile"><i class="ri-smartphone-line"></i></button>';
+
                     return '
-                            <div class="d-flex w-full justify-content-center align-items-center" style="gap: 10px">
+                            <div class="d-flex w-full justify-content-center align-items-center" style="gap: 8px">
+                                    ' . $mobileBtn . '
                                     <a href="' . route('admin.pengguna.edit', $list->id) . '" class="btn btn-success btn-xs" title="Edit"><i class="ri-pencil-line"></i></a>
                                     <a href="javascript:void(0)" onclick="deleteUser(' . $list->id . ')" class="btn btn-danger btn-xs" title="Hapus"><i class="ri-delete-bin-5-line"></i></a>
                             </div>
                         ';
                 })
-                ->rawColumns(['role', 'nama_lengkap', 'tgl_lahir', 'username', 'email', 'no_telp', 'no_ktp', 'nip', 'action'])
+                ->rawColumns(['role', 'nama_lengkap', 'tgl_lahir', 'username', 'email', 'no_telp', 'no_ktp', 'nip', 'mobile_access', 'action'])
                 ->make(true);
 
             return $table;

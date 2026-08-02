@@ -12,6 +12,11 @@
     $isActive = old("survey_coverage_rules.$index.is_active", data_get($rule, 'is_active', true));
     $sortOrder = old("survey_coverage_rules.$index.sort_order", data_get($rule, 'sort_order', $rowNumber));
     $ruleId = old("survey_coverage_rules.$index.id", data_get($rule, 'id', ''));
+
+    $appliesTo = old("survey_coverage_rules.$index.applies_to", data_get($rule, 'applies_to', 'all'));
+    $selectedServiceIds = collect(old("survey_coverage_rules.$index.service_ids", data_get($rule, 'service_ids', [])))
+        ->map(fn ($id) => (int) $id)->all();
+    $serviceOptions = $serviceOptions ?? collect();
 @endphp
 
 <tr data-survey-coverage-row>
@@ -37,6 +42,21 @@
             @endif
         </select>
         <input type="hidden" data-survey-coverage-field="regency_name" value="{{ $regencyName }}">
+    </td>
+    <td style="min-width: 240px;">
+        <select class="form-select form-select-sm" data-survey-coverage-field="applies_to" data-survey-coverage-scope>
+            <option value="all" {{ $appliesTo === 'specific' ? '' : 'selected' }}>Semua layanan</option>
+            <option value="specific" {{ $appliesTo === 'specific' ? 'selected' : '' }}>Layanan tertentu</option>
+        </select>
+        <div class="mt-2" data-survey-coverage-services-wrap style="{{ $appliesTo === 'specific' ? '' : 'display:none;' }}">
+            <select class="form-select form-select-sm" multiple
+                    data-survey-coverage-field="service_ids" data-survey-coverage-services>
+                @foreach ($serviceOptions as $service)
+                    <option value="{{ $service->id }}" {{ in_array((int) $service->id, $selectedServiceIds, true) ? 'selected' : '' }}>{{ $service->title }}</option>
+                @endforeach
+            </select>
+            <small class="text-muted d-block mt-1"><i class="ri-information-line"></i> Kosongkan = berlaku untuk semua layanan.</small>
+        </div>
     </td>
     <td style="width: 96px;">
         <input type="number" min="0" class="form-control form-control-sm" data-survey-coverage-field="sort_order" value="{{ $sortOrder }}">

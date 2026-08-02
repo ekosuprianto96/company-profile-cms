@@ -26,11 +26,13 @@ class ChatController extends Controller
         if ($conversation) {
             $selectedConversation = $this->chatService->getConversationForAdmin($conversation);
             $this->chatService->markReadForAdmin($selectedConversation, $request->user());
-        } elseif ($request->filled('service_request_id') && $request->filled('user_id')) {
+        } elseif ($request->filled('user_id')) {
+            // Get-or-create conversation dari pengajuan (jika ada) atau chat umum
+            // per pelanggan (mis. dari tombol Chat di detail order produk).
             $mobileUser = MobileUser::query()->findOrFail((int) $request->query('user_id'));
             $selectedConversation = $this->chatService->findOrCreateConversation(
                 $mobileUser,
-                (int) $request->query('service_request_id')
+                $request->filled('service_request_id') ? (int) $request->query('service_request_id') : null
             );
             $selectedConversation = $this->chatService->getConversationForAdmin($selectedConversation->id);
             $this->chatService->markReadForAdmin($selectedConversation, $request->user());

@@ -28,6 +28,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->redirectTo('admin/login', 'admin');
+        // PROD: set TRUSTED_PROXIES ke IP/CIDR load balancer, JANGAN biarkan '*'
+        // (mencegah spoofing X-Forwarded-* & IP klien yang mematahkan rate-limit).
         $middleware->trustProxies(at: env('TRUSTED_PROXIES', '*'));
 
         $middleware->alias([
@@ -35,6 +37,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => PermissionMiddleware::class,
             'track-visitor' => VisitorTrackingMiddleware::class,
             'mobile.active' => \App\Http\Middleware\EnsureMobileUserActive::class,
+            'admin.access' => \App\Http\Middleware\EnsureAdminMobileAccess::class,
+            'superadmin' => \App\Http\Middleware\EnsureSuperAdmin::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

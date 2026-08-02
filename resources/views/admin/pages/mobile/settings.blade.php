@@ -222,14 +222,36 @@
                                     @error('survey_coverage_whatsapp_message')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
                             </div>
+                            <style>
+                                #survey-coverage-table { border-collapse: separate; border-spacing: 0; }
+                                #survey-coverage-table thead th {
+                                    font-weight: 600; font-size: .78rem; letter-spacing: .01em;
+                                    text-transform: uppercase; color: #64748b; background: #f8fafc;
+                                    border-bottom: 1px solid #e2e8f0; padding: .7rem .6rem; white-space: nowrap;
+                                }
+                                #survey-coverage-table tbody td { vertical-align: top; padding: .6rem; border-color: #eef2f7; }
+                                #survey-coverage-table tbody tr:hover { background: #fbfdff; }
+                                #survey-coverage-table .form-control-sm,
+                                #survey-coverage-table .form-select-sm { font-size: .82rem; border-color: #e2e8f0; }
+                                #survey-coverage-table [data-survey-coverage-index] { color: #94a3b8; }
+                                /* Samakan tinggi & gaya select2 multiple dengan input sm */
+                                #survey-coverage-table .select2-container--default .select2-selection--multiple {
+                                    min-height: 31px; border-color: #e2e8f0; border-radius: .375rem;
+                                }
+                                #survey-coverage-table .select2-container--default .select2-selection--multiple .select2-selection__choice {
+                                    background: #eef2ff; border: 1px solid #c7d2fe; color: #3730a3;
+                                    border-radius: .3rem; font-size: .75rem; padding: 1px 6px;
+                                }
+                            </style>
                             <div class="table-responsive">
-                                <table class="table table-sm align-middle mb-0 table-bordered" id="survey-coverage-table" style="min-width:1000px;">
+                                <table class="table table-sm align-middle mb-0" id="survey-coverage-table" style="min-width:1240px;">
                                     <thead class="table-light">
                                         <tr>
                                             <th style="width:56px;">#</th>
                                             <th style="min-width:180px;">Nama Area</th>
                                             <th style="min-width:170px;">Provinsi</th>
                                             <th style="min-width:170px;">Kota / Kabupaten</th>
+                                            <th style="min-width:220px;">Cakupan Layanan</th>
                                             <th style="width:96px;">Sort</th>
                                             <th style="width:120px;">Status</th>
                                             <th style="width:90px;">Aksi</th>
@@ -392,11 +414,38 @@
             return { province: 'Pilih provinsi', regency: 'Pilih kota / kabupaten' }[level] || 'Pilih wilayah';
         }
 
+        function ensureServicesSelect2($row) {
+            const $svc = $row.find('[data-survey-coverage-services]');
+            if (!$svc.length || !$.fn.select2 || $svc.hasClass('select2-hidden-accessible')) return;
+            // Init hanya saat wrapper terlihat agar lebar terhitung benar (hindari zero-width).
+            $svc.select2({
+                width: '100%',
+                placeholder: 'Pilih layanan…',
+                closeOnSelect: false,
+            });
+        }
+
+        function applyCoverageScope($row) {
+            const specific = $row.find('[data-survey-coverage-scope]').val() === 'specific';
+            $row.find('[data-survey-coverage-services-wrap]').toggle(specific);
+            if (specific) {
+                ensureServicesSelect2($row);
+            } else {
+                const $svc = $row.find('[data-survey-coverage-services]');
+                $svc.val(null);
+                if ($svc.hasClass('select2-hidden-accessible')) { $svc.trigger('change.select2'); }
+                else { $svc.find('option:selected').prop('selected', false); }
+            }
+        }
+
         function bindCoverageRow(row) {
             const $row = $(row);
             const $province = $row.find('[data-survey-coverage-field="province_code"]');
             const $regency = $row.find('[data-survey-coverage-field="regency_code"]');
             [$province, $regency].forEach((select) => initSelect2(select));
+
+            $row.find('[data-survey-coverage-scope]').on('change', function () { applyCoverageScope($row); });
+            applyCoverageScope($row);
             const initialProvince = $province.val();
             const initialRegency = $regency.val();
 
@@ -432,7 +481,10 @@
                     const $field = $(this);
                     const name = $field.data('manual-transfer-field') ?? $field.data('survey-coverage-field');
                     if (!name) return;
-                    $field.attr('name', `${$container.attr('id') === 'manual-transfer-list' ? 'manual_transfers' : 'survey_coverage_rules'}[${index}][${name}]`);
+                    const prefix = $container.attr('id') === 'manual-transfer-list' ? 'manual_transfers' : 'survey_coverage_rules';
+                    // Multiple select (mis. service_ids) harus berakhiran [] agar diterima sebagai array di PHP.
+                    const suffix = $field.is('select[multiple]') ? '[]' : '';
+                    $field.attr('name', `${prefix}[${index}][${name}]${suffix}`);
                 });
                 const $index = $row.find(indexSelector);
                 if ($index.length) { $index.text(`#${index + 1}`); }

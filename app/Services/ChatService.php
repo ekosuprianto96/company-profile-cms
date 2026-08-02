@@ -75,6 +75,35 @@ class ChatService
         });
     }
 
+    /**
+     * Admin memulai/membuka percakapan: berdasarkan pengajuan (service request)
+     * bila ada, jika tidak berdasarkan pelanggan (chat umum). Selalu me-resolve
+     * conversation yang SAMA dengan yang dilihat pelanggan (findOrCreate per SR).
+     */
+    public function startForAdmin(?int $serviceRequestId, ?int $mobileUserId = null): ChatConversation
+    {
+        if ($serviceRequestId) {
+            // Relasi pemilik pengajuan di MobileServiceRequest bernama `user`.
+            $serviceRequest = MobileServiceRequest::query()->with('user')->find($serviceRequestId);
+            if (! $serviceRequest || ! $serviceRequest->user) {
+                throw new \Exception('Pengajuan atau pelanggan tidak ditemukan.', 404);
+            }
+
+            return $this->findOrCreateConversation($serviceRequest->user, $serviceRequest->id);
+        }
+
+        if ($mobileUserId) {
+            $mobileUser = MobileUser::query()->find($mobileUserId);
+            if (! $mobileUser) {
+                throw new \Exception('Pelanggan tidak ditemukan.', 404);
+            }
+
+            return $this->findOrCreateConversation($mobileUser, null);
+        }
+
+        throw new \Exception('service_request_id atau mobile_user_id wajib diisi.', 422);
+    }
+
     public function listForAdmin(?string $keyword = null): Collection
     {
         return ChatConversation::query()
@@ -274,6 +303,7 @@ class ChatService
                 'name' => $conversation->mobileUser?->name,
                 'email' => $conversation->mobileUser?->email,
                 'phone' => $conversation->mobileUser?->phone,
+                'avatar_url' => $conversation->mobileUser?->avatar_url,
             ],
             'assigned_admin_user_id' => $conversation->assigned_admin_user_id,
             'assigned_admin_name' => $conversation->assignedAdmin?->name,

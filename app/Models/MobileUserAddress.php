@@ -13,6 +13,7 @@ class MobileUserAddress extends Model
         'recipient_name',
         'recipient_phone',
         'address',
+        'address_detail',
         'province',
         'regency',
         'district',

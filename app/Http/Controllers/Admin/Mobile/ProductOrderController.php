@@ -80,6 +80,17 @@ class ProductOrderController extends Controller
         ]);
     }
 
+    /** Buka/buat percakapan dengan pelanggan order (pakai SR terkait bila ada). */
+    public function chatUser(int $id)
+    {
+        $order = $this->service->find($id);
+
+        return redirect()->route('admin.mobile.live_chat', array_filter([
+            'user_id' => $order->mobile_user_id,
+            'service_request_id' => $order->service_request_id,
+        ]));
+    }
+
     /** Invoice PDF: inline (preview/cetak) atau attachment (unduh). */
     public function invoice(Request $request, int $id)
     {

@@ -26,6 +26,7 @@
                       <th>No Telp</th>
                       <th>No KTP</th>
                       <th>No NIP</th>
+                      <th>Akses Mobile</th>
                       <th class="text-center">Action</th>
                     </tr>
                   </thead>
@@ -57,6 +58,7 @@
                 {data: 'no_telp', name: 'no_telp', search: true},
                 {data: 'no_ktp', name: 'no_ktp'},
                 {data: 'nip', name: 'nip', search: true},
+                {data: 'mobile_access', name: 'mobile_access', orderable: false, searchable: false},
                 {data: 'action', name: 'action'}
             ]
         });
@@ -109,6 +111,71 @@
             .done(resolve)
             .fail(reject)
         })
+    }
+
+    function copyCredential(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            $.toast({ heading: 'Disalin', text: 'Credential key disalin ke clipboard.', showHideTransition: 'plain', position: 'top-right', icon: 'success' });
+        });
+    }
+
+    function showCredential(key) {
+        Swal.fire({
+            title: 'Credential Key',
+            html: '<p class="mb-2 text-muted">Berikan credential ini ke admin terkait untuk login aplikasi.</p>' +
+                  '<code style="font-size:18px;letter-spacing:1px;background:#eef5f4;color:#275a56;padding:10px 16px;border-radius:10px;display:inline-block;">' + key + '</code>',
+            icon: 'success',
+            confirmButtonText: 'Salin & Tutup',
+            confirmButtonColor: '#275a56',
+        }).then(() => { if (key) copyCredential(key); });
+    }
+
+    function toggleMobileAccess(id, grant) {
+        Swal.fire({
+            title: grant ? 'Beri akses aplikasi admin?' : 'Cabut akses aplikasi admin?',
+            text: grant ? 'Credential key akan dibuat otomatis bila belum ada.' : 'Sesi login aplikasi admin akan dicabut.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: grant ? '#275a56' : '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: grant ? 'Ya, beri akses' : 'Ya, cabut'
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+            $.post('{{ url("admin/pengguna") }}/' + id + '/mobile-access', { _token: '{{ csrf_token() }}' })
+                .done(function (response) {
+                    $table.ajax.reload();
+                    if (response.mobile_admin_access && response.credential_key) {
+                        showCredential(response.credential_key);
+                    } else {
+                        $.toast({ heading: 'Sukses', text: response.message, showHideTransition: 'plain', position: 'top-right', icon: 'success' });
+                    }
+                })
+                .fail(function (error) {
+                    $.toast({ heading: 'Warning', text: (error.responseJSON || {}).message || 'Gagal.', showHideTransition: 'slide', position: 'top-right', icon: 'warning' });
+                });
+        });
+    }
+
+    function regenerateCredential(id) {
+        Swal.fire({
+            title: 'Generate ulang credential?',
+            text: 'Credential lama tidak berlaku lagi & sesi login dicabut.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#275a56',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, generate ulang'
+        }).then((result) => {
+            if (!result.isConfirmed) return;
+            $.post('{{ url("admin/pengguna") }}/' + id + '/regenerate-credential', { _token: '{{ csrf_token() }}' })
+                .done(function (response) {
+                    $table.ajax.reload();
+                    showCredential(response.credential_key);
+                })
+                .fail(function (error) {
+                    $.toast({ heading: 'Warning', text: (error.responseJSON || {}).message || 'Gagal.', showHideTransition: 'slide', position: 'top-right', icon: 'warning' });
+                });
+        });
     }
 </script>
 @endsection

@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 class ProductOrderAdminService
 {
     protected array $labels = [
-        'pending' => 'Menunggu',
+        'menunggu_pembayaran' => 'Menunggu bayar',
         'diproses' => 'Diproses',
         'dikemas' => 'Dikemas',
         'dikirim' => 'Dikirim',

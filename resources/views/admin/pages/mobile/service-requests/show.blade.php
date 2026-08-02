@@ -181,6 +181,9 @@
                     <div class="col-md-8">
                         <div class="k">{{ $isEventProject ? 'Lokasi Meeting' : 'Lokasi Survei' }}</div>
                         <div class="v">{{ trim(($sr->survey_address ?: '') . ($regionLabel ? ' — ' . $regionLabel : '')) ?: '-' }}</div>
+                        @if ($sr->survey_address_detail)
+                            <div class="v"><span class="text-muted">Detail:</span> {{ $sr->survey_address_detail }}</div>
+                        @endif
                         @if ($hasCoord)
                             <a href="https://www.google.com/maps?q={{ $sr->survey_latitude }},{{ $sr->survey_longitude }}" target="_blank" class="small text-primary"><i class="ri-map-pin-line"></i> Buka di Google Maps</a>
                         @endif

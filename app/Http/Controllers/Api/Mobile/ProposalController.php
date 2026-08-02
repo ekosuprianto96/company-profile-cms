@@ -72,11 +72,14 @@ class ProposalController extends ApiController
     {
         try {
             $request->validate([
-                'file' => ['required', 'file', 'max:20480'],
+                // Allowlist MIME: cegah upload .svg/.html (stored XSS) atau .php (RCE).
+                'file' => ['required', 'file', 'max:20480', 'mimes:jpg,jpeg,png,webp,pdf,doc,docx,xls,xlsx'],
             ]);
 
             $file = $request->file('file');
-            $name = Str::uuid() . '.' . $file->getClientOriginalExtension();
+            // Ekstensi diturunkan dari MIME asli, bukan dari nama file klien.
+            $ext = $file->extension() ?: $file->getClientOriginalExtension();
+            $name = Str::uuid() . '.' . $ext;
             $path = $file->storeAs('proposals', $name, 'public');
 
             return $this->success([

@@ -18,7 +18,6 @@ class DashboardController extends Controller
 
     public function index(AnalitycVisitorChart $chart)
     {
-        dd($chart->build());
         return $this->view('index', ['chart' => $chart->build()]);
     }
 }

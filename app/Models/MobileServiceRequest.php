@@ -26,6 +26,7 @@ class MobileServiceRequest extends Model
         'description',
         'issue_photos',
         'survey_address',
+        'survey_address_detail',
         'survey_region',
         'survey_latitude',
         'survey_longitude',

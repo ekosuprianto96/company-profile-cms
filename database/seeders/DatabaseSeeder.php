@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             VoucherTermsSeeder::class,
             FormPermissionSeeder::class,
             FormSeeder::class,
+            NotificationTemplateSeeder::class,
         ]);
     }
 }

@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\Menus\MenuController;
 use App\Http\Controllers\Admin\Pages\PageController;
 use App\Http\Controllers\Admin\Roles\RoleController;
 use App\Http\Controllers\Admin\SectionPageController;
+use App\Http\Controllers\Admin\System\SystemMonitorController;
 use App\Http\Controllers\Admin\Groups\GroupController;
 use App\Http\Controllers\Admin\Themes\ThemeController;
 use App\Http\Controllers\Admin\Auth\PenggunaController;
@@ -69,7 +70,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', function (
         AnalitycVisitorChart $chart,
         BlogService $blog,
-        EmailMessageService $message
+        EmailMessageService $message,
+        \App\Services\System\ServerMetricsService $serverMetrics
     ) {
         $countPost = $blog->getCount();
         $userCount = User::count();
@@ -83,9 +85,30 @@ Route::middleware(['auth'])->group(function () {
             'countPost' => $countPost,
             'userCount' => $userCount,
             'unreadMessages' => $unreadMessages,
-            'visitorCount' => $visitorCount
+            'visitorCount' => $visitorCount,
+            'serverMetrics' => $serverMetrics->all(),
         ]);
     })->name('dashboard');
+
+    // Monitoring sistem: job/queue, cron schedule, kondisi server. Khusus superadmin.
+    Route::prefix('system/')->name('system.')->middleware('superadmin')
+        ->group(function () {
+            Route::get('jobs', [SystemMonitorController::class, 'jobs'])->name('jobs');
+            Route::get('schedule', [SystemMonitorController::class, 'schedule'])->name('schedule');
+            Route::get('metrics', [SystemMonitorController::class, 'serverMetrics'])->name('metrics');
+
+            Route::post('jobs/{uuid}/retry', [SystemMonitorController::class, 'retry'])->name('jobs.retry');
+            Route::post('jobs/retry-all', [SystemMonitorController::class, 'retryAll'])->name('jobs.retry_all');
+            Route::delete('jobs/{uuid}/forget', [SystemMonitorController::class, 'forget'])->name('jobs.forget');
+            Route::delete('jobs/flush', [SystemMonitorController::class, 'flush'])->name('jobs.flush');
+            Route::delete('pending/{id}/stop', [SystemMonitorController::class, 'stopPending'])->name('pending.stop');
+            Route::delete('pending/purge', [SystemMonitorController::class, 'purgePending'])->name('pending.purge');
+            Route::post('schedule/run', [SystemMonitorController::class, 'runTask'])->name('schedule.run');
+        });
+
+    // Panduan / log book admin (PDF)
+    Route::get('panduan/preview', [\App\Http\Controllers\Admin\AdminGuideController::class, 'preview'])->name('guide.preview');
+    Route::get('panduan/download', [\App\Http\Controllers\Admin\AdminGuideController::class, 'download'])->name('guide.download');
 
     Route::prefix('modules/')->name('modules.')->group(function () {
         Route::get('', [ModuleController::class, 'index'])->name('index')->middleware('permission:module:show');
@@ -194,6 +217,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/edit/{id}', [PenggunaController::class, 'edit'])->name('edit')->middleware('permission:pengguna:edit');
         Route::post('/store', [PenggunaController::class, 'storePengguna'])->name('store')->middleware('permission:pengguna:store');
         Route::post('/update/{user_id}', [PenggunaController::class, 'updatePengguna'])->name('update')->middleware('permission:pengguna:update');
+        Route::post('/{id}/mobile-access', [PenggunaController::class, 'toggleMobileAccess'])->name('mobile_access')->middleware('permission:pengguna:update');
+        Route::post('/{id}/regenerate-credential', [PenggunaController::class, 'regenerateCredential'])->name('regenerate_credential')->middleware('permission:pengguna:update');
         Route::get('/data', [PenggunaController::class, 'data'])->name('data');
         Route::post('/destroy', [PenggunaController::class, 'destroy'])->name('destroy')->middleware('permission:pengguna:destroy');
     });
@@ -203,6 +228,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('', [ProfileController::class, 'index'])->name('index');
         Route::post('/update', [ProfileController::class, 'update'])->name('update');
         Route::post('/upload-avatar', [ProfileController::class, 'uploadAvatar'])->name('upload-avatar');
+        Route::post('/generate-credential', [ProfileController::class, 'generateCredential'])->name('generate-credential');
     });
 
     Route::prefix('page-editor')->name('page-editor.')->group(function () {
@@ -282,6 +308,17 @@ Route::middleware(['auth'])->group(function () {
         Route::post('vouchers/store', [VoucherController::class, 'store'])->name('vouchers.store')->middleware('permission:voucher:create');
         Route::post('vouchers/update/{id}', [VoucherController::class, 'update'])->whereNumber('id')->name('vouchers.update')->middleware('permission:voucher:update');
         Route::post('vouchers/destroy', [VoucherController::class, 'destroy'])->name('vouchers.destroy')->middleware('permission:voucher:destroy');
+
+        // Template notifikasi (email / push / in-app)
+        Route::get('notification-templates', [\App\Http\Controllers\Admin\Mobile\NotificationTemplateController::class, 'index'])->name('notification_templates');
+        Route::get('notification-templates/create', [\App\Http\Controllers\Admin\Mobile\NotificationTemplateController::class, 'create'])->name('notification_templates.create');
+        Route::post('notification-templates', [\App\Http\Controllers\Admin\Mobile\NotificationTemplateController::class, 'store'])->name('notification_templates.store');
+        Route::post('notification-templates/{id}/delete', [\App\Http\Controllers\Admin\Mobile\NotificationTemplateController::class, 'destroy'])->whereNumber('id')->name('notification_templates.destroy');
+        Route::get('notification-templates/{id}/edit', [\App\Http\Controllers\Admin\Mobile\NotificationTemplateController::class, 'edit'])->whereNumber('id')->name('notification_templates.edit');
+        Route::post('notification-templates/{id}', [\App\Http\Controllers\Admin\Mobile\NotificationTemplateController::class, 'update'])->whereNumber('id')->name('notification_templates.update');
+        Route::post('notification-templates/preview', [\App\Http\Controllers\Admin\Mobile\NotificationTemplateController::class, 'preview'])->name('notification_templates.preview');
+        Route::post('notification-templates/{id}/reset', [\App\Http\Controllers\Admin\Mobile\NotificationTemplateController::class, 'reset'])->whereNumber('id')->name('notification_templates.reset');
+        Route::post('notification-templates/{id}/duplicate', [\App\Http\Controllers\Admin\Mobile\NotificationTemplateController::class, 'duplicate'])->whereNumber('id')->name('notification_templates.duplicate');
 
         // Produk (CRUD) — permission-gated
         Route::get('products', [ProductController::class, 'index'])->name('products')->middleware('permission:product:show');
@@ -373,6 +410,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('product-orders/data', [ProductOrderController::class, 'data'])->name('product_orders.data')->middleware('permission:product-order:show');
         Route::post('product-orders/update/{id}', [ProductOrderController::class, 'update'])->whereNumber('id')->name('product_orders.update')->middleware('permission:product-order:update');
         Route::get('product-orders/{id}', [ProductOrderController::class, 'show'])->whereNumber('id')->name('product_orders.show')->middleware('permission:product-order:show');
+        Route::get('product-orders/{id}/chat-user', [ProductOrderController::class, 'chatUser'])->whereNumber('id')->name('product_orders.chat_user')->middleware('permission:product-order:show');
         Route::get('product-orders/{id}/invoice', [ProductOrderController::class, 'invoice'])->whereNumber('id')->name('product_orders.invoice')->middleware('permission:product-order:show');
         Route::get('product-orders-export/excel', [ProductOrderController::class, 'exportExcel'])->name('product_orders.export_excel')->middleware('permission:product-order:show');
         Route::get('product-orders-export/pdf', [ProductOrderController::class, 'exportPdf'])->name('product_orders.export_pdf')->middleware('permission:product-order:show');
