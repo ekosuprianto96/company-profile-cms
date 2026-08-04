@@ -98,7 +98,12 @@ class NotificationTemplateController extends Controller
         $eventLabel = $event['label'] ?? $template->event_key;
         $hasDefault = isset($event['templates'][$template->channel . ':' . $template->audience]);
 
-        return $this->view('edit', compact('template', 'variables', 'eventLabel', 'hasDefault'));
+        // Desain email (Email Builder) hanya relevan untuk channel email.
+        $emailDesigns = $template->channel === 'email'
+            ? \App\Models\EmailDesign::active()->orderBy('category')->orderBy('name')->get(['id', 'name', 'category'])
+            : collect();
+
+        return $this->view('edit', compact('template', 'variables', 'eventLabel', 'hasDefault', 'emailDesigns'));
     }
 
     public function update(Request $request, int $id)
@@ -109,12 +114,15 @@ class NotificationTemplateController extends Controller
             'name' => ['required', 'string', 'max:150'],
             'subject' => ['nullable', 'string', 'max:255'],
             'body' => ['required', 'string'],
+            'email_design_id' => ['nullable', 'exists:email_designs,id'],
         ]);
 
         $template->update([
             'name' => $data['name'],
             'subject' => $data['subject'] ?? '',
             'body' => $data['body'],
+            // Desain hanya berlaku untuk channel email.
+            'email_design_id' => $template->channel === 'email' ? ($data['email_design_id'] ?? null) : null,
             'is_active' => $request->boolean('is_active'),
         ]);
 
@@ -131,14 +139,29 @@ class NotificationTemplateController extends Controller
             'channel' => ['nullable', 'string'],
             'subject' => ['nullable', 'string'],
             'body' => ['nullable', 'string'],
+            'email_design_id' => ['nullable', 'exists:email_designs,id'],
         ]);
 
         $ctx = $this->service->sampleContext($data['event_key']);
         $plain = in_array($data['channel'] ?? '', ['push', 'in_app'], true);
 
+        $body = $this->service->renderText((string) ($data['body'] ?? ''), $ctx, $plain);
+
+        // Email: konversi markdown → HTML + (opsional) bungkus ke desain terpilih.
+        if (! $plain && ($data['channel'] ?? '') === 'email') {
+            $body = $this->service->markdownToHtml($body);
+
+            if (! empty($data['email_design_id'])) {
+                $design = \App\Models\EmailDesign::active()->find($data['email_design_id']);
+                if ($design && $design->html) {
+                    $body = $this->service->applyDesign((string) $design->html, array_merge($ctx, ['body' => $body]));
+                }
+            }
+        }
+
         return response()->json([
             'subject' => $this->service->renderText((string) ($data['subject'] ?? ''), $ctx),
-            'body' => $this->service->renderText((string) ($data['body'] ?? ''), $ctx, $plain),
+            'body' => $body,
             'plain' => $plain,
         ]);
     }

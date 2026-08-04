@@ -53,7 +53,7 @@
         <div class="card stat-card">
             <div class="card-body d-flex align-items-center" style="gap:1rem">
                 <div class="stat-ico" style="background:#fff1e9;color:#ff7a45"><i class="ri-mail-unread-line"></i></div>
-                <div><div class="stat-num">{{ number_format($unreadMessages->count()) }}</div><div class="stat-label">Pesan Belum Dibaca</div></div>
+                <div><div class="stat-num">{{ number_format($unreadCount ?? $unreadMessages->count()) }}</div><div class="stat-label">Pesan Belum Dibaca</div></div>
             </div>
         </div>
     </div>
@@ -81,7 +81,13 @@
     <div class="col-lg-4 grid-margin stretch-card">
         <div class="card card-rounded">
             <div class="card-body">
-                <h6 class="section-title mb-3">Pesan Belum Dibaca</h6>
+                @php($unreadTotal = $unreadCount ?? $unreadMessages->count())
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h6 class="section-title mb-0">Pesan Belum Dibaca</h6>
+                    @if($unreadTotal > 0)
+                        <a href="{{ route('admin.email.index') }}" class="small text-decoration-none">Lihat semua ({{ number_format($unreadTotal) }})</a>
+                    @endif
+                </div>
                 @if($unreadMessages->count() > 0)
                     @foreach($unreadMessages as $value)
                         <a href="{{ route('admin.email.show', $value->id) }}" style="text-decoration:none"
@@ -93,6 +99,13 @@
                             <small class="text-muted">{{ $value->created_at->diffForHumans() }}</small>
                         </a>
                     @endforeach
+                    @if($unreadTotal > $unreadMessages->count())
+                        <div class="text-center pt-3">
+                            <a href="{{ route('admin.email.index') }}" class="btn btn-sm btn-outline-secondary">
+                                +{{ number_format($unreadTotal - $unreadMessages->count()) }} pesan lainnya
+                            </a>
+                        </div>
+                    @endif
                 @else
                     <div class="text-center text-muted py-5">
                         <i class="ri-mail-check-line" style="font-size:38px;opacity:.4"></i>

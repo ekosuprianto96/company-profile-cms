@@ -11,7 +11,7 @@ use Illuminate\Queue\SerializesModels;
 
 class ContactFormMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, SerializesModels, \App\Mail\Concerns\BuildsTemplatedEmail;
 
     protected ?array $renderedCache = null;
 
@@ -34,10 +34,7 @@ class ContactFormMail extends Mailable
     {
         $rendered = $this->rendered();
 
-        return new Content(
-            view: 'emails.templated',
-            with: ['headline' => $rendered['subject'], 'body' => $rendered['body']],
-        );
+        return $this->templatedContent($rendered);
     }
 
     protected function rendered(): array

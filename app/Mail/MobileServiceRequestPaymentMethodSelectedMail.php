@@ -12,7 +12,7 @@ use Illuminate\Queue\SerializesModels;
 
 class MobileServiceRequestPaymentMethodSelectedMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, SerializesModels, \App\Mail\Concerns\BuildsTemplatedEmail;
 
     protected ?array $renderedCache = null;
 
@@ -29,10 +29,7 @@ class MobileServiceRequestPaymentMethodSelectedMail extends Mailable
     {
         $rendered = $this->rendered();
 
-        return new Content(
-            view: 'emails.templated',
-            with: ['headline' => $rendered['subject'], 'body' => $rendered['body']],
-        );
+        return $this->templatedContent($rendered);
     }
 
     protected function rendered(): array

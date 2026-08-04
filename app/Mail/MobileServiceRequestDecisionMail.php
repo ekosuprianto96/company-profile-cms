@@ -12,7 +12,7 @@ use Illuminate\Queue\SerializesModels;
 
 class MobileServiceRequestDecisionMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, SerializesModels, \App\Mail\Concerns\BuildsTemplatedEmail;
 
     /** @var array{subject:string,body:string}|null */
     protected ?array $renderedCache = null;
@@ -32,10 +32,7 @@ class MobileServiceRequestDecisionMail extends Mailable
     {
         $rendered = $this->rendered();
 
-        return new Content(
-            view: 'emails.templated',
-            with: ['headline' => $rendered['subject'], 'body' => $rendered['body']],
-        );
+        return $this->templatedContent($rendered);
     }
 
     /** Render subjek + isi dari template notifikasi (event sesuai keputusan). */

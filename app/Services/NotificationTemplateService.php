@@ -27,6 +27,28 @@ class NotificationTemplateService
         // Push / in-app / SMS = teks polos: buang HTML (editor boleh kaya, hasil bersih).
         if (in_array($channel, ['push', 'in_app', 'sms'], true)) {
             $body = $this->toPlainText($body);
+
+            return ['subject' => $subject, 'body' => $body];
+        }
+
+        // Email: editor menyimpan body sebagai markdown → konversi ke HTML agar
+        // simbol seperti ## / ** tidak tampil mentah di email.
+        if ($channel === 'email') {
+            $body = $this->markdownToHtml($body);
+            $plain = $this->toPlainText($body); // versi teks (deliverability/anti-spam)
+
+            // Desain terpilih: bungkus body ke dalam desain ({{ body }} diganti).
+            if (! empty($template['email_design_id'])) {
+                $design = \App\Models\EmailDesign::active()->find($template['email_design_id']);
+                if ($design && $design->html) {
+                    $full = $this->applyDesign((string) $design->html, array_merge($vars, ['body' => $body]));
+                    $full = $this->injectPreheader($full, $this->substitute((string) $design->preheader, $vars));
+
+                    return ['subject' => $subject, 'body' => $body, 'html' => $full, 'plain' => $plain];
+                }
+            }
+
+            return ['subject' => $subject, 'body' => $body, 'plain' => $plain];
         }
 
         return ['subject' => $subject, 'body' => $body];
@@ -38,6 +60,50 @@ class NotificationTemplateService
         $out = $this->substitute($text, array_merge($this->globalContext(), $context));
 
         return $plain ? $this->toPlainText($out) : $out;
+    }
+
+    /**
+     * Terapkan konteks ke HTML desain email: {{ body }} diganti isi pesan, sisanya
+     * (app_name, recipient_name, dsb) disubstitusi. Dipakai email builder & channel email.
+     */
+    public function applyDesign(string $designHtml, array $context = []): string
+    {
+        return $this->substitute($designHtml, array_merge($this->globalContext(), $context));
+    }
+
+    /**
+     * Konversi teks editor (markdown dari CKEditor) → HTML. Aman untuk input yang
+     * sudah HTML (dibiarkan lewat). Dipakai untuk body channel email.
+     */
+    public function markdownToHtml(string $text): string
+    {
+        $text = trim($text);
+        if ($text === '') {
+            return '';
+        }
+
+        return \Illuminate\Support\Str::markdown($text, [
+            'html_input' => 'allow',
+            'allow_unsafe_links' => true,
+        ]);
+    }
+
+    /** Sisipkan preheader (teks pratinjau inbox) tersembunyi tepat setelah <body>. */
+    public function injectPreheader(string $html, string $preheader): string
+    {
+        $preheader = trim($preheader);
+        if ($preheader === '') {
+            return $html;
+        }
+
+        $hidden = '<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#ffffff;opacity:0;">'
+            . e($preheader) . '</div>';
+
+        if (preg_match('/<body[^>]*>/i', $html)) {
+            return preg_replace('/(<body[^>]*>)/i', '$1' . $hidden, $html, 1) ?? ($hidden . $html);
+        }
+
+        return $hidden . $html;
     }
 
     /** HTML dari CKEditor → teks polos rapi (untuk push/in-app). */
@@ -81,7 +147,7 @@ class NotificationTemplateService
             ->first();
 
         if ($row) {
-            return ['subject' => $row->subject, 'body' => $row->body];
+            return ['subject' => $row->subject, 'body' => $row->body, 'email_design_id' => $row->email_design_id];
         }
 
         $events = NotificationCatalog::events();

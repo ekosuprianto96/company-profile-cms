@@ -76,15 +76,19 @@ Route::middleware(['auth'])->group(function () {
         $countPost = $blog->getCount();
         $userCount = User::count();
         $visitorCount = Visitor::count();
-        $unreadMessages = $message->getAllMessage(function ($query) {
+        $unread = $message->getAllMessage(function ($query) {
             return $query->where('is_read', 0);
         });
+        $unreadCount = $unread->count();
+        // Tampilkan maksimal 8 di dashboard; sisanya lewat menu Pesan Email.
+        $unreadMessages = $unread->take(8);
 
         return view('admin.pages.dashboard.index', [
             'chart' => $chart->build(),
             'countPost' => $countPost,
             'userCount' => $userCount,
             'unreadMessages' => $unreadMessages,
+            'unreadCount' => $unreadCount,
             'visitorCount' => $visitorCount,
             'serverMetrics' => $serverMetrics->all(),
         ]);
@@ -319,6 +323,22 @@ Route::middleware(['auth'])->group(function () {
         Route::post('notification-templates/preview', [\App\Http\Controllers\Admin\Mobile\NotificationTemplateController::class, 'preview'])->name('notification_templates.preview');
         Route::post('notification-templates/{id}/reset', [\App\Http\Controllers\Admin\Mobile\NotificationTemplateController::class, 'reset'])->whereNumber('id')->name('notification_templates.reset');
         Route::post('notification-templates/{id}/duplicate', [\App\Http\Controllers\Admin\Mobile\NotificationTemplateController::class, 'duplicate'])->whereNumber('id')->name('notification_templates.duplicate');
+
+        // Email Builder (pustaka desain email)
+        Route::get('email-designs', [\App\Http\Controllers\Admin\Mobile\EmailDesignController::class, 'index'])->name('email_designs');
+        Route::post('email-designs', [\App\Http\Controllers\Admin\Mobile\EmailDesignController::class, 'store'])->name('email_designs.store');
+        Route::get('email-designs/{id}/builder', [\App\Http\Controllers\Admin\Mobile\EmailDesignController::class, 'builder'])->whereNumber('id')->name('email_designs.builder');
+        Route::post('email-designs/{id}/save', [\App\Http\Controllers\Admin\Mobile\EmailDesignController::class, 'save'])->whereNumber('id')->name('email_designs.save');
+        Route::post('email-designs/{id}/update', [\App\Http\Controllers\Admin\Mobile\EmailDesignController::class, 'update'])->whereNumber('id')->name('email_designs.update');
+        Route::post('email-designs/{id}/duplicate', [\App\Http\Controllers\Admin\Mobile\EmailDesignController::class, 'duplicate'])->whereNumber('id')->name('email_designs.duplicate');
+        Route::post('email-designs/destroy', [\App\Http\Controllers\Admin\Mobile\EmailDesignController::class, 'destroy'])->name('email_designs.destroy');
+        Route::get('email-designs/{id}/preview', [\App\Http\Controllers\Admin\Mobile\EmailDesignController::class, 'preview'])->whereNumber('id')->name('email_designs.preview');
+        Route::post('email-designs/upload', [\App\Http\Controllers\Admin\Mobile\EmailDesignController::class, 'upload'])->name('email_designs.upload');
+        Route::post('email-designs/schemes', [\App\Http\Controllers\Admin\Mobile\EmailDesignController::class, 'storeScheme'])->name('email_designs.schemes.store');
+        Route::post('email-designs/schemes/destroy', [\App\Http\Controllers\Admin\Mobile\EmailDesignController::class, 'destroyScheme'])->name('email_designs.schemes.destroy');
+        Route::post('email-designs/{id}/test', [\App\Http\Controllers\Admin\Mobile\EmailDesignController::class, 'testSend'])->whereNumber('id')->name('email_designs.test');
+        Route::post('email-designs/blocks', [\App\Http\Controllers\Admin\Mobile\EmailDesignController::class, 'storeBlock'])->name('email_designs.blocks.store');
+        Route::post('email-designs/blocks/destroy', [\App\Http\Controllers\Admin\Mobile\EmailDesignController::class, 'destroyBlock'])->name('email_designs.blocks.destroy');
 
         // Produk (CRUD) — permission-gated
         Route::get('products', [ProductController::class, 'index'])->name('products')->middleware('permission:product:show');

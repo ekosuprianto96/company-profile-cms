@@ -710,6 +710,12 @@ class MobileController extends Controller
                 'description' => 'Template teks email, push, dan in-app + variabel dinamis.',
             ],
             [
+                'title' => 'Email Builder',
+                'route' => route('admin.mobile.email_designs'),
+                'icon' => 'ri-mail-star-line',
+                'description' => 'Rancang desain email visual (drag & drop) untuk channel email.',
+            ],
+            [
                 'title' => 'Inspire',
                 'route' => route('admin.mobile.inspirasi.index'),
                 'icon' => 'ri-article-line',

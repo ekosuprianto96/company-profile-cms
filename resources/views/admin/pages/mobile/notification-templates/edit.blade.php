@@ -65,6 +65,19 @@
                     @endunless
                 </div>
 
+                @if ($isEmail)
+                    <div class="form-group mb-3">
+                        <label class="form-label"><i class="ri-mail-star-line me-1"></i> Desain Email <span class="text-muted">(Email Builder)</span></label>
+                        <select name="email_design_id" id="field-email-design" class="form-select">
+                            <option value="">— Tanpa desain (layout bawaan) —</option>
+                            @foreach ($emailDesigns as $d)
+                                <option value="{{ $d->id }}" @selected(old('email_design_id', $template->email_design_id) == $d->id)>{{ $d->name }}{{ $d->category ? ' · ' . $d->category : '' }}</option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">Isi pesan di atas akan disisipkan ke blok <code>@{{ body }}</code> desain. Kosongkan untuk memakai layout email bawaan. <a href="{{ route('admin.mobile.email_designs') }}" target="_blank">Kelola desain →</a></small>
+                    </div>
+                @endif
+
                 <div class="mb-3 d-flex align-items-center" style="gap:10px;">
                     <div class="form-check form-switch m-0" style="padding-left:2.75em; min-height:1.5rem;">
                         <input type="checkbox" name="is_active" id="is_active" class="form-check-input" value="1"
@@ -189,7 +202,7 @@
         fetch(PREVIEW_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-            body: JSON.stringify({ event_key: EVENT_KEY, channel: CHANNEL, subject: subjectEl.value, body: currentBody() }),
+            body: JSON.stringify({ event_key: EVENT_KEY, channel: CHANNEL, subject: subjectEl.value, body: currentBody(), email_design_id: (document.getElementById('field-email-design') || {}).value || null }),
         })
         .then((r) => r.json())
         .then((data) => {

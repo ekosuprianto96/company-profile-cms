@@ -20,6 +20,7 @@ class NotificationTemplate extends Model
         'name',
         'subject',
         'body',
+        'email_design_id',
         'is_active',
         'is_default',
     ];

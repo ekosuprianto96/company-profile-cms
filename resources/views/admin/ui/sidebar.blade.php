@@ -29,6 +29,7 @@
           <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.home_layout') }}">Home Layout</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.notifications') }}">Notifications</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.notification_templates') }}">Template Notifikasi</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.email_designs') }}">Email Builder</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.live_chat') }}">Live Chat</a></li>
         </ul>
       </div>
