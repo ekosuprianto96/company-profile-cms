@@ -22,7 +22,7 @@ class ZenzivaSmsService
             throw new \Exception('Kredensial Zenziva (userkey/passkey/base_url) belum diatur.', 500);
         }
 
-        $response = Http::asForm()->post($baseUrl, [
+        $response = Http::asForm()->connectTimeout(5)->timeout(10)->post($baseUrl, [
             'userkey' => $userkey,
             'passkey' => $passkey,
             'to' => $this->normalizePhone($phone),

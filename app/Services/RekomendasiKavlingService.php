@@ -120,7 +120,8 @@ class RekomendasiKavlingService
     }
 
     public function getAll() {
-        return $this->rekomendasiKavlingRepository->getAll();
+        // Eager-load relasi kolom DataTables → hindari N+1.
+        return \App\Models\RekomendasiKavling::with(['createdBy.account', 'updatedBy.account'])->latest()->get();
     }
 
     public function findKavling($id) {

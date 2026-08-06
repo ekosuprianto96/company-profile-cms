@@ -26,6 +26,16 @@ class ProposalController extends ApiController
             ]);
 
             $service = MobileService::where('is_active', true)->findOrFail($validated['mobile_service_id']);
+
+            // Enforcement server-side: tolak bila penerimaan pengajuan dihentikan admin
+            // (tombol kirim di app hanya UI; klien basi/nakal tetap diblokir di sini).
+            if ($service->submissions_paused) {
+                return $this->error(
+                    $service->submissions_paused_note ?: 'Penerimaan pengajuan untuk layanan ini sedang ditutup sementara.',
+                    422
+                );
+            }
+
             $proposal = $this->proposals->submit($request->user(), $service, $validated['answers']);
 
             return $this->success(['proposal' => $this->payload($proposal)], 'Pengajuan berhasil dikirim.');
@@ -47,6 +57,7 @@ class ProposalController extends ApiController
         $proposals = Proposal::with(['service:id,title,slug,icon', 'serviceRequest'])
             ->where('mobile_user_id', $request->user()->id)
             ->latest()
+            ->limit(100) // batasi riwayat per-user
             ->get();
 
         return $this->success([

@@ -23,7 +23,16 @@ class MobileServiceController extends ApiController
             }
 
             return $this->success([
-                'service' => ['id' => $service->id, 'title' => $service->title, 'slug' => $service->slug],
+                'service' => [
+                    'id' => $service->id,
+                    'title' => $service->title,
+                    'slug' => $service->slug,
+                    // Flag stop pengajuan: app menonaktifkan tombol kirim + tampilkan catatan.
+                    'submissions_paused' => (bool) $service->submissions_paused,
+                    'submissions_paused_note' => $service->submissions_paused
+                        ? ($service->submissions_paused_note ?: 'Penerimaan pengajuan untuk layanan ini sedang ditutup sementara.')
+                        : null,
+                ],
                 // Layanan tanpa form dari builder memakai form standar generik,
                 // sehingga seluruh layanan aktif konsisten lewat alur form dinamis.
                 'form' => $service->form

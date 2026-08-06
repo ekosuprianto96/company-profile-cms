@@ -154,6 +154,11 @@ Route::prefix('v1/admin')->group(function () {
         Route::post('chats/{id}/messages', [\App\Http\Controllers\Api\Admin\ChatController::class, 'send'])->whereNumber('id');
         Route::patch('chats/{id}/read', [\App\Http\Controllers\Api\Admin\ChatController::class, 'markRead'])->whereNumber('id');
 
+        // Services (kelola cepat + stop pengajuan)
+        Route::get('services', [\App\Http\Controllers\Api\Admin\ServiceController::class, 'index']);
+        Route::get('services/{id}', [\App\Http\Controllers\Api\Admin\ServiceController::class, 'show'])->whereNumber('id');
+        Route::patch('services/{id}', [\App\Http\Controllers\Api\Admin\ServiceController::class, 'update'])->whereNumber('id');
+
         // Customers
         Route::get('customers/{id}', [\App\Http\Controllers\Api\Admin\CustomerController::class, 'show'])->whereNumber('id');
         Route::post('customers/{id}/ban', [\App\Http\Controllers\Api\Admin\CustomerController::class, 'ban'])->whereNumber('id');

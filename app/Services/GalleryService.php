@@ -16,7 +16,8 @@ class GalleryService
 
     public function all()
     {
-        return $this->gallery->getAll();
+        // Eager-load relasi kolom DataTables → hindari N+1.
+        return \App\Models\Gallery::with(['createdBy.account', 'updatedBy.account'])->get();
     }
 
     public function findBySlug(string $slug)

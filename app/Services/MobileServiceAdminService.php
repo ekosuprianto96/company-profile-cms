@@ -154,6 +154,65 @@ class MobileServiceAdminService
             'is_popular' => (bool) ($payload['is_popular'] ?? true),
             'is_active' => (bool) ($payload['is_active'] ?? true),
             'is_coming_soon' => (bool) ($payload['is_coming_soon'] ?? false),
+        ] + $this->normalizePause($payload, $existing);
+    }
+
+    /**
+     * Update PARSIAL untuk app admin: hanya ubah field pengaturan cepat (status,
+     * visibilitas, stop pengajuan, info dasar, harga) tanpa menyentuh ikon/warna/form.
+     */
+    public function updateQuick(int $id, array $data): MobileService
+    {
+        $existing = $this->find($id);
+        $update = [];
+
+        foreach (['summary', 'description'] as $k) {
+            if (array_key_exists($k, $data)) {
+                $update[$k] = $data[$k];
+            }
+        }
+        foreach (['is_active', 'is_featured', 'is_popular', 'is_new', 'is_coming_soon'] as $k) {
+            if (array_key_exists($k, $data)) {
+                $update[$k] = (bool) $data[$k];
+            }
+        }
+
+        // Nama (opsional) → regenerasi slug bila berubah.
+        if (array_key_exists('title', $data)) {
+            $title = trim((string) $data['title']);
+            if ($title !== '' && $title !== $existing->title) {
+                $update['title'] = $title;
+                $update['slug'] = $this->generateUniqueSlug($title, $existing->id);
+            }
+        }
+
+        // Stop pengajuan + catatan + audit (reuse logika yang sama dengan web).
+        $update += $this->normalizePause($data, $existing);
+
+        $updated = $this->mobileServiceRepository->updateById($id, $update);
+
+        if (array_key_exists('price_items', $data)) {
+            $this->syncPriceItems($updated, $data['price_items'] ?? []);
+        }
+
+        return $updated->fresh(['priceItems']);
+    }
+
+    /** Flag stop pengajuan: simpan status+catatan, stamp audit saat transisi ke paused. */
+    private function normalizePause(array $payload, ?MobileService $existing): array
+    {
+        $wasPaused = (bool) ($existing?->submissions_paused ?? false);
+        $isPaused = array_key_exists('submissions_paused', $payload)
+            ? (bool) $payload['submissions_paused']
+            : $wasPaused;
+        $note = trim((string) ($payload['submissions_paused_note'] ?? $existing?->submissions_paused_note ?? ''));
+
+        return [
+            'submissions_paused' => $isPaused,
+            'submissions_paused_note' => $isPaused ? ($note ?: null) : ($note ?: null),
+            // Stamp waktu/pelaku hanya saat baru dihentikan; dibersihkan saat dibuka kembali.
+            'submissions_paused_at' => $isPaused ? ($wasPaused ? $existing?->submissions_paused_at : now()) : null,
+            'submissions_paused_by' => $isPaused ? ($wasPaused ? $existing?->submissions_paused_by : auth()->id()) : null,
         ];
     }
 

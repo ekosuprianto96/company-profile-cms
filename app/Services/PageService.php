@@ -258,10 +258,23 @@ class PageService
         }
 
         foreach (($this->config['sections'] ?? []) as $key => $section) {
+            // sections() bisa dipanggil lebih dari sekali per request. Setelah render,
+            // 'view' berisi objek View (HTML), bukan nama file → jangan proses ulang,
+            // kalau tidak file_exists dipanggil dgn path sepanjang HTML (path > 4096).
+            if (($section['view'] ?? null) instanceof \Illuminate\Contracts\View\View) {
+                continue;
+            }
+
             $modelClass = $section['collection']; // Pastikan nama class valid
             $checkView = is_array($section['view'])
-                ? $section['view']['file']
+                ? ($section['view']['file'] ?? '')
                 : $section['view'];
+
+            // Guard: nama view harus slug sederhana. Bila bukan (mis. sudah berisi
+            // HTML hasil render), lewati agar tak memanggil file_exists dgn string raksasa.
+            if (!is_string($checkView) || $checkView === '' || !preg_match('/^[A-Za-z0-9._\/-]+$/', $checkView)) {
+                continue;
+            }
 
             $viewFile = resource_path('views/components/frontend/sections/' . $checkView . '.blade.php');
 

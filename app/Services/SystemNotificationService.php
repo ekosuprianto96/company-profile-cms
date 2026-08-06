@@ -215,7 +215,7 @@ class SystemNotificationService
         $title = $rendered['subject'] !== '' ? $rendered['subject'] : $admin->name;
         $preview = $rendered['body'] !== '' ? $rendered['body'] : $preview;
 
-        $this->expoPushNotificationService->sendToTokens($tokens, [
+        \App\Jobs\SendExpoPushJob::dispatch($tokens->pluck('expo_push_token')->filter()->values()->all(), [
             'title' => $title,
             'body' => $preview,
             'message' => $preview,
@@ -272,7 +272,7 @@ class SystemNotificationService
             return;
         }
 
-        $this->expoPushNotificationService->sendToTokens($tokens, [
+        \App\Jobs\SendExpoPushJob::dispatch($tokens->pluck('expo_push_token')->filter()->values()->all(), [
             'title' => $title,
             'body' => $message,
             'message' => $message,

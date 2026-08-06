@@ -45,6 +45,15 @@ class MobileServiceUpdateRequest extends FormRequest
             'is_popular' => 'required|boolean',
             'is_active' => 'required|boolean',
             'is_coming_soon' => 'nullable|boolean',
+            'submissions_paused' => 'nullable|boolean',
+            'submissions_paused_note' => 'nullable|string|max:1000|required_if:submissions_paused,1,true',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'submissions_paused_note.required_if' => 'Catatan alasan wajib diisi saat menghentikan penerimaan pengajuan.',
         ];
     }
 }

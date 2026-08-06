@@ -84,6 +84,7 @@ class MobileServiceRequestRepository extends BaseRepositori
         return $this->model
             ->where('mobile_user_id', $userId)
             ->latest('id')
+            ->limit(100) // batasi riwayat per-user
             ->get();
     }
 

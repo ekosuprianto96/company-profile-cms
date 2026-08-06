@@ -21,6 +21,8 @@ class MobileService extends Model
             'is_popular' => 'boolean',
             'is_active' => 'boolean',
             'is_coming_soon' => 'boolean',
+            'submissions_paused' => 'boolean',
+            'submissions_paused_at' => 'datetime',
             'rating' => 'decimal:1',
         ];
     }

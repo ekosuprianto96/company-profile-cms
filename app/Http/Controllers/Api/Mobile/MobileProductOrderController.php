@@ -26,6 +26,7 @@ class MobileProductOrderController extends ApiController
         $orders = ProductOrder::query()
             ->where('mobile_user_id', $request->user()->id)
             ->orderByDesc('id')
+            ->limit(100) // batasi riwayat agar payload tak tumbuh tak terbatas
             ->get();
 
         return $this->success([

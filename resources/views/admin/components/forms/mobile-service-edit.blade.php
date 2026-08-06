@@ -165,6 +165,36 @@
         </div>
     </div>
 
+    <div class="row mt-2">
+        <div class="col-12">
+            <div class="card border-warning" style="background:#fffaf2;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start" style="gap:12px;">
+                        <div>
+                            <label class="fw-bold mb-0"><i class="ri-pause-circle-line me-1"></i> Stop Terima Pengajuan</label>
+                            <div class="text-muted" style="font-size:12px;">Jika "Ya (stop)", tombol kirim di form pengajuan app otomatis dinonaktifkan &amp; catatan di bawah tampil sebagai peringatan ke user.</div>
+                        </div>
+                        <select name="submissions_paused" id="submissions_paused" class="form-control" style="max-width:150px;">
+                            <option @selected(!$service->submissions_paused) value="0">Tidak</option>
+                            <option @selected($service->submissions_paused) value="1">Ya (stop)</option>
+                        </select>
+                    </div>
+                    <div id="pause_note_wrapper" class="mt-3" style="{{ $service->submissions_paused ? '' : 'display:none;' }}">
+                        <label for="submissions_paused_note">Catatan alasan untuk user <span class="text-danger">*</span></label>
+                        <select id="pause_preset" class="form-control mb-2">
+                            <option value="">— Pilih catatan cepat (lalu boleh diedit) —</option>
+                            @foreach(config('service_flags.pause_reason_presets', []) as $preset)
+                                <option value="{{ $preset }}">{{ \Illuminate\Support\Str::limit($preset, 70) }}</option>
+                            @endforeach
+                        </select>
+                        <textarea name="submissions_paused_note" id="submissions_paused_note" rows="3" class="form-control" placeholder="Tulis alasan yang tampil ke user…">{{ $service->submissions_paused_note }}</textarea>
+                        <div data-error="submissions_paused_note" class="invalid-fedback"><span class="text-danger" style="font-size: 0.8em"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="d-flex justify-content-end">
         <button type="button" id="buttonUpdateMobileService" class="btn btn-primary me-2">Submit</button>
     </div>
@@ -197,6 +227,15 @@
             if (field) resetValidation(field);
         });
 
+        // Stop pengajuan: tampilkan/sembunyikan catatan + isi dari preset.
+        $('#submissions_paused').change(function() {
+            $('#pause_note_wrapper').toggle($(this).val() === '1');
+        });
+        $('#pause_preset').change(function() {
+            const v = $(this).val();
+            if (v) { $('#submissions_paused_note').val(v); resetValidation('submissions_paused_note'); }
+        });
+
         $('#buttonUpdateMobileService').click(function() {
             $.post('{{ route('admin.mobile.services.update', $service->id) }}', {
                 title: $('[name=title]').val(),
@@ -218,6 +257,8 @@
                 is_popular: $('[name=is_popular]').val(),
                 is_active: $('[name=is_active]').val(),
                 is_coming_soon: $('[name=is_coming_soon]').val(),
+                submissions_paused: $('[name=submissions_paused]').val(),
+                submissions_paused_note: $('[name=submissions_paused_note]').val(),
                 form_id: $('[name=form_id]').val(),
                 price_items: (window.collectServicePriceItems ? window.collectServicePriceItems() : []),
                 _token: '{{ csrf_token() }}'

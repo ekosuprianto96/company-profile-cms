@@ -15,7 +15,8 @@ class BlogService
 
     public function all()
     {
-        return $this->blog->all();
+        // Eager-load relasi yang dipakai kolom DataTables → hindari N+1.
+        return \App\Models\Blog::with(['kategori', 'createdBy.account', 'updatedBy.account'])->get();
     }
 
     public function getCount()

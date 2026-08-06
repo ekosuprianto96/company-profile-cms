@@ -115,7 +115,7 @@ class AdminAuthService
             'status' => 'pending',
         ]);
 
-        Mail::to($user->email)->send(new AdminLoginOtpMail($user->name ?? 'Admin', $code, $expiresAt));
+        Mail::to($user->email)->queue(new AdminLoginOtpMail($user->name ?? 'Admin', $code, $expiresAt));
 
         return $otp;
     }

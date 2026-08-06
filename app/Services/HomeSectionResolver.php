@@ -102,7 +102,7 @@ class HomeSectionResolver
                 fn (Product $p) => $this->products->listItem($p),
             ],
             'service' => [
-                MobileService::with(['category.parent.parent'])->whereIn('id', $ids)->get()->keyBy('id'),
+                MobileService::with(['category.parent.parent', 'priceItems'])->whereIn('id', $ids)->get()->keyBy('id'),
                 fn (MobileService $s) => $this->services->listItem($s),
             ],
             'voucher' => [
@@ -147,7 +147,7 @@ class HomeSectionResolver
 
     private function serviceQuery(?string $filter)
     {
-        $q = MobileService::where('is_active', true)->with(['category.parent.parent']);
+        $q = MobileService::where('is_active', true)->with(['category.parent.parent', 'priceItems']);
 
         return match ($filter) {
             'popular' => $q->where('is_popular', true)->orderBy('sort_order'),

@@ -32,4 +32,14 @@ class NotificationTemplate extends Model
             'is_default' => 'boolean',
         ];
     }
+
+    protected static function booted(): void
+    {
+        // Bersihkan cache lookup template saat berubah (dipakai NotificationTemplateService).
+        $forget = function (self $tpl) {
+            \Illuminate\Support\Facades\Cache::forget("notif_tpl:{$tpl->event_key}:{$tpl->channel}:{$tpl->audience}");
+        };
+        static::saved($forget);
+        static::deleted($forget);
+    }
 }

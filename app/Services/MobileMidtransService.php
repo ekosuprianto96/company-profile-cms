@@ -160,8 +160,8 @@ class MobileMidtransService
 
         try {
             $response = Http::withBasicAuth($serverKey, '')
-                ->connectTimeout(10)
-                ->timeout(30)
+                ->connectTimeout(5)
+                ->timeout(10)
                 ->acceptJson()
                 ->post('https://app.'.($this->isProduction() ? 'midtrans.com' : 'sandbox.midtrans.com').'/snap/v1/transactions', $payload);
         } catch (ConnectionException $exception) {
@@ -197,6 +197,8 @@ class MobileMidtransService
         }
 
         $response = Http::withBasicAuth($serverKey, '')
+            ->connectTimeout(5)
+            ->timeout(10)
             ->acceptJson()
             ->get($this->statusUrl($orderId));
 

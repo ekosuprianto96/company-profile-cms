@@ -83,7 +83,14 @@ class MobileMapsService
 
     public function reverseGeocode(float $latitude, float $longitude): array
     {
-        $response = Http::timeout(10)
+        // Cache per koordinat dibulatkan (~11m) selama 1 hari → hemat panggilan Google.
+        $cacheKey = sprintf('geocode:%.4f,%.4f', $latitude, $longitude);
+        $cached = \Illuminate\Support\Facades\Cache::get($cacheKey);
+        if (is_array($cached)) {
+            return $cached;
+        }
+
+        $response = Http::connectTimeout(5)->timeout(6)
             ->acceptJson()
             ->get('https://maps.googleapis.com/maps/api/geocode/json', [
                 'key' => $this->serverKey(),
@@ -109,12 +116,15 @@ class MobileMapsService
             ];
         }
 
-        return $this->normalizeGeocodeResult($result, $latitude, $longitude);
+        $normalized = $this->normalizeGeocodeResult($result, $latitude, $longitude);
+        \Illuminate\Support\Facades\Cache::put($cacheKey, $normalized, now()->addDay());
+
+        return $normalized;
     }
 
     protected function placesClient(string $fieldMask)
     {
-        return Http::timeout(10)
+        return Http::connectTimeout(5)->timeout(6)
             ->acceptJson()
             ->withHeaders([
                 'X-Goog-Api-Key' => $this->serverKey(),

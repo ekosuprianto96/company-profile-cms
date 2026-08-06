@@ -48,24 +48,7 @@ class OtpDispatchService
     /** SMS via Zenziva dengan teks dari template notifikasi (channel sms). */
     private function dispatchSms(MobileUserOtp $otp): void
     {
-        $code = Crypt::decryptString((string) $otp->code_encrypted);
-        $minutes = max(1, (int) now()->diffInMinutes($otp->expires_at, false));
-
-        $rendered = $this->templates->render('otp.mobile', 'sms', 'user', [
-            'recipient_name' => $otp->user?->name ?? 'Pengguna',
-            'otp_code' => $code,
-            'otp_purpose' => $otp->purpose,
-            'otp_expire_minutes' => (string) $minutes,
-        ]);
-
-        $response = $this->zenzivaSmsService->send($otp->recipient, $rendered['body']);
-
-        $otp->update([
-            'provider' => 'zenziva',
-            'provider_sid' => data_get($response, 'messages.messageId', data_get($response, 'messageId')),
-            'provider_response' => $response,
-            'sent_at' => now(),
-            'status' => 'sent',
-        ]);
+        // Async: kirim SMS lewat queue agar lambatnya Zenziva tak menahan response.
+        \App\Jobs\SendOtpSmsJob::dispatch($otp->id);
     }
 }

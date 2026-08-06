@@ -57,8 +57,17 @@ class FormController extends Controller
     {
         $form = $this->service->find($id);
 
+        // Bila ada layanan AKTIF yang memakai form ini & sedang stop pengajuan,
+        // tampilkan peringatan di preview (mencerminkan tampilan user).
+        $paused = \App\Models\MobileService::where('form_id', $form->id)
+            ->where('is_active', true)
+            ->where('submissions_paused', true)
+            ->first();
+
         return $this->setView('admin.components.forms.')->view('form-preview', [
             'schema' => app(\App\Services\FormSchemaService::class)->schema($form),
+            'pausedNote' => $paused?->submissions_paused_note,
+            'pausedServiceTitle' => $paused?->title,
         ]);
     }
 

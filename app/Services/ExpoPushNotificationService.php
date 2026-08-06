@@ -49,7 +49,7 @@ class ExpoPushNotificationService
 
         try {
             $messages->chunk(100)->each(function ($chunk) {
-                $response = Http::timeout(10)
+                $response = Http::connectTimeout(5)->timeout(10)
                     ->acceptJson()
                     ->asJson()
                     ->post('https://exp.host/--/api/v2/push/send', $chunk->values()->all());

@@ -24,6 +24,9 @@
     .fp-sec:first-child { margin-top:0; }
     .fp-note { background:#eef5f4; border:1px solid #d7e7e4; color:#14322f; border-radius:12px;
                padding:9px 11px; font-size:11px; margin-bottom:13px; }
+    .fp-warn { background:#fdf3e7; border:1px solid #f0d9b5; border-radius:12px; padding:10px 12px; margin-bottom:14px; }
+    .fp-warn-title { font-size:12px; font-weight:800; color:#92600f; }
+    .fp-warn-text { font-size:11px; color:#92600f; line-height:1.5; margin-top:3px; }
     .fp-f { margin-bottom:13px; }
     .fp-lb { font-size:11.5px; font-weight:700; color:#0f172a; margin-bottom:5px; display:block; }
     .fp-lb .fp-req { color:#b3261e; }
@@ -75,6 +78,12 @@
         </div>
 
         <div class="fp-body">
+            @if (!empty($pausedNote ?? null))
+                <div class="fp-warn">
+                    <div class="fp-warn-title">⚠ Pengajuan sementara ditutup</div>
+                    <div class="fp-warn-text">{{ $pausedNote }}</div>
+                </div>
+            @endif
             @foreach ($fields as $f)
                 @php
                     $type = $f['type'];
@@ -176,7 +185,11 @@
             @endforeach
         </div>
 
-        <div class="fp-cta"><div>Kirim Pengajuan</div></div>
+        @if (!empty($pausedNote ?? null))
+            <div class="fp-cta"><div style="background:#e6e6e2;color:#9aa8a4;">Pengajuan Ditutup</div></div>
+        @else
+            <div class="fp-cta"><div>Kirim Pengajuan</div></div>
+        @endif
     </div>
 </div>
 @endif

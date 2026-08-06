@@ -61,17 +61,16 @@ class VoucherService
             }
         }
 
-        // Kuota per user
-        $userUsage = $voucher->redemptions()
-            ->where('mobile_user_id', $user->id)
-            ->whereIn('status', ['reserved', 'used'])
-            ->count();
+        // Kuota per user (pakai agregat withCount bila tersedia; fallback query bila tidak).
+        $userUsage = $voucher->user_redeem_count
+            ?? $voucher->redemptions()->where('mobile_user_id', $user->id)->whereIn('status', ['reserved', 'used'])->count();
         if ($userUsage >= (int) $voucher->usage_limit_per_user) {
             return 'Batas pemakaian voucher tercapai.';
         }
 
         // Kuota global
-        if ($voucher->usage_limit !== null && $voucher->activeRedemptionCount() >= (int) $voucher->usage_limit) {
+        $activeCount = $voucher->active_redeem_count ?? $voucher->activeRedemptionCount();
+        if ($voucher->usage_limit !== null && $activeCount >= (int) $voucher->usage_limit) {
             return 'Kuota voucher habis.';
         }
 
@@ -85,6 +84,11 @@ class VoucherService
 
         return Voucher::query()
             ->with(['targetItems', 'claims' => fn ($q) => $q->where('mobile_user_id', $user->id)])
+            // Agregat kuota sekali jalan (hindari N+1 count per voucher).
+            ->withCount([
+                'redemptions as user_redeem_count' => fn ($q) => $q->where('mobile_user_id', $user->id)->whereIn('status', ['reserved', 'used']),
+                'redemptions as active_redeem_count' => fn ($q) => $q->whereIn('status', ['reserved', 'used']),
+            ])
             ->where('order_type', $orderType)
             ->where('is_active', true)
             ->where(fn ($q) => $q->whereNull('expires_at')->orWhere('expires_at', '>', $now))
@@ -162,13 +166,14 @@ class VoucherService
 
         $accessible = Voucher::query()
             ->with(['targetItems', 'claims' => fn ($q) => $q->where('mobile_user_id', $user->id)])
+            ->withCount(['redemptions as user_redeem_count' => fn ($q) => $q->where('mobile_user_id', $user->id)->whereIn('status', ['reserved', 'used'])])
             ->where(fn ($q) => $q->where('user_scope', 'all')
                 ->orWhereHas('targetUsers', fn ($u) => $u->where('mobile_users.id', $user->id)))
             ->orderByDesc('id')
             ->get();
 
         $vouchers = $accessible->filter(function (Voucher $v) use ($user, $now, $status) {
-            $usedUp = $v->redemptions()->where('mobile_user_id', $user->id)->whereIn('status', ['reserved', 'used'])->count() >= (int) $v->usage_limit_per_user;
+            $usedUp = (int) $v->user_redeem_count >= (int) $v->usage_limit_per_user;
             $expired = (! $v->is_active) || ($v->expires_at && $now->gt($v->expires_at));
 
             if ($status === 'expired') {

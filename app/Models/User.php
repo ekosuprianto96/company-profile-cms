@@ -101,7 +101,11 @@ class User extends Authenticatable
     public function groupMenus()
     {
         $menus = [];
-        if (($this->role->menus->count() ?? []) <= 0) return $menus;
+        if (! $this->role) return $menus;
+
+        // Eager-load sekali (menus + module + group) → hindari N+1 di setiap halaman admin.
+        $this->role->loadMissing(['menus.module.group']);
+        if ($this->role->menus->count() <= 0) return $menus;
 
         // Mengurutkan menus berdasarkan order pada module group dan module
         $sortedMenus = $this->role->menus->where('an', 1)->sortBy(function ($menu) {

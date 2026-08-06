@@ -137,21 +137,29 @@ class NotificationTemplateService
     /** Ambil template aktif dari DB; fallback ke default catalog. */
     protected function resolveTemplate(string $eventKey, string $channel, string $audience): array
     {
-        $row = NotificationTemplate::query()
-            ->where('event_key', $eventKey)
-            ->where('channel', $channel)
-            ->where('audience', $audience)
-            ->where('is_active', true)
-            ->orderBy('is_default') // dahulukan custom (is_default=false=0) bila keduanya aktif
-            ->latest('id')
-            ->first();
+        // Cache lookup template (jarang berubah) — dibersihkan saat template disimpan/hapus
+        // lewat model NotificationTemplate::booted(). Hemat 1 query tiap kirim notifikasi.
+        return \Illuminate\Support\Facades\Cache::remember(
+            "notif_tpl:{$eventKey}:{$channel}:{$audience}",
+            now()->addHours(6),
+            function () use ($eventKey, $channel, $audience) {
+                $row = NotificationTemplate::query()
+                    ->where('event_key', $eventKey)
+                    ->where('channel', $channel)
+                    ->where('audience', $audience)
+                    ->where('is_active', true)
+                    ->orderBy('is_default') // dahulukan custom (is_default=false=0) bila keduanya aktif
+                    ->latest('id')
+                    ->first();
 
-        if ($row) {
-            return ['subject' => $row->subject, 'body' => $row->body, 'email_design_id' => $row->email_design_id];
-        }
+                if ($row) {
+                    return ['subject' => $row->subject, 'body' => $row->body, 'email_design_id' => $row->email_design_id];
+                }
 
-        $events = NotificationCatalog::events();
-        return $events[$eventKey]['templates'][$channel . ':' . $audience] ?? ['subject' => '', 'body' => ''];
+                $events = NotificationCatalog::events();
+                return $events[$eventKey]['templates'][$channel . ':' . $audience] ?? ['subject' => '', 'body' => ''];
+            }
+        );
     }
 
     /**
