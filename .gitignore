@@ -21,3 +21,9 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# File yang ditulis aplikasi/admin saat runtime — jangan ikut Git
+# supaya data produksi tidak tertimpa saat deploy/pull.
+/config/page.json
+/config/sections.json
+/public/.user.ini
