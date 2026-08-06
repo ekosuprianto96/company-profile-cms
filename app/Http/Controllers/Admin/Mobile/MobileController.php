@@ -751,6 +751,12 @@ class MobileController extends Controller
                 'icon' => 'ri-shopping-bag-3-line',
                 'description' => 'Katalog produk, kategori, & kurir pengiriman.',
             ]] : []),
+            ...(auth()->user()?->hasPermission('product:show') ? [[
+                'title' => 'Suplier',
+                'route' => route('admin.mobile.suppliers'),
+                'icon' => 'ri-truck-line',
+                'description' => 'Master data suplier untuk pelacakan sumber produk (internal).',
+            ]] : []),
             ...(auth()->user()?->hasPermission('product-order:show') ? [[
                 'title' => 'Order Produk',
                 'route' => route('admin.mobile.product_orders'),

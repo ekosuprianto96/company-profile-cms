@@ -349,6 +349,14 @@ Route::middleware(['auth'])->group(function () {
         Route::post('products/store', [ProductController::class, 'store'])->name('products.store')->middleware('permission:product:create');
         Route::post('products/update/{id}', [ProductController::class, 'update'])->whereNumber('id')->name('products.update')->middleware('permission:product:update');
         Route::post('products/destroy', [ProductController::class, 'destroy'])->name('products.destroy')->middleware('permission:product:destroy');
+
+        // Suplier (master data internal — untuk tracking produk)
+        Route::get('suppliers', [\App\Http\Controllers\Admin\Mobile\SupplierController::class, 'index'])->name('suppliers');
+        Route::get('suppliers/data', [\App\Http\Controllers\Admin\Mobile\SupplierController::class, 'data'])->name('suppliers.data');
+        Route::get('suppliers/forms', [\App\Http\Controllers\Admin\Mobile\SupplierController::class, 'forms'])->name('suppliers.forms');
+        Route::post('suppliers/store', [\App\Http\Controllers\Admin\Mobile\SupplierController::class, 'store'])->name('suppliers.store');
+        Route::post('suppliers/update/{id}', [\App\Http\Controllers\Admin\Mobile\SupplierController::class, 'update'])->whereNumber('id')->name('suppliers.update');
+        Route::post('suppliers/destroy', [\App\Http\Controllers\Admin\Mobile\SupplierController::class, 'destroy'])->name('suppliers.destroy');
         Route::get('products/import/template', [ProductController::class, 'importTemplate'])->name('products.import.template')->middleware('permission:product:create');
         Route::post('products/import/upload', [ProductController::class, 'importUpload'])->name('products.import.upload')->middleware('permission:product:create');
         Route::post('products/import/execute', [ProductController::class, 'importExecute'])->name('products.import.execute')->middleware('permission:product:create');

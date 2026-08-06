@@ -29,6 +29,16 @@
             <label class="form-label">Brand <small class="text-muted">(opsional)</small></label>
             <input name="brand" type="text" class="form-control" value="{{ optional($product)->brand }}" placeholder="HAKATA">
         </div>
+        <div class="col-md-6 form-group">
+            <label class="form-label">Suplier <small class="text-muted">(opsional · internal)</small></label>
+            <select name="supplier_id" class="form-control">
+                <option value="">— Tidak ada / belum ditentukan —</option>
+                @foreach (($suppliers ?? collect()) as $supplier)
+                    <option value="{{ $supplier->id }}" @selected(optional($product)->supplier_id == $supplier->id)>{{ $supplier->name }}</option>
+                @endforeach
+            </select>
+            <small class="text-muted">Untuk pelacakan sumber barang. Kelola daftar suplier di menu <b>Suplier</b>.</small>
+        </div>
     </div>
 
     <div class="row">

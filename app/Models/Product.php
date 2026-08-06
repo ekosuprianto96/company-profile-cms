@@ -14,6 +14,7 @@ class Product extends Model
         'slug',
         'product_category_id',
         'category_id',
+        'supplier_id',
         'name',
         'brand',
         'short_description',
@@ -52,6 +53,12 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(ProductCategory::class, 'product_category_id');
+    }
+
+    /** Suplier produk (internal — untuk tracking di dashboard admin). */
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class, 'supplier_id');
     }
 
     /** Kategori master bertingkat (bersama layanan) — beda dari product_category lama. */

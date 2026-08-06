@@ -17,7 +17,7 @@
     <div class="col-md-12">
         <div class="card border-0 shadow-sm">
             <div class="card-body">
-                @include('admin.components.forms.partials.product-fields', ['product' => null, 'categories' => $categories, 'services' => $services, 'categoryTree' => $categoryTree, 'formId' => 'productForm'])
+                @include('admin.components.forms.partials.product-fields', ['product' => null, 'categories' => $categories, 'services' => $services, 'categoryTree' => $categoryTree, 'suppliers' => $suppliers, 'formId' => 'productForm'])
                 <div class="d-flex justify-content-end mt-3" style="gap:10px;">
                     <a href="{{ route('admin.mobile.products') }}" class="btn btn-light">Batal</a>
                     <button type="button" id="saveProduct" class="btn btn-primary"><i class="ri-save-3-line me-1"></i> Simpan Produk</button>

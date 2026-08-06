@@ -125,6 +125,7 @@ class ProductController extends Controller
             'categories' => $this->service->categories(),
             'services' => $this->service->services(),
             'categoryTree' => \App\Models\Category::orderBy('sort_order')->orderBy('name')->get(['id', 'parent_id', 'name']),
+            'suppliers' => app(\App\Services\SupplierAdminService::class)->activeForSelect(),
         ];
     }
 
@@ -189,6 +190,7 @@ class ProductController extends Controller
             'name' => ['required', 'string', 'max:180'],
             'brand' => ['nullable', 'string', 'max:120'],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'supplier_id' => ['nullable', 'integer', 'exists:suppliers,id'],
             'short_description' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
             'price' => ['required', 'integer', 'min:0'],
