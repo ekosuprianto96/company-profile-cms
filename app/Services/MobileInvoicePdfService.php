@@ -128,7 +128,9 @@ class MobileInvoicePdfService
     protected function company(): array
     {
         return [
-            'name' => config('app.name', 'Maninjau'),
+            // Nama kop mengikuti nama aplikasi mobile (settings mobile) agar konsisten
+            // dengan yang tampil di aplikasi (mis. "Maninjau PRO").
+            'name' => app(\App\Services\MobileAppSettingService::class)->appName(),
             'tagline' => config('settings.value.tagline') ?: 'Jasa & Material Bangunan',
             'logo' => $this->logoData(),
             'address' => config('footer_settings.address') ?: null,
@@ -140,8 +142,12 @@ class MobileInvoicePdfService
     protected function logoData(): ?string
     {
         $logo = config('app.logo');
+        // Nilai app_logo dari settings bisa berupa array/objek {file: 'logo.png'}
+        // (berkas ada di public/assets/images/informasi), string path, atau URL.
         if (is_array($logo)) {
-            $logo = $logo['url'] ?? $logo['path'] ?? $logo['src'] ?? null;
+            $logo = $logo['file'] ?? $logo['url'] ?? $logo['path'] ?? $logo['src'] ?? null;
+        } elseif (is_object($logo)) {
+            $logo = $logo->file ?? $logo->url ?? $logo->path ?? null;
         }
         if (! is_string($logo) || $logo === '') {
             return null;
@@ -151,11 +157,17 @@ class MobileInvoicePdfService
             return $logo;
         }
 
-        $path = public_path(ltrim($logo, '/'));
-        if (is_file($path)) {
-            $mime = mime_content_type($path) ?: 'image/png';
+        // Cari berkas fisik di lokasi upload settings, lalu storage, lalu root public.
+        foreach ([
+            public_path('assets/images/informasi/' . $logo),
+            public_path('storage/' . ltrim($logo, '/')),
+            public_path(ltrim($logo, '/')),
+        ] as $path) {
+            if (is_file($path)) {
+                $mime = mime_content_type($path) ?: 'image/png';
 
-            return 'data:' . $mime . ';base64,' . base64_encode((string) file_get_contents($path));
+                return 'data:' . $mime . ';base64,' . base64_encode((string) file_get_contents($path));
+            }
         }
 
         return null;

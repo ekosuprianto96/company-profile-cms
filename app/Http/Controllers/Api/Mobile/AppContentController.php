@@ -32,11 +32,28 @@ class AppContentController extends ApiController
 
         return $this->success([
             'app_name' => $this->mobileAppSettingService->appName(),
+            'logo_url' => $this->appLogoUrl(),
             'onboarding' => $this->mobileAppSettingService->onboardingSlides(),
             'about' => $this->contentPayload($contents->get('about')),
             'terms' => $this->contentPayload($contents->get('terms')),
             'support_contacts' => $support,
         ], 'Konten aplikasi berhasil dimuat.');
+    }
+
+    /** URL logo aplikasi (kop) dari settings — sama dengan yang dipakai invoice PDF. */
+    private function appLogoUrl(): ?string
+    {
+        $logo = config('settings.value.app_logo');
+        if (is_array($logo)) {
+            $logo = $logo['file'] ?? $logo['url'] ?? null;
+        } elseif (is_object($logo)) {
+            $logo = $logo->file ?? $logo->url ?? null;
+        }
+        if (! is_string($logo) || $logo === '') {
+            return null;
+        }
+
+        return str_starts_with($logo, 'http') ? $logo : image_url('informasi', $logo);
     }
 
     private function contentPayload(?MobileContent $content): ?array

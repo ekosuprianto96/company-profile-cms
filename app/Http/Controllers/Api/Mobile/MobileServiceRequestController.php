@@ -62,7 +62,7 @@ class MobileServiceRequestController extends ApiController
             }
 
             return $this->success([
-                'order' => $this->serviceRequestPayload($serviceRequest),
+                'order' => $this->serviceRequestPayload($serviceRequest, detail: true),
             ], 'Detail pengajuan berhasil dimuat.');
         } catch (\Throwable $th) {
             Log::error('Mobile service request detail error: ' . $th->getMessage(), [
@@ -209,7 +209,7 @@ class MobileServiceRequestController extends ApiController
         }
     }
 
-    protected function serviceRequestPayload($serviceRequest): array
+    protected function serviceRequestPayload($serviceRequest, bool $detail = false): array
     {
         return [
             'id' => $serviceRequest->id,
@@ -268,6 +268,12 @@ class MobileServiceRequestController extends ApiController
                 'id' => $serviceRequest->service->id,
                 'title' => $serviceRequest->service->title,
             ] : null,
+            // Hanya pada detail: sertakan jawaban form pengajuan (dari Proposal tertaut)
+            // agar layar detail bisa menampilkan data yang benar-benar diisi user.
+            ...($detail && $serviceRequest->proposal ? [
+                'proposal_number' => $serviceRequest->proposal->proposal_number,
+                'answers' => app(\App\Services\ProposalService::class)->readableAnswers($serviceRequest->proposal),
+            ] : []),
         ];
     }
 

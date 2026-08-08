@@ -152,6 +152,7 @@ class MobileServiceRequestService
             'handledBy',
             'user',
             'products.product',
+            'proposal',
         ]);
     }
 
