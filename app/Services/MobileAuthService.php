@@ -72,8 +72,17 @@ class MobileAuthService
         if ($payload['purpose'] === 'login') {
             $this->assertCanAccess($user);
 
+            // Akun belum diverifikasi? JANGAN blokir. Alihkan ke verifikasi:
+            // kirim ulang OTP 'register' lalu kembalikan payload verifikasi
+            // (purpose=register) supaya aplikasi mengarahkan user ke layar OTP,
+            // bukan buntu di pesan error.
             if (! $user->isVerified()) {
-                throw new \Exception('Akun belum aktif untuk login OTP.', 403);
+                $otp = $this->mobileUserOtpService->createAndSend($user, $payload['channel'], 'register');
+
+                return [
+                    'user' => $user,
+                    'otp' => $otp->fresh(),
+                ];
             }
         }
 

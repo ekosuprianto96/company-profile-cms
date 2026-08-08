@@ -326,12 +326,6 @@ class PageService
 
     protected function setConfigJSON(): void
     {
-        if (!file_exists(base_path('config/page.json'))) {
-            $this->config = collect([]);
-        } else {
-            $getFile = file_get_contents(base_path('config/page.json'));
-            $config = json_decode($getFile, true);
-            $this->config = collect($config);
-        }
+        $this->config = collect(app(\App\Services\PageConfigStore::class)->pageArray());
     }
 }

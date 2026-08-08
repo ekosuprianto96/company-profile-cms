@@ -59,7 +59,7 @@ class FormMetaService
                     }
 
                     $pages[$key] = $this->currentPage->getConfig();
-                    file_put_contents(base_path('config/page.json'), json_encode($pages, JSON_PRETTY_PRINT));
+                    app(\App\Services\PageConfigStore::class)->writePage($pages);
                 }
             }
         }
@@ -108,7 +108,7 @@ class FormMetaService
 
     public function readConfig()
     {
-        $pageConfig = file_get_contents(base_path('config/page.json'));
+        $pageConfig = app(\App\Services\PageConfigStore::class)->pageJsonString();
         $toArray = json_decode($pageConfig, true);
         return $toArray;
     }

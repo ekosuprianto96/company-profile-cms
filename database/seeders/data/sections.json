@@ -1,0 +1,596 @@
+[
+    {
+        "id": "header-title-layanan",
+        "order": 1,
+        "title": "Header Title",
+        "view": "header-title",
+        "collection": null,
+        "action": {
+            "label": "",
+            "type": "modal",
+            "link": ""
+        },
+        "forms": {
+            "background": {
+                "id": "background",
+                "label": "Background",
+                "type": "image",
+                "value": "250701-c48aeb12-8672-4fdf-8784-5faceb68f8d8.jpg",
+                "name": "background",
+                "path": "forms",
+                "validation": {
+                    "rules": [
+                        "image",
+                        "max:2000",
+                        "mimes:jpg,png,jpeg,svg,webp"
+                    ],
+                    "errors": {
+                        "background.image": "Background harus berupa file gambar",
+                        "background.mimes": "Format gambar yang diperbolehkan: JPG, PNG, JPEG, SVG, atau WEBP.",
+                        "background.max": "Background maximal 2MB"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "id": "header-detail-gallery",
+        "order": 1,
+        "title": "Header Detail Gallery",
+        "view": "header-title",
+        "collection": null,
+        "action": {
+            "label": "",
+            "type": "modal",
+            "link": ""
+        },
+        "forms": {
+            "background": {
+                "id": "background",
+                "label": "Background",
+                "type": "image",
+                "value": "250701-c48aeb12-8672-4fdf-8784-5faceb68f8d8.jpg",
+                "name": "background",
+                "path": "forms",
+                "validation": {
+                    "rules": [
+                        "image",
+                        "max:2000",
+                        "mimes:jpg,png,jpeg,svg,webp"
+                    ],
+                    "errors": {
+                        "background.image": "Background harus berupa file gambar",
+                        "background.mimes": "Format gambar yang diperbolehkan: JPG, PNG, JPEG, SVG, atau WEBP.",
+                        "background.max": "Background maximal 2MB"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "id": "header-detail-post",
+        "order": 1,
+        "title": "Header Detail Post",
+        "view": "header-title",
+        "collection": null,
+        "action": {
+            "label": "",
+            "type": "modal",
+            "link": ""
+        },
+        "forms": {
+            "background": {
+                "id": "background",
+                "label": "Background",
+                "type": "image",
+                "value": "250701-c48aeb12-8672-4fdf-8784-5faceb68f8d8.jpg",
+                "name": "background",
+                "path": "forms",
+                "validation": {
+                    "rules": [
+                        "image",
+                        "max:2000",
+                        "mimes:jpg,png,jpeg,svg,webp"
+                    ],
+                    "errors": {
+                        "background.image": "Background harus berupa file gambar",
+                        "background.mimes": "Format gambar yang diperbolehkan: JPG, PNG, JPEG, SVG, atau WEBP.",
+                        "background.max": "Background maximal 2MB"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "id": "header-title",
+        "order": 1,
+        "title": "Header Title",
+        "view": "header-title",
+        "collection": null,
+        "action": {
+            "label": "",
+            "type": "modal",
+            "link": ""
+        },
+        "forms": {
+            "background": {
+                "id": "background",
+                "label": "Background",
+                "type": "image",
+                "value": "250613-4ca00ce6-c13b-4f4e-b3cd-06cb08778fce.jpg",
+                "name": "background",
+                "path": "forms",
+                "validation": {
+                    "rules": [
+                        "image",
+                        "max:2000",
+                        "mimes:jpg,png,jpeg,svg,webp"
+                    ],
+                    "errors": {
+                        "background.image": "Background harus berupa file gambar",
+                        "background.mimes": "Format gambar yang diperbolehkan: JPG, PNG, JPEG, SVG, atau WEBP.",
+                        "background.max": "Background maximal 2MB"
+                    }
+                }
+            },
+            "title": {
+                "id": "title",
+                "label": "Title",
+                "type": "text",
+                "value": "Blog",
+                "name": "title",
+                "validation": {
+                    "rules": ["required", "string", "max:150"],
+                    "errors": {
+                        "title.required": "Title harus diisi",
+                        "title.string": "Title harus berupa string yang valid",
+                        "title.max": "Title tidak boleh lebih dari 150 karakter"
+                    }
+                }
+            },
+            "sub_title": {
+                "id": "sub_title",
+                "label": "Sub Title",
+                "notice": {
+                    "position": "bottom",
+                    "text": "Kosongkan jika tidak perlu"
+                },
+                "type": "textarea",
+                "value": null,
+                "name": "sub_title"
+            }
+        }
+    },
+    {
+        "id": "input-search",
+        "order": 1,
+        "title": "Input Search",
+        "view": "input-search",
+        "collection": null,
+        "action": {
+            "label": "",
+            "type": "modal",
+            "link": ""
+        },
+        "forms": {
+            "placeholder": {
+                "id": "placeholder",
+                "label": "Placeholder Input Search",
+                "type": "text",
+                "value": "Cari artikel disini.",
+                "placeholder": "Masukkan text placeholder...",
+                "name": "placeholder",
+                "validation": {
+                    "rules": ["string", "max:50"],
+                    "errors": {
+                        "placeholder.string": "Placeholder harus berupa string yang valid",
+                        "placeholder.max": "Placeholder maximal 50 karakter"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "id": "list-kategori",
+        "order": 1,
+        "title": "List Kategori",
+        "view": "list-kategori",
+        "collection": "\\App\\Models\\KategoriBlog",
+        "action": {
+            "label": "Tambah Kategori",
+            "type": "modal-with-list",
+            "link": "admin\/blogs\/kategori"
+        },
+        "forms": {
+            "kategori": {
+                "id": "kategori",
+                "placeholder": "Kategori",
+                "label": "Pilih Kategori",
+                "type": "list-selection",
+                "option": {
+                    "value": "slug",
+                    "text": "name"
+                },
+                "value": [
+                    {
+                        "id": "kolam-renang",
+                        "text": "Kolam Renang"
+                    },
+                    {
+                        "id": "rumah-tumbuh",
+                        "text": "Rumah Tumbuh"
+                    },
+                    {
+                        "id": "pohon-dan-tanaman-estetik",
+                        "text": "Pohon dan Tanaman Estetik"
+                    },
+                    {
+                        "id": "kiat-memilih-kontraktor",
+                        "text": "Kiat memilih Kontraktor"
+                    },
+                    {
+                        "id": "jasa-kontraktor-tangerang",
+                        "text": "Jasa Kontraktor Tangerang"
+                    },
+                    {
+                        "id": "jasa-renovasi-rumah-tangerang",
+                        "text": "Jasa Renovasi Rumah Tangerang"
+                    }
+                ],
+                "params": {
+                    "an": 1
+                },
+                "name": "kategori",
+                "validation": {
+                    "rules": ["required", "array"],
+                    "errors": {
+                        "kategori.required": "Kategori harus diisi",
+                        "kategori.array": "Kategori harus berupa array"
+                    }
+                },
+                "model": "\\App\\Models\\KategoriBlog"
+            }
+        }
+    },
+    {
+        "id": "list-latest-post",
+        "order": 1,
+        "title": "List Postingan Terbaru",
+        "view": "list-latest-post",
+        "collection": "\\App\\Models\\Blog",
+        "action": {
+            "label": "",
+            "type": "modal",
+            "link": ""
+        },
+        "forms": {
+            "title": {
+                "id": "title",
+                "label": "Title",
+                "type": "text",
+                "value": "Postingan Terbaru",
+                "name": "title",
+                "validation": {
+                    "rules": ["required", "string", "max:150"],
+                    "errors": {
+                        "title.required": "Title harus diisi",
+                        "title.string": "Title harus berupa string yang valid",
+                        "title.max": "Title tidak boleh lebih dari 150 karakter"
+                    }
+                }
+            },
+            "max_show": {
+                "id": "max_show",
+                "label": "Max Show",
+                "type": "number",
+                "value": "9",
+                "placeholder": "Max Show",
+                "name": "max_show",
+                "max": "500",
+                "min": "1",
+                "validation": {
+                    "rules": ["required", "numeric", "min:1"],
+                    "errors": {
+                        "max_show.required": "Max Show harus diisi",
+                        "max_show.numeric": "Max Show harus berupa angka",
+                        "max_show.min": "Max Show minimal 1"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "id": "detail-post",
+        "order": 1,
+        "title": "Detail Postingan",
+        "view": "detail-post",
+        "collection": null,
+        "action": null,
+        "forms": {
+            "max_show": {
+                "id": "max_show",
+                "label": "Max Show",
+                "type": "number",
+                "value": "6",
+                "placeholder": "Max Show",
+                "name": "max_show",
+                "max": "500",
+                "min": "1",
+                "validation": {
+                    "rules": ["required", "numeric", "min:1"],
+                    "errors": {
+                        "max_show.required": "Max Show harus diisi",
+                        "max_show.numeric": "Max Show harus berupa angka",
+                        "max_show.min": "Max Show minimal 1"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "id": "detail-layanan",
+        "order": 1,
+        "title": "Detail Layanan",
+        "view": "detail-layanan",
+        "collection": null,
+        "action": null,
+        "forms": null
+    },
+    {
+        "id": "detail-gallery",
+        "order": 1,
+        "title": "Detail Layanan",
+        "view": "detail-gallery",
+        "collection": null,
+        "action": null,
+        "forms": null
+    },
+    {
+        "id": "list-sidebar-layanan",
+        "order": 1,
+        "title": "List Sidebar Layanan",
+        "view": "list-sidebar-layanan",
+        "collection": "\\App\\Models\\Layanan",
+        "action": {
+            "label": "Tambah Layanan",
+            "type": "modal",
+            "link": "admin\/layanan"
+        },
+        "forms": null
+    },
+    {
+        "id": "contact-us-sidebar",
+        "order": 1,
+        "title": "Contact Us Sidebar",
+        "view": "contact-us-sidebar",
+        "collection": "\\App\\Models\\Layanan",
+        "action": {
+            "label": "Tambah Layanan",
+            "type": "modal",
+            "link": ""
+        },
+        "forms": {
+            "action_text_color": {
+                "id": "action_text_color",
+                "label": "Text Color",
+                "type": "color",
+                "value": "#fcfcfc",
+                "placeholder": "Masukkan text color...",
+                "name": "action_text_color",
+                "validation": {
+                    "rules": ["required", "string"],
+                    "errors": {
+                        "action_text_color.required": "Text color harus diisi",
+                        "action_text_color.string": "Text color harus berupa string"
+                    }
+                }
+            },
+            "background_color": {
+                "id": "background_color",
+                "label": "Background Color",
+                "type": "color",
+                "value": "#7a7a7a",
+                "placeholder": "Masukkan background color...",
+                "name": "background_color",
+                "validation": {
+                    "rules": ["required", "string"],
+                    "errors": {
+                        "background_color.required": "Background color harus diisi",
+                        "background_color.string": "Background color harus berupa string"
+                    }
+                }
+            },
+            "action_text": {
+                "id": "action_text",
+                "label": "Action Text",
+                "type": "textarea",
+                "value": "Hubungi kami untuk Konsultasi ya",
+                "placeholder": "Masukkan text action...",
+                "name": "action_text",
+                "validation": {
+                    "rules": ["required", "string"],
+                    "errors": {
+                        "action_text.required": "Action Text harus diisi",
+                        "action_text.string": "Action Text harus berupa string"
+                    }
+                }
+            },
+            "link_redirect": {
+                "id": "link_redirect",
+                "label": "Link Redirect",
+                "type": "url",
+                "value": "https:\/\/wa.me\/6281932134000",
+                "placeholder": "Masukkan link redirect...",
+                "name": "link_redirect",
+                "validation": {
+                    "rules": ["required", "string", "url"],
+                    "errors": {
+                        "link_redirect.required": "Link Redirect harus diisi",
+                        "link_redirect.string": "Link Redirect harus berupa string",
+                        "link_redirect.url": "Link Redirect harus berupa URL"
+                    }
+                }
+            }
+        }
+    },
+    {
+        "id": "list-rekomedasi-kavling",
+        "order": 1,
+        "title": "List Rekomendasi Kavling",
+        "view": "list-rekomedasi-kavling",
+        "collection": "\\App\\Models\\RekomendasiKavling",
+        "action": {
+            "label": "Tambah Rekomendasi Kavling",
+            "type": "modal",
+            "link": "admin\/rekomendasi"
+        },
+        "forms": {
+            "title": {
+                "id": "title",
+                "label": "Title",
+                "type": "text",
+                "value": "Rekomendasi Kavling",
+                "placeholder": "Masukkan title...",
+                "name": "title",
+                "validation": {
+                    "rules": ["required", "string", "max:150"],
+                    "errors": {
+                        "title.required": "Title harus diisi",
+                        "title.string": "Title harus berupa string yang valid",
+                        "title.max": "Title tidak boleh lebih dari 150 karakter"
+                    }
+                }
+            },
+            "phone": {
+                "id": "phone",
+                "placeholder": "-- Pilih Salah Satu Nomor --",
+                "label": "Nomor Telepon",
+                "notice": {
+                    "position": "bottom",
+                    "text": "Pilih salah satu nomor untuk diarahkan ke WhatsApp"
+                },
+                "options": "\\App\\Services\\InformasiService@getOptionsPhone",
+                "type": "select-informasi",
+                "value": "6281932134000",
+                "name": "phone",
+                "validation": {
+                    "rules": ["string", "exists_phone"],
+                    "errors": {
+                        "phone.string": "Nomor Telepon harus berupa string yang valid",
+                        "phone.exists_phone": "Nomor Telepon tidak valid"
+                    }
+                }
+            },
+            "message_form_whatsapp": {
+                "id": "message_form_whatsapp",
+                "label": "Message Form Whatsapp",
+                "type": "textarea",
+                "height": "250px",
+                "notice": {
+                    "position": "bottom",
+                    "text": "Ambil title, dari data kavling lalu tampilkan dengan format, contoh : {{ title }}"
+                },
+                "placeholder": "Masukkan pesan untuk Whatsapp",
+                "value": "Assalamualikum!,\r\n\r\nSaya ingin info lebih lanjut\r\ntentang kavling yang dijual\r\n\r\nNama Kavling : {{ title }}\r\n\r\nTerimakasih \ud83d\ude0a.",
+                "name": "message_form_whatsapp",
+                "validation": {
+                    "rules": ["required", "string", "max:250"],
+                    "errors": {
+                        "title.required": "Message harus diisi",
+                        "title.string": "Message harus berupa string yang valid",
+                        "title.max": "Message tidak boleh lebih dari 50 karakter"
+                    }
+                }
+            },
+            "button_text": {
+                "id": "button_text",
+                "placeholder": "Text Button...",
+                "label": "Text Button",
+                "type": "text",
+                "value": "Hubungi Kami",
+                "name": "button_text"
+            },
+            "button_text_color": {
+                "id": "button_text_color",
+                "label": "Text Color",
+                "type": "color",
+                "value": "#ffffff",
+                "placeholder": "...",
+                "name": "button_text_color",
+                "validation": {
+                    "rules": ["required", "string"],
+                    "errors": {
+                        "button_text_color.required": "Text color harus diisi",
+                        "button_text_color.string": "Text color harus berupa string"
+                    }
+                }
+            },
+            "button_background_color": {
+                "id": "button_background_color",
+                "label": "Button Background Color",
+                "type": "color",
+                "value": "#1ac765",
+                "placeholder": "...",
+                "name": "button_background_color",
+                "validation": {
+                    "rules": ["required", "string"],
+                    "errors": {
+                        "button_background_color.required": "Text color harus diisi",
+                        "button_background_color.string": "Text color harus berupa string"
+                    }
+                }
+            },
+            "show_in_layanan": {
+                "id": "show_in_layanan",
+                "placeholder": "-- Pilih Layanan --",
+                "label": "Tampilkan Di Layanan",
+                "type": "list-selection",
+                "option": {
+                    "value": "id",
+                    "text": "title"
+                },
+                "value": [
+                    {
+                        "id": "9",
+                        "text": "Rumah Atau Kavling Dijual"
+                    }
+                ],
+                "params": null,
+                "name": "show_in_layanan",
+                "validation": {
+                    "rules": ["array"],
+                    "errors": {
+                        "show_in_layanan.array": "Layanan harus berupa array"
+                    }
+                },
+                "model": "\\App\\Models\\Layanan"
+            }
+        }
+    },
+    {
+        "id": "detail-widget",
+        "order": 1,
+        "title": "Detail Widget",
+        "view": "detail-widget",
+        "collection": null,
+        "action": {
+            "label": "",
+            "type": "modal",
+            "link": ""
+        },
+        "forms": null
+    },
+    {
+        "id": "action-button",
+        "order": 1,
+        "title": "Action Button Widget",
+        "view": "action-button",
+        "collection": null,
+        "action": {
+            "label": "",
+            "type": "modal",
+            "link": ""
+        },
+        "forms": null
+    }
+]

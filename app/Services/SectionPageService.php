@@ -12,7 +12,7 @@ class SectionPageService
 
     public function getFile()
     {
-        return file_get_contents(base_path($this->pathJSON));
+        return app(\App\Services\PageConfigStore::class)->sectionsJsonString();
     }
 
     public function decode(bool $assoc = false)
@@ -45,7 +45,7 @@ class SectionPageService
                 });
             }
 
-            file_put_contents(base_path($this->pathJSON), json_encode($getSections->toArray(), JSON_PRETTY_PRINT));
+            app(\App\Services\PageConfigStore::class)->writeSections($getSections->toArray());
         } catch (\Exception $e) {
             return false;
         }

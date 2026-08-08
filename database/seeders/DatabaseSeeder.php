@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            PageConfigSeeder::class,
             MobileAppSettingsSeeder::class,
             MobileServiceSeeder::class,
             InspirePostSeeder::class,
