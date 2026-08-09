@@ -433,7 +433,7 @@
         selectedConversationId: Number(@json($selectedConversation?->id ?? null)) || 0,
         liveChatBaseUrl: @json(route('admin.mobile.live_chat')),
         reverbKey: @json(config('broadcasting.connections.reverb.key')),
-        reverbHost: @json(config('broadcasting.connections.reverb.options.host') ?: request()->getHost()),
+        reverbHost: @json(request()->getHost()),
         reverbScheme: @json(config('broadcasting.connections.reverb.options.scheme') ?: 'http'),
         reverbPort: Number(@json(config('broadcasting.connections.reverb.options.port') ?: 8080)),
         reverbTlsPort: Number(@json(config('broadcasting.connections.reverb.options.tls_port') ?: 443)),

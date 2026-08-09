@@ -188,7 +188,7 @@
           'authEndpoint' => url('/broadcasting/auth'),
           'csrfToken' => csrf_token(),
           'reverbKey' => config('broadcasting.connections.reverb.key'),
-          'reverbHost' => config('broadcasting.connections.reverb.options.host', request()->getHost()),
+          'reverbHost' => request()->getHost(),
           'reverbScheme' => config('broadcasting.connections.reverb.options.scheme', 'http'),
           'reverbPort' => config('broadcasting.connections.reverb.options.port', 8080),
           'reverbTlsPort' => config('broadcasting.connections.reverb.options.tls_port', 443),
