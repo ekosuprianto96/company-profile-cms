@@ -65,7 +65,7 @@
                                     <td class="fw-semibold">
                                         @if (!empty($row['files']))
                                             @foreach ($row['files'] as $file)
-                                                <a href="{{ $file['url'] }}" target="_blank" class="d-block"><i class="ri-attachment-2"></i> {{ $file['name'] }}</a>
+                                                <a href="{{ $file['url'] }}" download="{{ $file['name'] }}" class="d-inline-flex align-items-center text-primary mb-1" style="gap:6px"><i class="ri-download-2-line"></i> {{ $file['name'] }}</a>
                                             @endforeach
                                         @else
                                             {!! nl2br(e($row['value'] !== '' ? $row['value'] : '-')) !!}

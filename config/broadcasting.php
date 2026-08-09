@@ -10,11 +10,15 @@ return [
             'secret' => env('REVERB_APP_SECRET'),
             'app_id' => env('REVERB_APP_ID'),
             'options' => [
-                'host' => env('REVERB_HOST', '127.0.0.1'),
-                'port' => env('REVERB_PORT', 8080),
-                'tls_port' => env('REVERB_TLS_PORT', 443),
-                'scheme' => env('REVERB_SCHEME', 'http'),
-                'useTLS' => env('REVERB_SCHEME', 'http') === 'https',
+                // Host/port yang dipakai SERVER untuk MENERBITKAN event ke Reverb.
+                // WAJIB menunjuk server Reverb LOKAL (mis. 127.0.0.1:8080), BUKAN
+                // domain publik (REVERB_HOST) — kalau pakai domain publik, request
+                // publish nyasar ke nginx dan balas "404 Not Found" (bug ini).
+                // Klien mobile tetap konek via REVERB_HOST publik + proxy nginx.
+                'host' => env('REVERB_PUBLISH_HOST', '127.0.0.1'),
+                'port' => env('REVERB_PUBLISH_PORT', env('REVERB_SERVER_PORT', 8080)),
+                'scheme' => env('REVERB_PUBLISH_SCHEME', 'http'),
+                'useTLS' => env('REVERB_PUBLISH_SCHEME', 'http') === 'https',
             ],
         ],
 

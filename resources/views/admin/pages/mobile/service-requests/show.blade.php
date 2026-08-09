@@ -210,7 +210,7 @@
                                     <td class="sr-val">
                                         @if (! empty($row['files']))
                                             @foreach ($row['files'] as $file)
-                                                <a href="{{ $file['url'] }}" target="_blank" class="d-block text-primary"><i class="ri-attachment-2"></i> {{ $file['name'] }}</a>
+                                                <a href="{{ $file['url'] }}" download="{{ $file['name'] }}" class="d-inline-flex align-items-center text-primary mb-1" style="gap:6px"><i class="ri-download-2-line"></i> {{ $file['name'] }}</a>
                                             @endforeach
                                         @else
                                             {!! nl2br(e(($row['value'] ?? '') !== '' ? $row['value'] : '-')) !!}
@@ -248,6 +248,7 @@
                                         <div class="d-none h-100 w-100 align-items-center justify-content-center bg-light text-muted px-2 text-center" style="font-size:12px;">Preview tidak tersedia</div>
                                     </div>
                                 </a>
+                                <a href="{{ $photo['uri'] }}" download="{{ $photo['file_name'] ?? 'foto.jpg' }}" class="d-inline-flex align-items-center text-primary mt-1 small" style="gap:4px"><i class="ri-download-2-line"></i> Unduh</a>
                             </div>
                         @endforeach
                     </div>
