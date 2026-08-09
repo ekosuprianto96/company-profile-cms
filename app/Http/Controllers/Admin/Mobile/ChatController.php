@@ -61,6 +61,19 @@ class ChatController extends Controller
         ]);
     }
 
+    /** Siarkan indikator "sedang mengetik" ke user. Best-effort, tanpa body respons. */
+    public function typing(Request $request, int $conversation)
+    {
+        try {
+            $chatConversation = $this->chatService->getConversationForAdmin($conversation);
+            $this->chatService->broadcastTyping($chatConversation, 'admin', $request->user()->name ?? 'Admin', $request->boolean('is_typing', true));
+        } catch (\Throwable $th) {
+            // abaikan — indikator ketik tidak boleh mengganggu.
+        }
+
+        return response()->noContent();
+    }
+
     public function store(Request $request, int $conversation)
     {
         $validated = $request->validate([

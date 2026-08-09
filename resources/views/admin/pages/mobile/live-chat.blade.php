@@ -155,6 +155,13 @@
     .chat-reply-preview-text { flex:1; min-width:0; }
     .chat-reply-clear { border:0; background:transparent; cursor:pointer; font-size:1.15rem; color:#64748b; line-height:1; }
     .chat-reply-clear:hover { color:#111827; }
+    /* Typing indicator */
+    .chat-typing { display:flex; align-items:center; gap:5px; padding:8px 16px 2px; }
+    .chat-typing-dot { width:7px; height:7px; border-radius:50%; background:#94a3b8; animation:chatTypingPulse 1.2s infinite ease-in-out; }
+    .chat-typing-dot:nth-child(2) { animation-delay:.2s; }
+    .chat-typing-dot:nth-child(3) { animation-delay:.4s; }
+    .chat-typing-label { font-size:.72rem; color:#94a3b8; font-style:italic; margin-left:4px; }
+    @keyframes chatTypingPulse { 0%,60%,100% { opacity:.3; transform:translateY(0); } 30% { opacity:1; transform:translateY(-3px); } }
     .chat-message-attachments { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
     .chat-message-attachment { display:block; border-radius:.375rem; overflow:hidden; border:1px solid rgba(0,0,0,.08); line-height:0; }
     .chat-message-attachment img { display:block; width:140px; height:140px; object-fit:cover; }
@@ -405,6 +412,13 @@
                                             </div>
                                         @endforelse
                                     </div>
+                                </div>
+
+                                <div id="chat-typing-indicator" class="chat-typing" style="display:none">
+                                    <span class="chat-typing-dot"></span>
+                                    <span class="chat-typing-dot"></span>
+                                    <span class="chat-typing-dot"></span>
+                                    <span class="chat-typing-label">User sedang mengetik…</span>
                                 </div>
 
                                 <form id="chat-message-form" method="POST"

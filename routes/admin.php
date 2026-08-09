@@ -477,6 +477,7 @@ Route::middleware(['auth'])->group(function () {
         });
         Route::get('live-chat/{conversation?}', [MobileChatController::class, 'index'])->whereNumber('conversation')->name('live_chat');
         Route::post('live-chat/{conversation}/messages', [MobileChatController::class, 'store'])->whereNumber('conversation')->name('live_chat.messages');
+        Route::post('live-chat/{conversation}/typing', [MobileChatController::class, 'typing'])->whereNumber('conversation')->name('live_chat.typing');
         Route::get('settings', [MobileController::class, 'settings'])->name('settings');
         Route::post('settings/update', [MobileController::class, 'updateSettings'])->name('settings.update');
         Route::get('regions/provinces', [MobileController::class, 'regionsProvinces'])->name('regions.provinces');

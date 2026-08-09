@@ -199,6 +199,19 @@ class ChatController extends ApiController
         }
     }
 
+    /** Siarkan indikator "sedang mengetik" ke admin. Best-effort, tanpa body respons. */
+    public function typing(Request $request, int $id)
+    {
+        try {
+            $conversation = $this->chatService->getConversationForUser($request->user(), $id);
+            $this->chatService->broadcastTyping($conversation, 'mobile', $request->user()->name ?? 'User', $request->boolean('is_typing', true));
+        } catch (\Throwable $th) {
+            // abaikan — indikator ketik tidak boleh mengganggu.
+        }
+
+        return response()->noContent();
+    }
+
     public function markRead(Request $request, int $id)
     {
         try {

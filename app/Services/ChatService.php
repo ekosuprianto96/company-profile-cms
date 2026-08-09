@@ -367,6 +367,21 @@ class ChatService
         ];
     }
 
+    /** Siarkan indikator "sedang mengetik" (non-fatal bila broadcast gagal). */
+    public function broadcastTyping(ChatConversation $conversation, string $senderType, string $senderName, bool $isTyping): void
+    {
+        $mobileUserId = (int) ($conversation->mobile_user_id ?? 0);
+        if ($mobileUserId <= 0) {
+            return;
+        }
+
+        try {
+            event(new \App\Events\Mobile\ChatTyping($conversation->id, $mobileUserId, $senderType, $senderName, $isTyping));
+        } catch (\Throwable $th) {
+            // Indikator ketik bersifat best-effort — jangan ganggu alur utama.
+        }
+    }
+
     protected function broadcastMessageCreated(ChatMessage $message): void
     {
         $freshMessage = $message->fresh([

@@ -109,6 +109,7 @@ Route::middleware(['auth:sanctum', 'mobile.active'])->group(function () {
         Route::get('/{id}', [ChatController::class, 'show'])->whereNumber('id');
         Route::get('/{id}/messages', [ChatController::class, 'messages'])->whereNumber('id');
         Route::post('/{id}/messages', [ChatController::class, 'storeMessage'])->whereNumber('id');
+        Route::post('/{id}/typing', [ChatController::class, 'typing'])->whereNumber('id');
         Route::patch('/{id}/read', [ChatController::class, 'markRead'])->whereNumber('id');
     });
 });

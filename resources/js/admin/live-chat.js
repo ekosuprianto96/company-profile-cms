@@ -25,6 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const attachPreview = document.getElementById('chat-attach-preview');
   const replyInput = document.getElementById('chat-reply-to-input');
   const replyPreview = document.getElementById('chat-reply-preview');
+  const typingIndicator = document.getElementById('chat-typing-indicator');
+  let typingHideTimer = null;
+  let lastTypingSent = 0;
   const avatarTones = ['tone-1', 'tone-2', 'tone-3', 'tone-4', 'tone-5', 'tone-6'];
   const sidebarStorageKey = 'maninjau-admin-live-chat-sidebar-collapsed';
 
@@ -650,11 +653,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (selectedConversationId > 0 && Number(payload.conversation.id) === selectedConversationId) {
         appendMessage(payload);
+        hideTyping();
+      }
+    });
+
+    channel.bind('chat.typing', (payload) => {
+      if (!payload || payload.sender_type !== 'mobile') return;
+      if (Number(payload.conversation_id) !== selectedConversationId) return;
+      if (payload.is_typing) {
+        showTyping();
+        if (typingHideTimer) clearTimeout(typingHideTimer);
+        typingHideTimer = setTimeout(hideTyping, 3500);
+      } else {
+        hideTyping();
       }
     });
 
     window.addEventListener('beforeunload', () => {
       channel.unbind('chat.message.created');
+      channel.unbind('chat.typing');
       pusher.disconnect();
     });
   }
@@ -666,7 +683,32 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function showTyping() {
+    if (typingIndicator) typingIndicator.style.display = '';
+  }
+  function hideTyping() {
+    if (typingIndicator) typingIndicator.style.display = 'none';
+  }
+
+  // Kirim sinyal "sedang mengetik" ke user (throttle 2 detik).
+  function sendTypingSignal() {
+    if (!messageForm || selectedConversationId <= 0) return;
+    const now = Date.now();
+    if (now - lastTypingSent < 2000) return;
+    lastTypingSent = now;
+    const action = messageForm.getAttribute('action') || '';
+    const url = action.replace(/\/messages(\?.*)?$/, '/typing');
+    if (!url || url === action) return;
+    fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': csrfToken, 'X-Requested-With': 'XMLHttpRequest', Accept: 'application/json' },
+    }).catch(() => {});
+  }
+
   if (messageInput) {
+    messageInput.addEventListener('input', () => {
+      if (messageInput.value.trim().length > 0) sendTypingSignal();
+    });
     messageInput.addEventListener('keydown', (event) => {
       if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
         event.preventDefault();
