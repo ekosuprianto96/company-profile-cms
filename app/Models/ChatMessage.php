@@ -17,6 +17,7 @@ class ChatMessage extends Model
         'sender_mobile_user_id',
         'body',
         'attachments',
+        'reply_to_message_id',
     ];
 
     protected function casts(): array
@@ -39,5 +40,11 @@ class ChatMessage extends Model
     public function senderMobileUser(): BelongsTo
     {
         return $this->belongsTo(MobileUser::class, 'sender_mobile_user_id');
+    }
+
+    /** Pesan yang dibalas (reply/quote). */
+    public function replyTo(): BelongsTo
+    {
+        return $this->belongsTo(ChatMessage::class, 'reply_to_message_id');
     }
 }

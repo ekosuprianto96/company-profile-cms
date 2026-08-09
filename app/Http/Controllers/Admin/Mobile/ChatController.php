@@ -67,6 +67,7 @@ class ChatController extends Controller
             'message' => 'nullable|string|max:5000|required_without:attachments',
             'attachments' => 'nullable|array|max:6',
             'attachments.*' => 'file|mimes:jpg,jpeg,png,webp,gif,pdf|max:10240',
+            'reply_to_message_id' => 'nullable|integer|exists:chat_messages,id',
         ], [
             'message.required_without' => 'Tulis pesan atau lampirkan media.',
         ]);
@@ -78,6 +79,7 @@ class ChatController extends Controller
                 $request->user(),
                 (string) ($validated['message'] ?? ''),
                 $request->file('attachments', []),
+                isset($validated['reply_to_message_id']) ? (int) $validated['reply_to_message_id'] : null,
             );
             $chatConversation = $this->chatService->getConversationForAdmin($chatConversation->id);
             $chatConversation->load([
@@ -91,7 +93,7 @@ class ChatController extends Controller
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
                     'conversation' => $this->chatService->conversationSummary($chatConversation),
-                    'message' => $this->chatService->messagePayload($message->fresh(['senderAdmin', 'senderMobileUser'])),
+                    'message' => $this->chatService->messagePayload($message->fresh(['senderAdmin', 'senderMobileUser', 'replyTo.senderAdmin', 'replyTo.senderMobileUser'])),
                 ]);
             }
 

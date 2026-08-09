@@ -285,6 +285,21 @@ class MobileServiceRequestController extends Controller
         ]);
     }
 
+    /** Unduh INVOICE pembayaran user (berbeda dari dokumen pengajuan di atas). */
+    public function invoice(int $id)
+    {
+        $serviceRequest = $this->mobileServiceRequestAdminService->findOrFail($id);
+        $pdf = app(\App\Services\MobileInvoicePdfService::class)->forServiceRequest($serviceRequest);
+
+        $filename = 'invoice-' . ($serviceRequest->transaction_code_label ?? $serviceRequest->id) . '.pdf';
+
+        return response()->streamDownload(function () use ($pdf) {
+            echo $pdf;
+        }, $filename, [
+            'Content-Type' => 'application/pdf',
+        ]);
+    }
+
     public function photo(string $file)
     {
         $file = basename($file);

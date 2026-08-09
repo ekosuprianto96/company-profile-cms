@@ -23,6 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const attachInput = document.getElementById('chat-attach-input');
   const attachBtn = document.getElementById('chat-attach-btn');
   const attachPreview = document.getElementById('chat-attach-preview');
+  const replyInput = document.getElementById('chat-reply-to-input');
+  const replyPreview = document.getElementById('chat-reply-preview');
   const avatarTones = ['tone-1', 'tone-2', 'tone-3', 'tone-4', 'tone-5', 'tone-6'];
   const sidebarStorageKey = 'maninjau-admin-live-chat-sidebar-collapsed';
 
@@ -197,6 +199,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const attachmentMarkup = attachments.map(renderAttachment).join('');
     const bodyMarkup = body ? `<div class="chat-message-body">${escapeHtml(body)}</div>` : '';
     const attachmentNote = !body && attachmentMarkup ? `<div class="chat-message-note ${isAdmin ? 'text-white-50' : 'text-muted'}">Foto terkirim</div>` : '';
+    const replyTo = message.reply_to || null;
+    const quoteMarkup = replyTo
+      ? `<div class="chat-quote"><div class="chat-quote-name">${escapeHtml(replyTo.sender_name || (replyTo.sender_type === 'admin' ? 'Admin' : 'User'))}</div><div class="chat-quote-body">${escapeHtml(replyTo.body || (replyTo.has_attachments ? 'Lampiran' : ''))}</div></div>`
+      : '';
+    const replyPreview = body || (attachmentMarkup ? 'Lampiran' : '');
+    const replyBtn = `<button type="button" class="chat-reply-btn" data-reply-btn data-reply-id="${escapeHtml(message.id)}" data-reply-name="${escapeHtml(senderName)}" data-reply-body="${escapeHtml(replyPreview)}" title="Balas pesan ini"><i class="ri-reply-line"></i></button>`;
     const createdAt = message.created_at
       ? new Date(message.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })
       : '-';
@@ -211,7 +219,9 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="chat-message-head">
             <div class="chat-message-name">${escapeHtml(senderName)}</div>
             <div class="chat-message-time">${escapeHtml(createdAt)}</div>
+            ${replyBtn}
           </div>
+          ${quoteMarkup}
           ${bodyMarkup}
           ${attachmentMarkup ? `<div class="chat-message-attachments">${attachmentMarkup}</div>` : ''}
           ${attachmentNote}
@@ -382,6 +392,40 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAttachPreview();
   }
 
+  // ---- Reply / quote ----
+  function setReply(id, name, body) {
+    if (!replyInput || !replyPreview) return;
+    replyInput.value = String(id);
+    replyPreview.innerHTML =
+      `<div class="chat-reply-preview-bar"><div class="chat-reply-preview-text">` +
+      `<div class="chat-quote-name">Membalas · ${escapeHtml(name || '')}</div>` +
+      `<div class="chat-quote-body">${escapeHtml(body || 'Lampiran')}</div></div>` +
+      `<button type="button" class="chat-reply-clear" data-reply-clear title="Batal"><i class="ri-close-line"></i></button></div>`;
+    replyPreview.style.display = '';
+    if (messageInput) messageInput.focus();
+  }
+
+  function clearReply() {
+    if (replyInput) replyInput.value = '';
+    if (replyPreview) {
+      replyPreview.innerHTML = '';
+      replyPreview.style.display = 'none';
+    }
+  }
+
+  if (messageRoot) {
+    messageRoot.addEventListener('click', (event) => {
+      const btn = event.target.closest('[data-reply-btn]');
+      if (!btn) return;
+      setReply(btn.getAttribute('data-reply-id'), btn.getAttribute('data-reply-name'), btn.getAttribute('data-reply-body'));
+    });
+  }
+  if (replyPreview) {
+    replyPreview.addEventListener('click', (event) => {
+      if (event.target.closest('[data-reply-clear]')) clearReply();
+    });
+  }
+
   if (attachBtn && attachInput) {
     attachBtn.addEventListener('click', () => attachInput.click());
     attachInput.addEventListener('change', (event) => {
@@ -501,6 +545,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       form.reset();
       clearAttachments();
+      clearReply();
       setMessageError('');
       messageInput?.focus();
     } catch (error) {

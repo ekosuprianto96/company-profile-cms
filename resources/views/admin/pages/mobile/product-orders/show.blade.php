@@ -175,7 +175,14 @@
                 </div>
                 <div class="form-group mb-2">
                     <label class="form-label" style="font-size:.85em">No. Resi</label>
-                    <input name="tracking_number" type="text" class="form-control form-control-sm" value="{{ $order->tracking_number }}" placeholder="opsional">
+                    @if ($order->shipping_courier_id)
+                        {{-- Kurir pihak ke-3: admin isi resi dari kurir --}}
+                        <input name="tracking_number" type="text" class="form-control form-control-sm" value="{{ $order->tracking_number }}" placeholder="No. resi dari kurir">
+                    @else
+                        {{-- Kurir internal: resi OTOMATIS saat status 'Dikirim' (tanpa input manual) --}}
+                        <input type="text" class="form-control form-control-sm" value="{{ $order->tracking_number ?: 'Otomatis dibuat saat Dikirim' }}" readonly style="background:#f1f3f5;color:#495057">
+                        <small class="text-muted d-block mt-1" style="font-size:.72rem"><i class="ri-truck-line"></i> Kurir internal — no. resi dibuat otomatis saat pesanan ditandai <b>Dikirim</b>.</small>
+                    @endif
                 </div>
                 <small class="text-muted d-block mb-3" style="font-size:.75rem;">Menandai <b>Lunas</b> mengunci pemakaian voucher &amp; menambah terjual; <b>Dibatalkan</b> mengembalikan stok &amp; voucher.</small>
                 <button type="button" id="buttonUpdateProductOrder" class="btn btn-primary btn-sm w-100">Simpan Perubahan</button>

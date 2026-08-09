@@ -6,6 +6,7 @@ use App\Models\MobileServiceRequest;
 use App\Models\ProductOrder;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class MobileInvoicePdfService
 {
@@ -59,7 +60,7 @@ class MobileInvoicePdfService
             ],
         ];
 
-        return $this->render(config('invoice.templates.service', 'classic'), $invoice);
+        return $this->renderCached('service', $serviceRequest->id, $serviceRequest->updated_at, config('invoice.templates.service', 'classic'), $invoice);
     }
 
     /** Invoice untuk order produk (saat ini mock). */
@@ -104,7 +105,19 @@ class MobileInvoicePdfService
             ],
         ];
 
-        return $this->render(config('invoice.templates.product', 'classic'), $invoice);
+        return $this->renderCached('product', $order->id, $order->updated_at, config('invoice.templates.product', 'classic'), $invoice);
+    }
+
+    /**
+     * Render PDF dengan cache berdasarkan versi (updated_at) order. Unduhan
+     * berikutnya untuk invoice yang sama = instan; regenerasi otomatis saat
+     * data order berubah (updated_at berubah → key cache berubah).
+     */
+    protected function renderCached(string $type, int $id, $version, string $template, array $invoice): string
+    {
+        $key = "invoice_pdf:{$type}:{$id}:" . (optional($version)->timestamp ?? 0);
+
+        return Cache::remember($key, now()->addDay(), fn () => $this->render($template, $invoice));
     }
 
     protected function render(string $template, array $invoice): string
@@ -164,9 +177,13 @@ class MobileInvoicePdfService
             public_path(ltrim($logo, '/')),
         ] as $path) {
             if (is_file($path)) {
-                $mime = mime_content_type($path) ?: 'image/png';
+                // Encode base64 sekali saja (di-cache per berkas+mtime) — tak perlu
+                // baca & encode ulang tiap render invoice.
+                return Cache::rememberForever('invoice_logo:' . md5($path) . ':' . filemtime($path), function () use ($path) {
+                    $mime = mime_content_type($path) ?: 'image/png';
 
-                return 'data:' . $mime . ';base64,' . base64_encode((string) file_get_contents($path));
+                    return 'data:' . $mime . ';base64,' . base64_encode((string) file_get_contents($path));
+                });
             }
         }
 

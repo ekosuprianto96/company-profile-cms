@@ -157,6 +157,7 @@ class ChatController extends ApiController
                 'message' => ['nullable', 'string', 'max:5000'],
                 'attachments' => ['nullable', 'array', 'max:4'],
                 'attachments.*' => ['file', 'image', 'max:5120'],
+                'reply_to_message_id' => ['nullable', 'integer', 'exists:chat_messages,id'],
             ]);
 
             $conversation = $this->chatService->getConversationForUser($request->user(), $id);
@@ -173,12 +174,13 @@ class ChatController extends ApiController
                 $conversation,
                 $request->user(),
                 $messageBody,
-                $attachments
+                $attachments,
+                isset($validated['reply_to_message_id']) ? (int) $validated['reply_to_message_id'] : null
             );
 
             return $this->success([
                 'conversation' => $this->conversationPayload($conversation->fresh(['mobileUser', 'serviceRequest.service', 'assignedAdmin']), $request->user()),
-                'message' => $this->chatService->messagePayload($message->fresh(['senderMobileUser', 'senderAdmin'])),
+                'message' => $this->chatService->messagePayload($message->fresh(['senderMobileUser', 'senderAdmin', 'replyTo.senderAdmin', 'replyTo.senderMobileUser'])),
             ], 'Pesan berhasil dikirim.');
         } catch (\Throwable $th) {
             if ($th instanceof ValidationException) {

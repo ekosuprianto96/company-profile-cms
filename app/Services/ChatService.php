@@ -162,7 +162,7 @@ class ChatService
     public function paginateMessages(ChatConversation $conversation, ?int $beforeId = null, int $perPage = 30): array
     {
         $query = $conversation->messages()
-            ->with(['senderAdmin', 'senderMobileUser'])
+            ->with(['senderAdmin', 'senderMobileUser', 'replyTo.senderAdmin', 'replyTo.senderMobileUser'])
             ->orderByDesc('id')
             ->limit($perPage + 1);
 
@@ -190,6 +190,8 @@ class ChatService
                 'assignedAdmin',
                 'messages.senderAdmin',
                 'messages.senderMobileUser',
+                'messages.replyTo.senderAdmin',
+                'messages.replyTo.senderMobileUser',
             ])
             ->findOrFail($id);
 
@@ -209,9 +211,11 @@ class ChatService
         return $conversation;
     }
 
-    public function sendAdminMessage(ChatConversation $conversation, User $admin, string $body, array $attachments = []): ChatMessage
+    public function sendAdminMessage(ChatConversation $conversation, User $admin, string $body, array $attachments = [], ?int $replyToMessageId = null): ChatMessage
     {
-        $message = DB::transaction(function () use ($conversation, $admin, $body, $attachments) {
+        $replyToMessageId = $this->resolveReplyTo($conversation, $replyToMessageId);
+
+        $message = DB::transaction(function () use ($conversation, $admin, $body, $attachments, $replyToMessageId) {
             $storedAttachments = $this->storeAttachments($attachments);
 
             $message = ChatMessage::query()->create([
@@ -221,6 +225,7 @@ class ChatService
                 'sender_mobile_user_id' => null,
                 'body' => trim($body),
                 'attachments' => $storedAttachments ?: null,
+                'reply_to_message_id' => $replyToMessageId,
             ]);
 
             $conversation->forceFill([
@@ -239,9 +244,11 @@ class ChatService
         return $message;
     }
 
-    public function sendMobileMessage(ChatConversation $conversation, MobileUser $mobileUser, string $body, array $attachments = []): ChatMessage
+    public function sendMobileMessage(ChatConversation $conversation, MobileUser $mobileUser, string $body, array $attachments = [], ?int $replyToMessageId = null): ChatMessage
     {
-        $message = DB::transaction(function () use ($conversation, $mobileUser, $body, $attachments) {
+        $replyToMessageId = $this->resolveReplyTo($conversation, $replyToMessageId);
+
+        $message = DB::transaction(function () use ($conversation, $mobileUser, $body, $attachments, $replyToMessageId) {
             $storedAttachments = $this->storeAttachments($attachments);
 
             $message = ChatMessage::query()->create([
@@ -251,6 +258,7 @@ class ChatService
                 'sender_mobile_user_id' => $mobileUser->id,
                 'body' => trim($body),
                 'attachments' => $storedAttachments ?: null,
+                'reply_to_message_id' => $replyToMessageId,
             ]);
 
             $conversation->forceFill([
@@ -266,6 +274,19 @@ class ChatService
         $this->notifyChatParticipant($message, $conversation->fresh(['mobileUser', 'serviceRequest.service']), $mobileUser);
 
         return $message;
+    }
+
+    /** Pastikan pesan yang dibalas benar-benar ada di percakapan yang sama; jika tidak → null. */
+    private function resolveReplyTo(ChatConversation $conversation, ?int $replyToMessageId): ?int
+    {
+        if (! $replyToMessageId) {
+            return null;
+        }
+
+        return ChatMessage::query()
+            ->where('id', $replyToMessageId)
+            ->where('chat_conversation_id', $conversation->id)
+            ->exists() ? $replyToMessageId : null;
     }
 
     public function markReadForAdmin(ChatConversation $conversation, ?User $admin = null): ChatConversation
@@ -333,13 +354,26 @@ class ChatService
             ] : null,
             'body' => $message->body,
             'attachments' => $this->normalizeAttachments($message->attachments ?? []),
+            'reply_to' => $message->replyTo ? [
+                'id' => $message->replyTo->id,
+                'sender_type' => $message->replyTo->sender_type,
+                'sender_name' => $message->replyTo->sender_type === 'admin'
+                    ? $message->replyTo->senderAdmin?->name
+                    : $message->replyTo->senderMobileUser?->name,
+                'body' => Str::limit(strip_tags((string) $message->replyTo->body), 80),
+                'has_attachments' => ! empty($message->replyTo->attachments),
+            ] : null,
             'created_at' => optional($message->created_at)?->toISOString(),
         ];
     }
 
     protected function broadcastMessageCreated(ChatMessage $message): void
     {
-        $freshMessage = $message->fresh(['conversation.mobileUser', 'conversation.serviceRequest.service', 'senderAdmin', 'senderMobileUser']);
+        $freshMessage = $message->fresh([
+            'conversation.mobileUser', 'conversation.serviceRequest.service',
+            'senderAdmin', 'senderMobileUser',
+            'replyTo.senderAdmin', 'replyTo.senderMobileUser',
+        ]);
 
         if (! $freshMessage?->conversation?->mobileUser?->id) {
             return;

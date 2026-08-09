@@ -141,6 +141,20 @@
     .chat-message-time { font-size:.65rem; opacity:.7; }
     .chat-message-body { font-size:.85rem; line-height:1.5; word-break:break-word; white-space:pre-wrap; }
     .chat-message-note { font-size:.7rem; margin-top:3px; }
+    /* Reply / quote */
+    .chat-message-head { position:relative; }
+    .chat-reply-btn { position:absolute; top:-2px; right:-2px; border:0; background:transparent; color:inherit; opacity:0; cursor:pointer; font-size:1rem; line-height:1; padding:2px 4px; border-radius:6px; transition:opacity .15s; }
+    .chat-message-card:hover .chat-reply-btn { opacity:.65; }
+    .chat-reply-btn:hover { opacity:1 !important; background:rgba(0,0,0,.08); }
+    .chat-quote { border-left:3px solid rgba(39,90,86,.6); background:rgba(0,0,0,.05); border-radius:6px; padding:4px 8px; margin-bottom:5px; }
+    .chat-message-row.is-admin .chat-quote { border-left-color:rgba(255,255,255,.7); background:rgba(255,255,255,.15); }
+    .chat-quote-name { font-size:.7rem; font-weight:700; opacity:.9; }
+    .chat-quote-body { font-size:.75rem; opacity:.8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .chat-reply-preview { margin-bottom:10px; }
+    .chat-reply-preview-bar { display:flex; align-items:center; gap:10px; border-left:3px solid #275a56; background:rgba(39,90,86,.08); border-radius:8px; padding:6px 10px; }
+    .chat-reply-preview-text { flex:1; min-width:0; }
+    .chat-reply-clear { border:0; background:transparent; cursor:pointer; font-size:1.15rem; color:#64748b; line-height:1; }
+    .chat-reply-clear:hover { color:#111827; }
     .chat-message-attachments { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
     .chat-message-attachment { display:block; border-radius:.375rem; overflow:hidden; border:1px solid rgba(0,0,0,.08); line-height:0; }
     .chat-message-attachment img { display:block; width:140px; height:140px; object-fit:cover; }
@@ -345,7 +359,19 @@
                                                     <div class="chat-message-head">
                                                         <div class="chat-message-name">{{ $messageName }}</div>
                                                         <div class="chat-message-time">{{ $messageTime }}</div>
+                                                        <button type="button" class="chat-reply-btn" data-reply-btn
+                                                            data-reply-id="{{ $message['id'] }}"
+                                                            data-reply-name="{{ $messageName }}"
+                                                            data-reply-body="{{ \Illuminate\Support\Str::limit(trim((string) ($message['body'] ?? '')) !== '' ? $message['body'] : 'Lampiran', 80) }}"
+                                                            title="Balas pesan ini"><i class="ri-reply-line"></i></button>
                                                     </div>
+
+                                                    @if (! empty($message['reply_to']))
+                                                        <div class="chat-quote">
+                                                            <div class="chat-quote-name">{{ $message['reply_to']['sender_name'] ?? (($message['reply_to']['sender_type'] ?? '') === 'admin' ? 'Admin' : 'User') }}</div>
+                                                            <div class="chat-quote-body">{{ trim((string) ($message['reply_to']['body'] ?? '')) !== '' ? $message['reply_to']['body'] : 'Lampiran' }}</div>
+                                                        </div>
+                                                    @endif
 
                                                     @if (trim((string) ($message['body'] ?? '')) !== '')
                                                         <div class="chat-message-body">{{ $message['body'] ?? '' }}</div>
@@ -385,6 +411,10 @@
                                       action="{{ route('admin.mobile.live_chat.messages', $selectedConversation->id) }}"
                                       class="chat-composer" autocomplete="off" enctype="multipart/form-data">
                                     @csrf
+                                    <input type="hidden" name="reply_to_message_id" id="chat-reply-to-input">
+
+                                    {{-- Pratinjau pesan yang dibalas (diisi oleh JS) --}}
+                                    <div id="chat-reply-preview" class="chat-reply-preview" style="display:none"></div>
 
                                     {{-- Pratinjau media sebelum dikirim (diisi oleh JS) --}}
                                     <div id="chat-attach-preview" class="chat-attach-preview d-none"></div>

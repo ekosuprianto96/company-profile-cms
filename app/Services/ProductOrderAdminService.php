@@ -106,15 +106,31 @@ class ProductOrderAdminService
                 }
             }
 
+            $tracking = $payload['tracking_number'] ?? $order->tracking_number;
+
+            // Kurir internal (tanpa jasa kurir pihak ke-3): nomor resi dibuat
+            // OTOMATIS saat pesanan berstatus "dikirim" — admin tak perlu mengetik.
+            if ($newStatus === 'dikirim' && empty($order->shipping_courier_id) && empty($tracking)) {
+                $tracking = $this->generateInternalTrackingNumber($order);
+            }
+
             $order->update([
                 'status' => $newStatus,
                 'status_label' => $this->labels[$newStatus] ?? ucfirst($newStatus),
                 'payment_status' => $newPaymentStatus,
                 'paid_at' => ($newPaymentStatus === 'paid' && ! $order->paid_at) ? now() : $order->paid_at,
-                'tracking_number' => $payload['tracking_number'] ?? $order->tracking_number,
+                'tracking_number' => $tracking,
             ]);
 
             return $order->fresh(['items', 'user']);
         });
+    }
+
+    /** Nomor resi kurir internal — deterministik & unik per pesanan. */
+    private function generateInternalTrackingNumber(ProductOrder $order): string
+    {
+        return 'MJ-INT-'
+            . str_pad((string) $order->id, 6, '0', STR_PAD_LEFT)
+            . '-' . strtoupper(substr(md5($order->order_number . '|' . $order->id), 0, 4));
     }
 }

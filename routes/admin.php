@@ -452,6 +452,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('service-requests/export', [MobileServiceRequestController::class, 'exportExcel'])->name('service_requests.export');
         Route::get('service-requests/export-pdf', [MobileServiceRequestController::class, 'exportPdf'])->name('service_requests.export_pdf');
         Route::get('service-requests/{id}/download', [MobileServiceRequestController::class, 'download'])->whereNumber('id')->name('service_requests.download');
+        Route::get('service-requests/{id}/invoice', [MobileServiceRequestController::class, 'invoice'])->whereNumber('id')->name('service_requests.invoice');
         Route::get('service-requests/photos/{file}', [MobileServiceRequestController::class, 'photo'])->where('file', '.+')->name('service_requests.photo');
         Route::post('service-requests/{id}/confirm-payment', [MobileServiceRequestController::class, 'confirmPayment'])->whereNumber('id')->name('service_requests.confirm_payment');
         Route::post('service-requests/{id}/reject-payment', [MobileServiceRequestController::class, 'rejectPayment'])->whereNumber('id')->name('service_requests.reject_payment');

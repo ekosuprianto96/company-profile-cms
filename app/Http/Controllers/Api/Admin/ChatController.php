@@ -71,6 +71,7 @@ class ChatController extends ApiController
                 'message' => ['nullable', 'string', 'max:5000'],
                 'attachments' => ['nullable', 'array', 'max:5'],
                 'attachments.*' => ['file', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+                'reply_to_message_id' => ['nullable', 'integer', 'exists:chat_messages,id'],
             ]);
 
             $body = trim((string) ($validated['message'] ?? ''));
@@ -81,9 +82,15 @@ class ChatController extends ApiController
             }
 
             $conversation = $this->chatService->getConversationForAdmin($id);
-            $message = $this->chatService->sendAdminMessage($conversation, $request->user(), $body, $attachments);
+            $message = $this->chatService->sendAdminMessage(
+                $conversation,
+                $request->user(),
+                $body,
+                $attachments,
+                isset($validated['reply_to_message_id']) ? (int) $validated['reply_to_message_id'] : null
+            );
 
-            return $this->success(['message' => $this->chatService->messagePayload($message)], 'Pesan terkirim.');
+            return $this->success(['message' => $this->chatService->messagePayload($message->fresh(['senderAdmin', 'senderMobileUser', 'replyTo.senderAdmin', 'replyTo.senderMobileUser']))], 'Pesan terkirim.');
         } catch (\Throwable $th) {
             return $this->error($th->getMessage(), $th->getCode() ?: 500);
         }

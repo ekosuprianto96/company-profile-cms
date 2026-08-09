@@ -137,7 +137,8 @@
                     @if ($proposal)
                         <a href="{{ route('admin.mobile.proposals.show', $proposal->id) }}" class="btn btn-outline-primary btn-sm"><i class="ri-file-list-3-line me-1"></i> Lihat Proposal</a>
                     @endif
-                    <a href="{{ route('admin.mobile.service_requests.download', $sr->id) }}" class="btn btn-primary btn-sm"><i class="ri-download-2-line me-1"></i> PDF</a>
+                    <a href="{{ route('admin.mobile.service_requests.download', $sr->id) }}" class="btn btn-primary btn-sm"><i class="ri-file-list-3-line me-1"></i> Dokumen</a>
+                    <a href="{{ route('admin.mobile.service_requests.invoice', $sr->id) }}" class="btn btn-success btn-sm"><i class="ri-bill-line me-1"></i> Invoice</a>
                     <a href="{{ route('admin.mobile.service_requests.chat_user', $sr->id) }}" class="btn btn-info btn-sm"><i class="ri-message-3-line me-1"></i> Chat</a>
                     <a href="{{ route('admin.mobile.service_requests.index') }}" class="btn btn-light btn-sm"><i class="ri-arrow-left-line me-1"></i> Daftar</a>
                 </div>

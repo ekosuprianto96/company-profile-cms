@@ -30,13 +30,17 @@ class SystemNotificationService
         ], $context);
 
         $inApp = $this->templates->render($eventKey, 'in_app', 'user', $context);
+        $notifId = null;
         if (trim($inApp['subject'] . $inApp['body']) !== '') {
-            $user->notify(new SystemNotification($inApp['subject'], $inApp['body'], $type, $url, $context));
+            $notification = new SystemNotification($inApp['subject'], $inApp['body'], $type, $url, $context);
+            $notification->id = (string) \Illuminate\Support\Str::uuid();
+            $notifId = $notification->id;
+            $user->notify($notification);
         }
 
         $push = $this->templates->render($eventKey, 'push', 'user', $context);
         if (trim($push['subject'] . $push['body']) !== '') {
-            $this->sendExpoPushToUsers(collect([$user]), $push['subject'], $push['body'], $type, $url, $context);
+            $this->sendExpoPushToUsers(collect([$user]), $push['subject'], $push['body'], $type, $url, $context, $notifId ? '/notification-detail?id=' . $notifId : null);
         }
     }
 
@@ -74,8 +78,10 @@ class SystemNotificationService
             ->get();
 
         if ($users->isNotEmpty()) {
-            Notification::send($users, new SystemNotification($title, $message, $type, $url, $meta));
-            $this->sendExpoPushToUsers($users, $title, $message, $type, $url, $meta);
+            $notification = new SystemNotification($title, $message, $type, $url, $meta);
+            $notification->id = (string) \Illuminate\Support\Str::uuid();
+            Notification::send($users, $notification);
+            $this->sendExpoPushToUsers($users, $title, $message, $type, $url, $meta, '/notification-detail?id=' . $notification->id);
         }
     }
 
@@ -87,15 +93,19 @@ class SystemNotificationService
             ->get();
 
         if ($users->isNotEmpty()) {
-            Notification::send($users, new SystemNotification($title, $message, $type, $url, $meta));
-            $this->sendExpoPushToUsers($users, $title, $message, $type, $url, $meta);
+            $notification = new SystemNotification($title, $message, $type, $url, $meta);
+            $notification->id = (string) \Illuminate\Support\Str::uuid();
+            Notification::send($users, $notification);
+            $this->sendExpoPushToUsers($users, $title, $message, $type, $url, $meta, '/notification-detail?id=' . $notification->id);
         }
     }
 
     public function notifyMobileUser(MobileUser $user, string $title, string $message, string $type = 'info', ?string $url = null, array $meta = []): void
     {
-        $user->notify(new SystemNotification($title, $message, $type, $url, $meta));
-        $this->sendExpoPushToUsers(collect([$user]), $title, $message, $type, $url, $meta);
+        $notification = new SystemNotification($title, $message, $type, $url, $meta);
+        $notification->id = (string) \Illuminate\Support\Str::uuid();
+        $user->notify($notification);
+        $this->sendExpoPushToUsers(collect([$user]), $title, $message, $type, $url, $meta, '/notification-detail?id=' . $notification->id);
     }
 
     public function notifyAdmins(string $title, string $message, string $type = 'info', ?string $url = null, array $meta = []): void
@@ -221,7 +231,8 @@ class SystemNotificationService
             'message' => $preview,
             'data' => [
                 'type' => SystemNotification::TYPE_INFORMATION,
-                'url' => '/messages',
+                // Tap notifikasi chat → langsung ke ruang chat terkait (bukan daftar).
+                'url' => '/chat-detail?id=' . $conversation->id,
                 'meta' => [
                     'conversation_id' => $conversation->id,
                     'service_request_id' => $conversation->service_request_id,
@@ -255,7 +266,7 @@ class SystemNotificationService
         ]);
     }
 
-    private function sendExpoPushToUsers(Collection $users, string $title, string $message, string $type, ?string $url, array $meta): void
+    private function sendExpoPushToUsers(Collection $users, string $title, string $message, string $type, ?string $url, array $meta, ?string $mobileUrl = null): void
     {
         $userIds = $users->pluck('id')->filter()->values()->all();
 
@@ -278,7 +289,9 @@ class SystemNotificationService
             'message' => $message,
             'data' => [
                 'type' => $type,
-                'url' => $url,
+                // Deep-link aplikasi mobile: diarahkan ke detail notifikasi saat
+                // di-tap. Fallback ke $url lama bila tidak diberikan.
+                'url' => $mobileUrl ?? $url,
                 'meta' => $meta,
                 'title' => $title,
                 'message' => $message,
