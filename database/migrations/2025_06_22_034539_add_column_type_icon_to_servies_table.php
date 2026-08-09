@@ -12,8 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('services', function (Blueprint $table) {
-            $table->enum('type', ['icon', 'image'])->default('icon');
-            $table->string('url_image')->nullable();
+            // Idempoten: lewati kolom yang sudah ada (mis. DB hasil import) agar
+            // migrasi tidak gagal "Duplicate column name".
+            if (! Schema::hasColumn('services', 'type')) {
+                $table->enum('type', ['icon', 'image'])->default('icon');
+            }
+            if (! Schema::hasColumn('services', 'url_image')) {
+                $table->string('url_image')->nullable();
+            }
         });
     }
 
@@ -23,8 +29,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('services', function (Blueprint $table) {
-            $table->dropColumn('type');
-            $table->dropColumn('url_image');
+            if (Schema::hasColumn('services', 'type')) {
+                $table->dropColumn('type');
+            }
+            if (Schema::hasColumn('services', 'url_image')) {
+                $table->dropColumn('url_image');
+            }
         });
     }
 };

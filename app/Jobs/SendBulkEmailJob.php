@@ -29,6 +29,13 @@ class SendBulkEmailJob implements ShouldQueue
      */
     public function handle(): void
     {
+        // Job ini hanya valid bila $data berupa model email (punya update()) dan
+        // ada alamat tujuan. Melindungi dari dispatch tanpa argumen (mis. dari
+        // scheduler yang keliru) agar tidak error "update() on array".
+        if (! $this->data instanceof \Illuminate\Database\Eloquent\Model || empty($this->email)) {
+            return;
+        }
+
         try {
 
             $settingsEmail = cache()->rememberForever('email_config', function () {
@@ -73,10 +80,12 @@ class SendBulkEmailJob implements ShouldQueue
 
     public function fail($exception = null)
     {
-        $this->data->update([
-            'status' => 2
-        ]);
+        if ($this->data instanceof \Illuminate\Database\Eloquent\Model) {
+            $this->data->update([
+                'status' => 2
+            ]);
+        }
 
-        Log::error('Error send bulk email : ' . $exception->getTraceAsString());
+        Log::error('Error send bulk email : ' . ($exception?->getTraceAsString() ?? ''));
     }
 }

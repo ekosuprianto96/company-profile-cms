@@ -117,7 +117,12 @@ class MobileInvoicePdfService
     {
         $key = "invoice_pdf:{$type}:{$id}:" . (optional($version)->timestamp ?? 0);
 
-        return Cache::remember($key, now()->addDay(), fn () => $this->render($template, $invoice));
+        // PDF = data BINER. Simpan sebagai base64 (ASCII) agar aman di cache store
+        // berbasis teks (mis. tabel `cache` MySQL utf8) — tanpa ini muncul error
+        // "Incorrect string value" saat menulis byte biner ke kolom teks.
+        $encoded = Cache::remember($key, now()->addDay(), fn () => base64_encode($this->render($template, $invoice)));
+
+        return base64_decode($encoded) ?: $this->render($template, $invoice);
     }
 
     protected function render(string $template, array $invoice): string

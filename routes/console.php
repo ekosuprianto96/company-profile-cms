@@ -1,6 +1,5 @@
 <?php
 
-use App\Jobs\SendBulkEmailJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -9,7 +8,9 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::job(new SendBulkEmailJob)->everyMinute();
+// (Dihapus) Schedule::job(new SendBulkEmailJob)->everyMinute();
+// Job ini di-dispatch per-email dari EmailManagementController (dengan model),
+// bukan dijadwalkan tanpa argumen — versi terjadwal itu selalu error karena $data kosong.
 
 // Tandai OTP mobile yang sudah lewat masa berlaku menjadi expired.
 Schedule::command('mobile:expire-otps')->everyMinute()->withoutOverlapping();
