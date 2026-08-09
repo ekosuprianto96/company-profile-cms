@@ -95,16 +95,18 @@
 
             {{-- Manual --}}
             <div class="js-static-wrap" style="display:none">
-                <label class="form-label">Opsi Manual</label>
+                <label class="form-label">Opsi Manual <small class="text-muted">(seret <i class="ri-draggable"></i> untuk mengatur urutan)</small></label>
                 <div class="js-option-rows">
                     @forelse ($opts as $i => $opt)
                         <div class="d-flex align-items-center mb-2 js-option-row" style="gap:8px">
+                            <i class="ri-draggable js-opt-handle" style="cursor:grab;color:#b6c0cc;font-size:20px"></i>
                             <input type="text" class="form-control form-control-sm js-opt-label" placeholder="Label" value="{{ $opt['label'] ?? '' }}">
                             <input type="text" class="form-control form-control-sm js-opt-value" placeholder="Nilai (kosong = sama dgn label)" value="{{ $opt['value'] ?? '' }}">
                             <button type="button" class="btn btn-danger btn-xs js-opt-remove"><i class="ri-close-line"></i></button>
                         </div>
                     @empty
                         <div class="d-flex align-items-center mb-2 js-option-row" style="gap:8px">
+                            <i class="ri-draggable js-opt-handle" style="cursor:grab;color:#b6c0cc;font-size:20px"></i>
                             <input type="text" class="form-control form-control-sm js-opt-label" placeholder="Label">
                             <input type="text" class="form-control form-control-sm js-opt-value" placeholder="Nilai (kosong = sama dgn label)">
                             <button type="button" class="btn btn-danger btn-xs js-opt-remove"><i class="ri-close-line"></i></button>
@@ -214,9 +216,19 @@
 
     function optionRowTemplate() {
         return '<div class="d-flex align-items-center mb-2 js-option-row" style="gap:8px">' +
+            '<i class="ri-draggable js-opt-handle" style="cursor:grab;color:#b6c0cc;font-size:20px"></i>' +
             '<input type="text" class="form-control form-control-sm js-opt-label" placeholder="Label">' +
             '<input type="text" class="form-control form-control-sm js-opt-value" placeholder="Nilai (kosong = sama dgn label)">' +
             '<button type="button" class="btn btn-danger btn-xs js-opt-remove"><i class="ri-close-line"></i></button></div>';
+    }
+
+    // Drag & drop urutan opsi (jQuery UI sortable dimuat di layout). Urutan DOM =
+    // urutan tersimpan (serializeFieldForm membaca baris sesuai urutan DOM).
+    function initOptionSortable() {
+        const $rows = $form.find('.js-option-rows');
+        if (!$.fn.sortable || !$rows.length) return;
+        if ($rows.hasClass('ui-sortable')) return;
+        $rows.sortable({ handle: '.js-opt-handle', axis: 'y', tolerance: 'pointer', containment: 'parent' });
     }
 
     $form.on('change', '.js-field-type, .js-options-source', sync);
@@ -244,5 +256,6 @@
     };
 
     sync();
+    initOptionSortable();
 })();
 </script>

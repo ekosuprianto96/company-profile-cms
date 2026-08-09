@@ -315,7 +315,18 @@ class ProposalService
                     break;
                 case 'location':
                     $loc = (array) $raw;
-                    $value = trim(($loc['address'] ?? '') . (isset($loc['region']) && $loc['region'] ? ' — ' . $loc['region'] : ''));
+                    // Alamat utama + detail alamat (No. rumah/blok/patokan) + wilayah + koordinat.
+                    $parts = [];
+                    if (! empty($loc['address'])) {
+                        $parts[] = $loc['address'];
+                    }
+                    if (! empty($loc['detail'])) {
+                        $parts[] = $loc['detail'];
+                    }
+                    $value = implode(', ', $parts);
+                    if (! empty($loc['region'])) {
+                        $value .= ($value !== '' ? ' — ' : '') . $loc['region'];
+                    }
                     if (isset($loc['latitude'], $loc['longitude'])) {
                         $value .= ' (' . $loc['latitude'] . ', ' . $loc['longitude'] . ')';
                     }

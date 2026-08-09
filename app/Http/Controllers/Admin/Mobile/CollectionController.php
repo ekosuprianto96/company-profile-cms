@@ -199,6 +199,25 @@ class CollectionController extends Controller
         return response()->json(['message' => 'Data dihapus.']);
     }
 
+    /** Simpan urutan data (drag & drop) — urutan ini jadi urutan opsi saat dipakai di form. */
+    public function reorderEntries(Request $request)
+    {
+        $ids = $request->input('ids', []);
+        $collectionId = (int) $request->input('collection_id');
+
+        if (! is_array($ids) || ! $collectionId) {
+            return response()->json(['message' => 'Data urutan tidak valid.'], 422);
+        }
+
+        foreach (array_values($ids) as $position => $id) {
+            CollectionEntry::where('id', (int) $id)
+                ->where('collection_id', $collectionId)
+                ->update(['sort_order' => $position]);
+        }
+
+        return response()->json(['message' => 'Urutan data disimpan.']);
+    }
+
     /** Susun data entry dari input mentah, coerce per tipe field + cek wajib. */
     private function buildEntryData(Collection $collection, array $raw): array
     {

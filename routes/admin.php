@@ -433,6 +433,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('collections/entries/store', [\App\Http\Controllers\Admin\Mobile\CollectionController::class, 'storeEntry'])->name('collections.entries.store');
         Route::post('collections/entries/update/{id}', [\App\Http\Controllers\Admin\Mobile\CollectionController::class, 'updateEntry'])->whereNumber('id')->name('collections.entries.update');
         Route::post('collections/entries/destroy', [\App\Http\Controllers\Admin\Mobile\CollectionController::class, 'destroyEntry'])->name('collections.entries.destroy');
+        Route::post('collections/entries/reorder', [\App\Http\Controllers\Admin\Mobile\CollectionController::class, 'reorderEntries'])->name('collections.entries.reorder');
 
         Route::get('product-orders', [ProductOrderController::class, 'index'])->name('product_orders')->middleware('permission:product-order:show');
         Route::get('product-orders/data', [ProductOrderController::class, 'data'])->name('product_orders.data')->middleware('permission:product-order:show');

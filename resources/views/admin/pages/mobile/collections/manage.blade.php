@@ -65,13 +65,14 @@
     {{-- Entry (data) --}}
     <div class="col-md-12 mb-4">
         <div class="card shadow-sm border-0"><div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2"><h6 class="mb-0">Data ({{ $collection->entries->count() }})</h6>
+            <div class="d-flex justify-content-between align-items-center mb-2"><h6 class="mb-0">Data ({{ $collection->entries->count() }}) <small class="text-muted fw-normal">— seret <i class="ri-draggable"></i> untuk mengatur urutan opsi</small></h6>
                 <button type="button" class="btn btn-primary btn-xs" onclick="openEntryModal()" @disabled($collection->fields->isEmpty())><i class="ri-add-line"></i> Tambah Data</button></div>
             <div class="table-responsive"><table class="table table-sm align-middle">
-                <thead><tr>@foreach ($collection->fields as $f)<th>{{ $f->label }}</th>@endforeach<th>Status</th><th class="text-center" style="width:90px">Aksi</th></tr></thead>
-                <tbody>
+                <thead><tr><th style="width:34px"></th>@foreach ($collection->fields as $f)<th>{{ $f->label }}</th>@endforeach<th>Status</th><th class="text-center" style="width:90px">Aksi</th></tr></thead>
+                <tbody id="entriesBody">
                     @forelse ($collection->entries as $e)
-                        <tr>
+                        <tr data-id="{{ $e->id }}">
+                            <td class="text-center"><i class="ri-draggable js-entry-handle" style="cursor:grab;color:#b6c0cc;font-size:18px"></i></td>
                             @foreach ($collection->fields as $f)
                                 <td>@php $v = $e->data[$f->key] ?? null; @endphp
                                     @if($f->type==='boolean'){{ $v ? 'Ya' : 'Tidak' }}@else{{ \Illuminate\Support\Str::limit((string)($v ?? '-'), 40) }}@endif</td>
@@ -83,7 +84,7 @@
                             </div></td>
                         </tr>
                     @empty
-                        <tr><td colspan="{{ $collection->fields->count() + 2 }}" class="text-center text-muted py-3">Belum ada data.</td></tr>
+                        <tr><td colspan="{{ $collection->fields->count() + 3 }}" class="text-center text-muted py-3">Belum ada data.</td></tr>
                     @endforelse
                 </tbody>
             </table></div>
@@ -190,6 +191,24 @@
         Swal.fire({title:'Hapus data?',icon:'warning',showCancelButton:true,confirmButtonText:'Ya',cancelButtonText:'Batal',customClass:{cancelButton:'bg-danger',confirmButton:'bg-primary'}}).then((res)=>{
             if(!res.isConfirmed) return;
             $.post('{{ route("admin.mobile.collections.entries.destroy") }}', {id,_token:CSRF}).done((r)=>{ $.toast({heading:'Sukses',text:r.message,position:'top-right',icon:'success'}); setTimeout(()=>location.reload(),500); });
+        });
+    }
+
+    // ---- Drag & drop urutan data ----
+    // Urutan baris ini menjadi urutan opsi saat koleksi dipakai sebagai sumber
+    // di Form Builder (collection:{id}). jQuery UI sortable dimuat di layout.
+    if ($.fn.sortable) {
+        // Pertahankan lebar kolom saat baris diseret.
+        const fixHelper = function (e, ui) { ui.children().each(function () { $(this).width($(this).width()); }); return ui; };
+        $('#entriesBody').sortable({
+            handle: '.js-entry-handle', axis: 'y', helper: fixHelper, tolerance: 'pointer', opacity: 0.9,
+            update: function () {
+                const ids = $('#entriesBody > tr[data-id]').map(function () { return $(this).data('id'); }).get();
+                if (!ids.length) return;
+                $.post('{{ route("admin.mobile.collections.entries.reorder") }}', { collection_id: COLLECTION_ID, ids: ids, _token: CSRF })
+                    .done((r) => $.toast({ heading: 'Sukses', text: r.message, position: 'top-right', icon: 'success' }))
+                    .fail(() => $.toast({ heading: 'Warning', text: 'Gagal menyimpan urutan.', position: 'top-right', icon: 'warning' }));
+            }
         });
     }
 </script>
