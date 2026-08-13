@@ -78,7 +78,7 @@ class FormSchemaService
                 ]),
                 $field([
                     'key' => 'description', 'label' => 'Deskripsi Kebutuhan', 'type' => 'textarea', 'role' => 'description',
-                    'is_required' => true, 'placeholder' => 'Jelaskan kebutuhan Anda secara singkat',
+                    'is_required' => true, 'placeholder' => "Contoh: Renovasi dapur 3×4 m — ganti keramik lantai & dinding, pasang kitchen set.\nSebutkan jenis pekerjaan, ukuran/luas area, dan material yang diinginkan.\nCeritakan kondisi saat ini dan hasil akhir yang Anda harapkan.\nSemakin detail (lokasi, kisaran budget, target waktu), makin akurat estimasi tim kami.",
                 ]),
                 $field(['key' => 'sec_survei', 'label' => 'Lokasi & Jadwal Survei', 'type' => 'section']),
                 $field([

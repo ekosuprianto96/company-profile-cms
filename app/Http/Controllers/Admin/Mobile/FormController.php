@@ -261,7 +261,7 @@ class FormController extends Controller
             'label' => ['required', 'string', 'max:255'],
             'type' => ['required', Rule::in($types)],
             'role' => ['nullable', Rule::in(array_keys(config('form_builder.field_roles', [])))],
-            'placeholder' => ['nullable', 'string', 'max:255'],
+            'placeholder' => ['nullable', 'string', 'max:1000'],
             'help_text' => ['nullable', 'string', 'max:500'],
             'is_required' => ['nullable', 'boolean'],
             'options_source' => ['nullable', Rule::in($sources)],

@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             VoucherTermsSeeder::class,
             FormPermissionSeeder::class,
             FormSeeder::class,
+            DescriptionPlaceholderSeeder::class,
             EmailColorSchemeSeeder::class,
             EmailDesignSeeder::class,
             NotificationTemplateSeeder::class,
