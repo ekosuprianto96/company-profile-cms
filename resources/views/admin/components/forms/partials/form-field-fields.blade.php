@@ -45,8 +45,8 @@
 
     <div class="row js-basic-wrap">
         <div class="col-md-6 form-group">
-            <label class="form-label">Placeholder</label>
-            <input name="placeholder" type="text" class="form-control" value="{{ optional($fd)->placeholder }}">
+            <label class="form-label">Placeholder <small class="text-muted">(1 baris = 1 instruksi; ≥2 baris → animasi mengetik, kecuali select)</small></label>
+            <textarea name="placeholder" rows="2" class="form-control" placeholder="Contoh: Jl. Merdeka No.10&#10;Sertakan RT/RW &amp; patokan">{{ optional($fd)->placeholder }}</textarea>
         </div>
         <div class="col-md-6 form-group">
             <label class="form-label">Teks Bantuan</label>

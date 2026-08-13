@@ -259,6 +259,9 @@ class ProposalService
                     $rules["{$key}.latitude"] = [$required ? 'required' : 'nullable', 'numeric'];
                     $rules["{$key}.longitude"] = [$required ? 'required' : 'nullable', 'numeric'];
                     $rules["{$key}.address"] = [$required ? 'required' : 'nullable', 'string', 'max:5000'];
+                    // Detail alamat (no. rumah/blok/patokan) kini WAJIB bila field lokasi wajib.
+                    $rules["{$key}.detail"] = [$required ? 'required' : 'nullable', 'string', 'max:5000'];
+                    $attributes["{$key}.detail"] = 'Detail alamat';
                     $rules["{$key}.region"] = ['nullable', 'string', 'max:5000'];
                     break;
                 default: // text, textarea, phone, time
@@ -315,22 +318,21 @@ class ProposalService
                     break;
                 case 'location':
                     $loc = (array) $raw;
-                    // Alamat utama + detail alamat (No. rumah/blok/patokan) + wilayah + koordinat.
-                    $parts = [];
-                    if (! empty($loc['address'])) {
-                        $parts[] = $loc['address'];
-                    }
-                    if (! empty($loc['detail'])) {
-                        $parts[] = $loc['detail'];
-                    }
-                    $value = implode(', ', $parts);
+                    // Alamat utama + wilayah + koordinat. Detail alamat TIDAK digabung
+                    // di sini — ditampilkan sebagai field/baris tersendiri di bawah.
+                    $value = (string) ($loc['address'] ?? '');
                     if (! empty($loc['region'])) {
                         $value .= ($value !== '' ? ' — ' : '') . $loc['region'];
                     }
                     if (isset($loc['latitude'], $loc['longitude'])) {
                         $value .= ' (' . $loc['latitude'] . ', ' . $loc['longitude'] . ')';
                     }
-                    break;
+                    $out[] = ['label' => $field['label'], 'type' => $type, 'value' => $value, 'files' => []];
+                    // Detail alamat (nomor rumah, blok, patokan) sebagai baris terpisah.
+                    if (! empty($loc['detail'])) {
+                        $out[] = ['label' => 'Detail Alamat', 'type' => 'text', 'value' => (string) $loc['detail'], 'files' => []];
+                    }
+                    continue 2;
                 case 'image':
                 case 'file':
                     $files = array_map(fn ($p) => ['path' => $p, 'name' => basename((string) $p), 'url' => storageUrl($p)], (array) $raw);

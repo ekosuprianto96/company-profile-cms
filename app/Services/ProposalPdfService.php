@@ -60,6 +60,7 @@ class ProposalPdfService
         if ($request->survey_address) {
             $rows[] = ['label' => 'Lokasi & Jadwal Survei', 'type' => 'section', 'value' => '', 'files' => []];
             $add('Alamat Survei', trim($request->survey_address . ($request->survey_region ? ' — ' . $request->survey_region : '')));
+            $add('Detail Alamat', $request->survey_address_detail);
             $add('Jadwal Survei', optional($request->survey_date)?->format('d M Y'));
         }
 
