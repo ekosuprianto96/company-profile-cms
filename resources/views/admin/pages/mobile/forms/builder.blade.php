@@ -33,7 +33,7 @@
     .fb-phone-body::-webkit-scrollbar { width:0; }
     .fb-lbl { font-size:12.5px; font-weight:700; color:#0f172a; margin-bottom:5px; }
     .fb-req { color:#b3261e; }
-    .fb-ctrl { border:1px solid #e2e8f0; background:#fff; border-radius:12px; padding:10px 12px; font-size:12.5px; color:#94a3b8; display:flex; align-items:center; justify-content:space-between; }
+    .fb-ctrl { border:1px solid #e2e8f0; background:#fff; border-radius:12px; padding:10px 12px; font-size:12.5px; color:#94a3b8; display:flex; align-items:center; justify-content:space-between; overflow:hidden; }
     .fb-hint { font-size:10px; color:#94a3b8; margin-top:4px; }
     .fb-sec { font-size:10.5px; font-weight:800; letter-spacing:.8px; text-transform:uppercase; color:#275a56; margin:18px 0 8px; }
     .fb-note { background:#eef5f4; color:#214f4b; border-radius:12px; padding:10px 12px; font-size:11.5px; }
@@ -144,7 +144,9 @@
     const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
     function previewControl(f) {
-        const ph = esc(f.placeholder || '');
+        // Placeholder bisa multi-baris (instruksi beranimasi di app). Di preview
+        // statis ini cukup tampilkan BARIS PERTAMA agar tidak meluber keluar kotak.
+        const ph = esc((f.placeholder || '').split('\n')[0].trim());
         const chev = '<i class="ri-arrow-down-s-line" style="color:#94a3b8"></i>';
         const opts = (f.options || []);
         const optRows = (shape) => f.options_source === 'datasource'
