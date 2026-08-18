@@ -106,6 +106,7 @@ class FormSchemaService
             'options' => $this->resolveOptions($field),
             'validation' => $field->validation ?: (object) [],
             'conditional' => $field->conditional ?: null,
+            'config' => $field->config ?: null,
         ];
     }
 

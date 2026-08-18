@@ -258,9 +258,12 @@ class ProposalService
                     $rule[] = 'array';
                     $rules["{$key}.latitude"] = [$required ? 'required' : 'nullable', 'numeric'];
                     $rules["{$key}.longitude"] = [$required ? 'required' : 'nullable', 'numeric'];
-                    $rules["{$key}.address"] = [$required ? 'required' : 'nullable', 'string', 'max:5000'];
-                    // Detail alamat (no. rumah/blok/patokan) kini WAJIB bila field lokasi wajib.
-                    $rules["{$key}.detail"] = [$required ? 'required' : 'nullable', 'string', 'max:5000'];
+                    // Alamat utama & detail alamat WAJIB hanya bila sub-input-nya ditampilkan
+                    // (mengikuti config form builder: show_address / show_detail).
+                    $showAddress = (($field['config']['show_address'] ?? '1') !== '0');
+                    $showDetail = (($field['config']['show_detail'] ?? '1') !== '0');
+                    $rules["{$key}.address"] = [($required && $showAddress) ? 'required' : 'nullable', 'string', 'max:5000'];
+                    $rules["{$key}.detail"] = [($required && $showDetail) ? 'required' : 'nullable', 'string', 'max:5000'];
                     $attributes["{$key}.detail"] = 'Detail alamat';
                     $rules["{$key}.region"] = ['nullable', 'string', 'max:5000'];
                     break;

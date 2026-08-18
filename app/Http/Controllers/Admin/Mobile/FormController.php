@@ -271,6 +271,9 @@ class FormController extends Controller
             'options.*.value' => ['nullable', 'string', 'max:150'],
             'validation' => ['nullable', 'array'],
             'conditional' => ['nullable', 'array'],
+            // Konfigurasi khusus (mis. field lokasi: tampil/sembunyi & placeholder sub-input).
+            'config' => ['nullable', 'array'],
+            'config.*' => ['nullable', 'string', 'max:255'],
         ]);
 
         // Datasource wajib bila sumber opsi = datasource.

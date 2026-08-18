@@ -4,6 +4,7 @@
     $curSource = old('options_source', $fd->options_source ?? 'static');
     $val = $fd->validation ?? [];
     $cond = $fd->conditional ?? [];
+    $cfg = $fd->config ?? [];
     $opts = $fd->options ?? [];
     $siblingFields = $siblingFields ?? collect();
 @endphp
@@ -158,6 +159,52 @@
         </div>
     </div>
 
+    {{-- ===== Konfigurasi field Lokasi (tampil/sembunyi + placeholder sub-input) ===== --}}
+    <div class="js-location-wrap card border mb-3" style="display:none">
+        <div class="card-body py-3">
+            <h6 class="mb-2">Pengaturan Input Lokasi</h6>
+
+            {{-- Wilayah bertingkat --}}
+            <div class="d-flex justify-content-between align-items-center">
+                <label class="form-label mb-0">Wilayah Bertingkat <small class="text-muted">(Provinsi → Desa)</small></label>
+                <select name="config[show_region]" class="form-control form-control-sm" style="width:110px">
+                    <option value="1" @selected(($cfg['show_region'] ?? '1') == '1')>Tampilkan</option>
+                    <option value="0" @selected(($cfg['show_region'] ?? '1') == '0')>Sembunyikan</option>
+                </select>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-6 form-group mb-2"><input name="config[ph_province]" type="text" class="form-control form-control-sm" value="{{ $cfg['ph_province'] ?? '' }}" placeholder="Placeholder Provinsi (mis. Pilih provinsi)"></div>
+                <div class="col-md-6 form-group mb-2"><input name="config[ph_regency]" type="text" class="form-control form-control-sm" value="{{ $cfg['ph_regency'] ?? '' }}" placeholder="Placeholder Kabupaten/Kota"></div>
+                <div class="col-md-6 form-group mb-2"><input name="config[ph_district]" type="text" class="form-control form-control-sm" value="{{ $cfg['ph_district'] ?? '' }}" placeholder="Placeholder Kecamatan"></div>
+                <div class="col-md-6 form-group mb-2"><input name="config[ph_village]" type="text" class="form-control form-control-sm" value="{{ $cfg['ph_village'] ?? '' }}" placeholder="Placeholder Desa/Kelurahan"></div>
+            </div>
+
+            <hr class="my-2">
+
+            {{-- Alamat utama --}}
+            <div class="d-flex justify-content-between align-items-center">
+                <label class="form-label mb-0">Alamat Utama <small class="text-muted">(jalan/area)</small></label>
+                <select name="config[show_address]" class="form-control form-control-sm" style="width:110px">
+                    <option value="1" @selected(($cfg['show_address'] ?? '1') == '1')>Tampilkan</option>
+                    <option value="0" @selected(($cfg['show_address'] ?? '1') == '0')>Sembunyikan</option>
+                </select>
+            </div>
+            <input name="config[ph_address]" type="text" class="form-control form-control-sm mt-2" value="{{ $cfg['ph_address'] ?? '' }}" placeholder="Placeholder Alamat (mis. Alamat jalan/area)">
+
+            <hr class="my-2">
+
+            {{-- Detail alamat --}}
+            <div class="d-flex justify-content-between align-items-center">
+                <label class="form-label mb-0">Detail Alamat <small class="text-muted">(no. rumah/blok/patokan)</small></label>
+                <select name="config[show_detail]" class="form-control form-control-sm" style="width:110px">
+                    <option value="1" @selected(($cfg['show_detail'] ?? '1') == '1')>Tampilkan</option>
+                    <option value="0" @selected(($cfg['show_detail'] ?? '1') == '0')>Sembunyikan</option>
+                </select>
+            </div>
+            <input name="config[ph_detail]" type="text" class="form-control form-control-sm mt-2" value="{{ $cfg['ph_detail'] ?? '' }}" placeholder="Placeholder Detail (mis. No. rumah, blok, patokan)">
+        </div>
+    </div>
+
     {{-- ===== Kondisional ===== --}}
     <div class="card border mb-2">
         <div class="card-body py-3">
@@ -208,6 +255,7 @@
         $form.find('.js-val-text').toggle(TEXT_TYPES.includes(type));
         $form.find('.js-val-number').toggle(type === 'number');
         $form.find('.js-val-file').toggle(FILE_TYPES.includes(type));
+        $form.find('.js-location-wrap').toggle(type === 'location');
 
         const source = $form.find('.js-options-source').val();
         $form.find('.js-datasource-wrap').toggle(isOption && source === 'datasource');

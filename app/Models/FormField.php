@@ -21,6 +21,7 @@ class FormField extends Model
         'options',
         'validation',
         'conditional',
+        'config',
         'sort_order',
     ];
 
@@ -31,6 +32,7 @@ class FormField extends Model
             'options' => 'array',
             'validation' => 'array',
             'conditional' => 'array',
+            'config' => 'array',
             'sort_order' => 'integer',
         ];
     }
