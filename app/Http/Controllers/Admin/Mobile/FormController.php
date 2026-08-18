@@ -273,7 +273,7 @@ class FormController extends Controller
             'conditional' => ['nullable', 'array'],
             // Konfigurasi khusus (mis. field lokasi: tampil/sembunyi & placeholder sub-input).
             'config' => ['nullable', 'array'],
-            'config.*' => ['nullable', 'string', 'max:255'],
+            'config.*' => ['nullable', 'string', 'max:1000'],
         ]);
 
         // Datasource wajib bila sumber opsi = datasource.

@@ -189,7 +189,8 @@
                     <option value="0" @selected(($cfg['show_address'] ?? '1') == '0')>Sembunyikan</option>
                 </select>
             </div>
-            <input name="config[ph_address]" type="text" class="form-control form-control-sm mt-2" value="{{ $cfg['ph_address'] ?? '' }}" placeholder="Placeholder Alamat (mis. Alamat jalan/area)">
+            <textarea name="config[ph_address]" rows="2" class="form-control form-control-sm mt-2" placeholder="Placeholder Alamat — 1 baris = statis, ≥2 baris = animasi mengetik bergantian">{{ $cfg['ph_address'] ?? '' }}</textarea>
+            <small class="text-muted">Isi 1 baris untuk placeholder biasa, atau beberapa baris (tiap baris 1 contoh) agar placeholder beranimasi mengetik.</small>
 
             <hr class="my-2">
 
@@ -201,7 +202,8 @@
                     <option value="0" @selected(($cfg['show_detail'] ?? '1') == '0')>Sembunyikan</option>
                 </select>
             </div>
-            <input name="config[ph_detail]" type="text" class="form-control form-control-sm mt-2" value="{{ $cfg['ph_detail'] ?? '' }}" placeholder="Placeholder Detail (mis. No. rumah, blok, patokan)">
+            <textarea name="config[ph_detail]" rows="2" class="form-control form-control-sm mt-2" placeholder="Placeholder Detail — 1 baris = statis, ≥2 baris = animasi mengetik bergantian">{{ $cfg['ph_detail'] ?? '' }}</textarea>
+            <small class="text-muted">Isi 1 baris untuk placeholder biasa, atau beberapa baris (tiap baris 1 contoh) agar placeholder beranimasi mengetik.</small>
         </div>
     </div>
 
