@@ -48,6 +48,12 @@ class MobileService extends Model
         return $this->belongsTo(Form::class, 'form_id');
     }
 
+    /** Template rules step yang dipakai layanan ini (boleh dipakai bersama layanan lain). */
+    public function stepTemplate()
+    {
+        return $this->belongsTo(StepTemplate::class, 'step_template_id');
+    }
+
     /** Skema harga layanan (mis. Biaya Survei / Konsultasi / DP). */
     public function priceItems()
     {

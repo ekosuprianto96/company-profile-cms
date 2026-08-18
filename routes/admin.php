@@ -421,6 +421,18 @@ Route::middleware(['auth'])->group(function () {
         Route::post('forms/fields/reorder', [FormController::class, 'reorderField'])->name('forms.fields.reorder')->middleware('permission:form:update');
         Route::post('forms/fields/reorder-bulk', [FormController::class, 'reorderFields'])->name('forms.fields.reorder_bulk')->middleware('permission:form:update');
 
+        // Template Rules Step (template langkah status pengajuan)
+        Route::get('step-templates', [\App\Http\Controllers\Admin\Mobile\StepTemplateController::class, 'index'])->name('step_templates');
+        Route::get('step-templates/{id}/builder', [\App\Http\Controllers\Admin\Mobile\StepTemplateController::class, 'builder'])->whereNumber('id')->name('step_templates.builder');
+        Route::post('step-templates/store', [\App\Http\Controllers\Admin\Mobile\StepTemplateController::class, 'store'])->name('step_templates.store');
+        Route::post('step-templates/update/{id}', [\App\Http\Controllers\Admin\Mobile\StepTemplateController::class, 'update'])->whereNumber('id')->name('step_templates.update');
+        Route::post('step-templates/destroy', [\App\Http\Controllers\Admin\Mobile\StepTemplateController::class, 'destroy'])->name('step_templates.destroy');
+        Route::post('step-templates/duplicate', [\App\Http\Controllers\Admin\Mobile\StepTemplateController::class, 'duplicate'])->name('step_templates.duplicate');
+        Route::post('step-templates/{id}/steps/store', [\App\Http\Controllers\Admin\Mobile\StepTemplateController::class, 'storeStep'])->whereNumber('id')->name('step_templates.steps.store');
+        Route::post('step-templates/steps/update/{id}', [\App\Http\Controllers\Admin\Mobile\StepTemplateController::class, 'updateStep'])->whereNumber('id')->name('step_templates.steps.update');
+        Route::post('step-templates/steps/destroy', [\App\Http\Controllers\Admin\Mobile\StepTemplateController::class, 'destroyStep'])->name('step_templates.steps.destroy');
+        Route::post('step-templates/{id}/steps/reorder', [\App\Http\Controllers\Admin\Mobile\StepTemplateController::class, 'reorderSteps'])->whereNumber('id')->name('step_templates.steps.reorder');
+
         // Koleksi data dinamis (master-data buatan admin → source form builder).
         Route::get('collections', [\App\Http\Controllers\Admin\Mobile\CollectionController::class, 'index'])->name('collections');
         Route::post('collections/store', [\App\Http\Controllers\Admin\Mobile\CollectionController::class, 'store'])->name('collections.store');
@@ -460,6 +472,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('service-requests/{id}/complete', [MobileServiceRequestController::class, 'complete'])->whereNumber('id')->name('service_requests.complete');
         Route::post('service-requests/{id}/reject', [MobileServiceRequestController::class, 'reject'])->whereNumber('id')->name('service_requests.reject');
         Route::post('service-requests/{id}/status', [MobileServiceRequestController::class, 'updateStatus'])->whereNumber('id')->name('service_requests.update_status');
+        Route::post('service-requests/{id}/steps/complete', [\App\Http\Controllers\Admin\Mobile\StepTemplateController::class, 'completeRequestStep'])->whereNumber('id')->name('service_requests.steps.complete');
+        Route::post('service-requests/{id}/steps/reopen', [\App\Http\Controllers\Admin\Mobile\StepTemplateController::class, 'reopenRequestStep'])->whereNumber('id')->name('service_requests.steps.reopen');
         Route::get('service-requests/{id}/chat-user', [MobileServiceRequestController::class, 'chatUser'])->whereNumber('id')->name('service_requests.chat_user');
         Route::get('service-requests/{id}', [MobileServiceRequestController::class, 'show'])->whereNumber('id')->name('service_requests.show');
         Route::get('home-layout', [MobileController::class, 'homeLayout'])->name('home_layout');

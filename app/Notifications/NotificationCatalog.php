@@ -149,6 +149,24 @@ class NotificationCatalog
                     'in_app:admin' => ['subject' => 'Pembayaran diperbarui', 'body' => 'Pembayaran {{transaction_code}} dari {{customer_name}}: {{payment_status}}.'],
                 ],
             ],
+            'service_request.step_completed' => [
+                'label' => 'Step pengajuan tercapai (Template Rules Step)',
+                'group' => 'Pengajuan Layanan',
+                'variables' => self::serviceRequestVars([
+                    'step_name' => ['label' => 'Nama step', 'sample' => 'Menunggu Survey'],
+                    'step_description' => ['label' => 'Keterangan step', 'sample' => 'Tim akan menghubungi dan melakukan survey ke lokasi.'],
+                ]),
+                'templates' => [
+                    'email:user' => [
+                        'subject' => '{{step_name}} — {{transaction_code}}',
+                        'body' => '<p>Halo {{recipient_name}},</p><p>Pengajuan <b>{{service_title}}</b> ({{transaction_code}}) kini memasuki tahap <b>{{step_name}}</b>.</p><p>{{step_description}}</p><p>Terima kasih,<br>{{app_name}}</p>',
+                    ],
+                    'push:user' => ['subject' => '{{step_name}}', 'body' => '{{transaction_code}}: {{step_description}}'],
+                    'in_app:user' => ['subject' => '{{step_name}}', 'body' => 'Pengajuan {{service_title}} ({{transaction_code}}): {{step_description}}'],
+                    'sms:user' => ['subject' => '', 'body' => '{{app_name}}: Pengajuan {{transaction_code}} memasuki tahap {{step_name}}. {{step_description}}'],
+                    'in_app:admin' => ['subject' => 'Step pengajuan: {{step_name}}', 'body' => 'Pengajuan {{transaction_code}} ({{customer_name}}) mencapai step {{step_name}}.'],
+                ],
+            ],
             'proposal.submitted' => [
                 'label' => 'Proposal dikirim',
                 'group' => 'Pengajuan Layanan',

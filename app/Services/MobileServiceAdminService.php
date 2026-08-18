@@ -127,6 +127,7 @@ class MobileServiceAdminService
             'slug' => $slug,
             'category_id' => ($payload['category_id'] ?? null) ?: null,
             'form_id' => ($payload['form_id'] ?? null) ?: null,
+            'step_template_id' => ($payload['step_template_id'] ?? null) ?: null,
             'request_flow_type' => in_array(($payload['request_flow_type'] ?? 'standard'), ['standard', 'event_project'], true)
                 ? $payload['request_flow_type']
                 : 'standard',

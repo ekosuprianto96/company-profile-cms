@@ -64,6 +64,34 @@ class OrderController extends ApiController
         }
     }
 
+    /** Centang manual step Template Rules Step → action step dieksekusi. */
+    public function completeServiceStep(Request $request, int $id)
+    {
+        try {
+            $sr = $this->serviceAdmin->findOrFail($id)->loadMissing(['service', 'user', 'products.product', 'handledBy']);
+            app(\App\Services\StepTemplateService::class)
+                ->completeStep($sr, (string) $request->input('step_key'), $request->user()?->name ?? 'admin');
+
+            return $this->success(['order' => $this->serviceDetail($sr->refresh())], 'Step ditandai selesai.');
+        } catch (\Throwable $th) {
+            return $this->error($th->getMessage(), $th->getCode() ?: 500);
+        }
+    }
+
+    /** Batalkan centang manual step (koreksi). */
+    public function reopenServiceStep(Request $request, int $id)
+    {
+        try {
+            $sr = $this->serviceAdmin->findOrFail($id)->loadMissing(['service', 'user', 'products.product', 'handledBy']);
+            app(\App\Services\StepTemplateService::class)
+                ->reopenStep($sr, (string) $request->input('step_key'));
+
+            return $this->success(['order' => $this->serviceDetail($sr->refresh())], 'Centang step dibatalkan.');
+        } catch (\Throwable $th) {
+            return $this->error($th->getMessage(), $th->getCode() ?: 500);
+        }
+    }
+
     public function showProduct(int $id)
     {
         try {
@@ -192,6 +220,8 @@ class OrderController extends ApiController
             'paid_at' => optional($sr->paid_at)?->toISOString(),
             'rejection_reason' => $sr->rejection_reason,
             'handled_by' => optional($sr->handledBy)->name,
+            // Timeline "Status Pengajuan" dari Template Rules Step (state dihitung server).
+            'steps' => app(\App\Services\StepTemplateService::class)->timelineFor($sr),
             'products' => $sr->products->map(fn ($p) => [
                 'name' => $p->product_name,
                 'quantity' => (int) $p->quantity,

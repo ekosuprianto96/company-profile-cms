@@ -27,23 +27,47 @@
         'paid' => 'success', 'pending' => 'warning', 'challenge', 'failed' => 'danger', default => 'secondary',
     };
 
-    // --- Lifecycle stepper ---
+    // --- Lifecycle stepper (sinkron dengan Template Rules Step: snapshot pengajuan) ---
     $isPaid = $sr->payment_status === 'paid' || in_array($sr->status, ['approved', 'completed'], true);
     $isRejected = in_array($sr->status, ['rejected', 'failed'], true);
-    $currentStep = match (true) {
-        $sr->status === 'completed' => 5,
-        $sr->status === 'approved' => 4,
-        $isPaid => 3,
-        in_array($sr->status, ['waiting_payment', 'waiting_transfer', 'payment_challenge'], true) => 2,
-        default => 1,
-    };
-    $steps = [
-        1 => ['label' => 'Dibuat', 'icon' => 'ri-file-add-line'],
-        2 => ['label' => 'Pembayaran', 'icon' => 'ri-wallet-3-line'],
-        3 => ['label' => 'Ditinjau', 'icon' => 'ri-search-eye-line'],
-        4 => ['label' => 'Disetujui', 'icon' => 'ri-checkbox-circle-line'],
-        5 => ['label' => 'Selesai', 'icon' => 'ri-flag-2-line'],
+
+    $stepIcons = [
+        'draft' => 'ri-file-add-line',
+        'waiting_payment' => 'ri-wallet-3-line',
+        'proof_uploaded' => 'ri-image-line',
+        'paid' => 'ri-money-dollar-circle-line',
+        'review' => 'ri-search-eye-line',
+        'approved' => 'ri-checkbox-circle-line',
+        'completed' => 'ri-flag-2-line',
     ];
+    $snapshotSteps = collect($sr->steps_snapshot ?? [])->values();
+
+    if ($snapshotSteps->isNotEmpty()) {
+        $firstPending = $snapshotSteps->search(fn ($s) => empty($s['completed_at']));
+        $steps = $snapshotSteps->map(fn ($s, $i) => [
+            'label' => $s['name'] ?? '-',
+            'icon' => $stepIcons[$s['key'] ?? ''] ?? (empty($s['trigger_status']) ? 'ri-hand-coin-line' : 'ri-record-circle-line'),
+            'state' => ! empty($s['completed_at']) ? 'done' : ($i === $firstPending && ! $isRejected ? 'active' : ''),
+        ])->all();
+    } else {
+        // Fallback pengajuan tanpa snapshot (seharusnya tak terjadi — ensureSnapshot di controller).
+        $currentStep = match (true) {
+            $sr->status === 'completed' => 5,
+            $sr->status === 'approved' => 4,
+            $isPaid => 3,
+            in_array($sr->status, ['waiting_payment', 'waiting_transfer', 'payment_challenge'], true) => 2,
+            default => 1,
+        };
+        $steps = collect([
+            1 => ['label' => 'Dibuat', 'icon' => 'ri-file-add-line'],
+            2 => ['label' => 'Pembayaran', 'icon' => 'ri-wallet-3-line'],
+            3 => ['label' => 'Ditinjau', 'icon' => 'ri-search-eye-line'],
+            4 => ['label' => 'Disetujui', 'icon' => 'ri-checkbox-circle-line'],
+            5 => ['label' => 'Selesai', 'icon' => 'ri-flag-2-line'],
+        ])->map(fn ($s, $i) => $s + [
+            'state' => $i < $currentStep ? 'done' : ($i === $currentStep && ! $isRejected ? 'active' : ''),
+        ])->values()->all();
+    }
 
     // --- Aksi kontekstual ---
     $canVerifyManual = $sr->payment_method === 'manual_transfer' && $sr->payment_status !== 'paid';
@@ -156,9 +180,8 @@
                     </div>
                 @endif
                 <div class="d-flex">
-                    @foreach ($steps as $i => $step)
-                        @php $state = $i < $currentStep ? 'done' : ($i === $currentStep && ! $isRejected ? 'active' : ($i <= $currentStep ? 'done' : '')); @endphp
-                        <div class="sr-step {{ $state }}">
+                    @foreach ($steps as $step)
+                        <div class="sr-step {{ $step['state'] }}">
                             <div class="sr-dot"><i class="{{ $step['icon'] }}"></i></div>
                             <div class="sr-label">{{ $step['label'] }}</div>
                         </div>
@@ -260,6 +283,69 @@
 
     {{-- SIDEBAR --}}
     <div class="col-12 col-xl-4 mb-4">
+        {{-- Status Pengajuan (Template Rules Step) --}}
+        @php $ruleSteps = collect($sr->steps_snapshot ?? []); @endphp
+        @if ($ruleSteps->isNotEmpty())
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body">
+                    <h5 class="mb-3">Status Pengajuan <small class="text-muted fw-normal">(Rules Step)</small></h5>
+                    @foreach ($ruleSteps as $step)
+                        @php
+                            $done = ! empty($step['completed_at']);
+                            $isManual = empty($step['trigger_status']);
+                        @endphp
+                        <div class="d-flex align-items-start mb-1" style="gap:10px">
+                            <div class="d-flex flex-column align-items-center" style="width:20px">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                     style="width:20px;height:20px;{{ $done ? 'background:#275a56;color:#fff;' : 'border:2px solid #cbd5e1;background:#fff;' }}">
+                                    @if ($done)<i class="ri-check-line" style="font-size:12px"></i>@endif
+                                </div>
+                                @if (! $loop->last)<div style="width:2px;flex:1;min-height:18px;background:#e2e8f0"></div>@endif
+                            </div>
+                            <div class="flex-fill pb-2">
+                                <div class="d-flex align-items-center flex-wrap" style="gap:6px">
+                                    <span class="fw-semibold small">{{ $step['name'] ?? '-' }}</span>
+                                    @if ($isManual && ! $done)
+                                        <button type="button" class="btn btn-outline-success btn-xs py-0 px-1 js-step-complete" data-key="{{ $step['key'] }}" data-name="{{ $step['name'] ?? '' }}" title="Tandai selesai — action step akan dijalankan"><i class="ri-check-line"></i> Tandai</button>
+                                    @endif
+                                    @if ($isManual && $done && ($step['completed_by'] ?? '') !== 'system')
+                                        <a href="javascript:void(0)" class="text-muted js-step-reopen" data-key="{{ $step['key'] }}" title="Batalkan centang"><small><i class="ri-arrow-go-back-line"></i></small></a>
+                                    @endif
+                                </div>
+                                <div class="text-muted" style="font-size:.72rem">
+                                    @if ($done)
+                                        {{ \Illuminate\Support\Carbon::parse($step['completed_at'])->timezone(config('app.timezone'))->format('d M Y H:i') }}
+                                        @if (($step['completed_by'] ?? 'system') !== 'system') · oleh {{ $step['completed_by'] }} @endif
+                                    @elseif ($isManual)
+                                        Menunggu ditandai admin
+                                    @else
+                                        Otomatis saat statusnya tercapai
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <script>
+                $(document).on('click', '.js-step-complete', function () {
+                    const key = $(this).data('key');
+                    Swal.fire({ title: 'Tandai step selesai?', text: `Step "${$(this).data('name')}" akan dicentang dan action-nya (notifikasi ke user) dijalankan.`, icon: 'question', confirmButtonText: 'Ya, Tandai', cancelButtonText: 'Batal', showCancelButton: true, customClass: { cancelButton: 'bg-danger', confirmButton: 'bg-primary' } }).then((result) => {
+                        if (!result.isConfirmed) return;
+                        $.post('{{ route("admin.mobile.service_requests.steps.complete", $sr->id) }}', { step_key: key, _token: '{{ csrf_token() }}' })
+                            .done((r) => { $.toast({ heading: 'Sukses', text: r.message, position: 'top-right', icon: 'success' }); setTimeout(() => location.reload(), 700); })
+                            .fail((e) => $.toast({ heading: 'Warning', text: (e.responseJSON||{}).message || 'Gagal menandai step.', position: 'top-right', icon: 'warning' }));
+                    });
+                });
+                $(document).on('click', '.js-step-reopen', function () {
+                    $.post('{{ route("admin.mobile.service_requests.steps.reopen", $sr->id) }}', { step_key: $(this).data('key'), _token: '{{ csrf_token() }}' })
+                        .done((r) => { $.toast({ heading: 'Sukses', text: r.message, position: 'top-right', icon: 'success' }); setTimeout(() => location.reload(), 700); })
+                        .fail((e) => $.toast({ heading: 'Warning', text: (e.responseJSON||{}).message || 'Gagal.', position: 'top-right', icon: 'warning' }));
+                });
+            </script>
+        @endif
+
         {{-- Biaya --}}
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body">

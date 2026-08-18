@@ -268,6 +268,11 @@ class MobileServiceRequestController extends ApiController
                 'id' => $serviceRequest->service->id,
                 'title' => $serviceRequest->service->title,
             ] : null,
+            // Hanya pada detail: timeline "Status Pengajuan" dari Template Rules Step
+            // (state dihitung server → app user & admin tinggal render, selalu sinkron).
+            ...($detail ? [
+                'steps' => app(\App\Services\StepTemplateService::class)->timelineFor($serviceRequest),
+            ] : []),
             // Hanya pada detail: sertakan jawaban form pengajuan (dari Proposal tertaut)
             // agar layar detail bisa menampilkan data yang benar-benar diisi user.
             ...($detail && $serviceRequest->proposal ? [

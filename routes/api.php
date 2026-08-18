@@ -143,6 +143,8 @@ Route::prefix('v1/admin')->group(function () {
         Route::get('orders/product/{id}', [\App\Http\Controllers\Api\Admin\OrderController::class, 'showProduct'])->whereNumber('id');
         Route::patch('orders/service/{id}/status', [\App\Http\Controllers\Api\Admin\OrderController::class, 'updateServiceStatus'])->whereNumber('id');
         Route::post('orders/service/{id}/verify-payment', [\App\Http\Controllers\Api\Admin\OrderController::class, 'verifyServicePayment'])->whereNumber('id');
+        Route::post('orders/service/{id}/steps/complete', [\App\Http\Controllers\Api\Admin\OrderController::class, 'completeServiceStep'])->whereNumber('id');
+        Route::post('orders/service/{id}/steps/reopen', [\App\Http\Controllers\Api\Admin\OrderController::class, 'reopenServiceStep'])->whereNumber('id');
         Route::patch('orders/product/{id}/status', [\App\Http\Controllers\Api\Admin\OrderController::class, 'updateProductStatus'])->whereNumber('id');
 
         // Payments

@@ -177,12 +177,13 @@ class MobileServiceController extends Controller
 
             $categoryTree = \App\Models\Category::orderBy('sort_order')->orderBy('name')->get(['id', 'parent_id', 'name']);
             $formOptions = \App\Models\Form::active()->orderBy('name')->get(['id', 'name']);
+            $stepTemplateOptions = \App\Models\StepTemplate::where('is_active', true)->orderByDesc('is_default')->orderBy('name')->get(['id', 'name', 'is_default']);
             $priceTypes = config('form_builder.price_types');
             $priceItems = $service ? $service->priceItems()->get() : collect();
 
             return $this->setView('admin.components.forms.')
                 ->view($request->view, compact(
-                    'service', 'categoryTree', 'formOptions', 'priceTypes', 'priceItems',
+                    'service', 'categoryTree', 'formOptions', 'stepTemplateOptions', 'priceTypes', 'priceItems',
                 ));
         } catch (\Exception $error) {
             return response()->json(['message' => $error->getMessage()], 500);
@@ -196,6 +197,7 @@ class MobileServiceController extends Controller
             'service' => $service,
             'categoryTree' => \App\Models\Category::orderBy('sort_order')->orderBy('name')->get(['id', 'parent_id', 'name']),
             'formOptions' => \App\Models\Form::active()->orderBy('name')->get(['id', 'name']),
+            'stepTemplateOptions' => \App\Models\StepTemplate::where('is_active', true)->orderByDesc('is_default')->orderBy('name')->get(['id', 'name', 'is_default']),
             'priceTypes' => config('form_builder.price_types'),
             'priceItems' => $service ? $service->priceItems()->get() : collect(),
         ];

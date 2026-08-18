@@ -260,6 +260,7 @@
                 submissions_paused: $('[name=submissions_paused]').val(),
                 submissions_paused_note: $('[name=submissions_paused_note]').val(),
                 form_id: $('[name=form_id]').val(),
+                step_template_id: $('[name=step_template_id]').val(),
                 price_items: (window.collectServicePriceItems ? window.collectServicePriceItems() : []),
                 _token: '{{ csrf_token() }}'
             })

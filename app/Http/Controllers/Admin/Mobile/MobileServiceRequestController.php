@@ -257,6 +257,9 @@ class MobileServiceRequestController extends Controller
     {
         $serviceRequest = $this->mobileServiceRequestAdminService->findOrFail($id);
 
+        // Snapshot Template Rules Step (pengajuan lama di-backfill dari timestamp).
+        app(\App\Services\StepTemplateService::class)->ensureSnapshot($serviceRequest);
+
         // Isian dinamis dari proposal (bila order lahir dari form builder).
         $proposal = $serviceRequest->proposal;
         $proposalAnswers = $proposal

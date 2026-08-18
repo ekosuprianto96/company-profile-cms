@@ -1,8 +1,10 @@
 @php
     $formOptions = $formOptions ?? collect();
+    $stepTemplateOptions = $stepTemplateOptions ?? collect();
     $priceTypes = $priceTypes ?? [];
     $priceItems = ($priceItems ?? collect())->values();
     $selectedFormId = optional($service ?? null)->form_id;
+    $selectedStepTemplateId = optional($service ?? null)->step_template_id;
 @endphp
 
 <div class="form-group">
@@ -14,6 +16,17 @@
         @endforeach
     </select>
     <small class="text-muted">Schema form ini yang dirender aplikasi mobile saat user mengajukan layanan. Satu form boleh dipakai banyak layanan.</small>
+</div>
+
+<div class="form-group">
+    <label class="form-label">Template Rules Step</label>
+    <select name="step_template_id" class="form-control">
+        <option value="">— Pakai template default —</option>
+        @foreach ($stepTemplateOptions as $opt)
+            <option value="{{ $opt->id }}" @selected($selectedStepTemplateId == $opt->id)>{{ $opt->name }}{{ $opt->is_default ? ' (default)' : '' }}</option>
+        @endforeach
+    </select>
+    <small class="text-muted">Langkah "Status Pengajuan" yang tampil ke user untuk layanan ini. Satu template boleh dipakai banyak layanan.</small>
 </div>
 
 <div class="card border mb-3">

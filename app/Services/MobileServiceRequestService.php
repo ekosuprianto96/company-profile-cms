@@ -30,6 +30,7 @@ class MobileServiceRequestService
         protected MobileServiceRequestAdminService $mobileServiceRequestAdminService,
         protected SystemNotificationService $systemNotificationService,
         protected VoucherService $voucherService,
+        protected StepTemplateService $stepTemplateService,
     ) {}
 
     public function meta(): array
@@ -120,6 +121,9 @@ class MobileServiceRequestService
 
             return $freshRequest;
         });
+
+        // Snapshot Template Rules Step menempel ke pengajuan + centang step "created".
+        $this->stepTemplateService->applyEvent($serviceRequest, 'created');
 
         try {
             $this->mobileServiceRequestAdminService->notifySubmitted($serviceRequest);
@@ -265,6 +269,8 @@ class MobileServiceRequestService
             ]);
         }
 
+        $this->stepTemplateService->applyEvent($serviceRequest, 'payment_selected');
+
         $freshServiceRequest = $serviceRequest->fresh([
             'service',
             'user',
@@ -314,6 +320,8 @@ class MobileServiceRequestService
             'status' => 'waiting_verification',
         ]);
 
+        $this->stepTemplateService->applyEvent($serviceRequest, 'proof_uploaded');
+
         return $serviceRequest->fresh(['service', 'user', 'products.product']) ?? $serviceRequest;
     }
 
@@ -337,6 +345,7 @@ class MobileServiceRequestService
         ]);
 
         $this->settleVoucherRedemption($serviceRequest, 'paid');
+        $this->stepTemplateService->applyEvent($serviceRequest, 'paid');
 
         $fresh = $serviceRequest->fresh(['service', 'user', 'products.product']) ?? $serviceRequest;
         $this->systemNotificationService->notifyServiceRequestPaymentUpdated($fresh);
@@ -484,6 +493,8 @@ class MobileServiceRequestService
             'cancelled_at' => now(),
         ]);
 
+        $this->stepTemplateService->applyEvent($serviceRequest, 'cancelled');
+
         return $serviceRequest->fresh([
             'service',
             'user',
@@ -531,6 +542,10 @@ class MobileServiceRequestService
         ]);
 
         $this->settleVoucherRedemption($serviceRequest, $paymentStatus);
+
+        if ($paymentStatus === 'paid') {
+            $this->stepTemplateService->applyEvent($serviceRequest, 'paid');
+        }
 
         if ($transactionStatus !== 'pending') {
             $this->systemNotificationService->notifyServiceRequestPaymentUpdated(

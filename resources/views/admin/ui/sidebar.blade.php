@@ -26,6 +26,7 @@
           <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.otp_logs') }}">OTP Logs</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.service_requests.index') }}">Service Requests</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.services') }}">Services</a></li>
+          <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.step_templates') }}">Template Rules Step</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.home_layout') }}">Home Layout</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.notifications') }}">Notifications</a></li>
           <li class="nav-item"><a class="nav-link" href="{{ route('admin.mobile.notification_templates') }}">Template Notifikasi</a></li>

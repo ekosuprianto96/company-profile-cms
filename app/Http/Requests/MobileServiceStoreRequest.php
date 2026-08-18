@@ -17,6 +17,7 @@ class MobileServiceStoreRequest extends FormRequest
             'title' => 'required|string|max:150',
             'category_id' => 'nullable|integer|exists:categories,id',
             'form_id' => 'nullable|integer|exists:forms,id',
+            'step_template_id' => 'nullable|integer|exists:step_templates,id',
             'price_items' => 'nullable|array',
             'price_items.*.type' => 'nullable|string|max:30',
             'price_items.*.label' => 'nullable|string|max:150',

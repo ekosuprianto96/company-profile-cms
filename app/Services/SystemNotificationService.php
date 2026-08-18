@@ -176,6 +176,65 @@ class SystemNotificationService
         $this->dispatchToAdmins($eventKey, $ctx, SystemNotification::TYPE_CONFIRMATION, $url);
     }
 
+    /**
+     * Action step (Template Rules Step) tercentang → kirim ke kanal terpilih.
+     * Semua teks dirender dari template event `service_request.step_completed`
+     * (variabel step_name/step_description) agar tetap bisa diedit admin.
+     *
+     * @param  array<int, string>  $channels  notif_inapp|notif_push|notif_email|notif_sms|notif_admin
+     */
+    public function notifyServiceRequestStepCompleted($serviceRequest, array $channels, string $stepName, string $stepDescription): void
+    {
+        $user = $serviceRequest->user;
+        $ctx = $this->serviceRequestContext($serviceRequest, [
+            'step_name' => $stepName,
+            'step_description' => $stepDescription,
+        ]);
+
+        $notifId = null;
+
+        if ($user && in_array('notif_inapp', $channels, true)) {
+            $inApp = $this->templates->render('service_request.step_completed', 'in_app', 'user', array_merge(['recipient_name' => $user->name], $ctx));
+            if (trim($inApp['subject'] . $inApp['body']) !== '') {
+                $notification = new SystemNotification($inApp['subject'], $inApp['body'], SystemNotification::TYPE_INFORMATION, null, $ctx);
+                $notification->id = (string) Str::uuid();
+                $notifId = $notification->id;
+                $user->notify($notification);
+            }
+        }
+
+        if ($user && in_array('notif_push', $channels, true)) {
+            $push = $this->templates->render('service_request.step_completed', 'push', 'user', array_merge(['recipient_name' => $user->name], $ctx));
+            if (trim($push['subject'] . $push['body']) !== '') {
+                $this->sendExpoPushToUsers(collect([$user]), $push['subject'], $push['body'], SystemNotification::TYPE_INFORMATION, null, $ctx, $notifId ? '/notification-detail?id=' . $notifId : null);
+            }
+        }
+
+        if ($user?->email && in_array('notif_email', $channels, true)) {
+            \Illuminate\Support\Facades\Mail::to($user->email)
+                ->queue(new \App\Mail\MobileServiceRequestStepMail($serviceRequest, $stepName, $stepDescription));
+        }
+
+        if ($user?->phone && in_array('notif_sms', $channels, true)) {
+            $sms = $this->templates->render('service_request.step_completed', 'sms', 'user', array_merge(['recipient_name' => $user->name], $ctx));
+            $message = trim($sms['body']);
+            if ($message !== '') {
+                $phone = $user->phone;
+                // Kirim async agar HTTP SMS tak memperlambat alur utama.
+                dispatch(function () use ($phone, $message) {
+                    app(\App\Services\ZenzivaSmsService::class)->send($phone, $message);
+                });
+            }
+        }
+
+        if (in_array('notif_admin', $channels, true)) {
+            $admin = $this->templates->render('service_request.step_completed', 'in_app', 'admin', $ctx);
+            if (trim($admin['subject'] . $admin['body']) !== '') {
+                $this->notifyAdmins($admin['subject'], $admin['body'], SystemNotification::TYPE_INFORMATION, '/admin/mobile/service-requests/' . $serviceRequest->id, $ctx);
+            }
+        }
+    }
+
     public function notifyCampaign(string $title, string $message, string $type, bool $sendToAll, array $userIds = [], ?string $url = null, array $meta = [], ?string $contentHtml = null): void
     {
         $type = in_array($type, [

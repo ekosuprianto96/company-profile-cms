@@ -16,7 +16,8 @@ class MobileServiceRequestAdminService
 {
     public function __construct(
         protected MobileServiceRequestRepository $mobileServiceRequestRepository,
-        protected SystemNotificationService $systemNotificationService
+        protected SystemNotificationService $systemNotificationService,
+        protected StepTemplateService $stepTemplateService,
     ) {}
 
     public function query(array $filters = []): Builder
@@ -198,6 +199,9 @@ class MobileServiceRequestAdminService
 
             return $serviceRequest->fresh(['user', 'service', 'handledBy']);
         });
+
+        // Centang step Template Rules Step (approved/completed/rejected + event tersirat).
+        $this->stepTemplateService->applyEvent($serviceRequest, $status);
 
         $this->notifyDecision($serviceRequest, $status, $status === 'rejected' ? ($rejectionReason ?: $note) : $note);
         $this->systemNotificationService->notifyServiceRequestDecision($serviceRequest, $status);

@@ -199,6 +199,7 @@
                 is_active: $('[name=is_active]').val(),
                 is_coming_soon: $('[name=is_coming_soon]').val(),
                 form_id: $('[name=form_id]').val(),
+                step_template_id: $('[name=step_template_id]').val(),
                 price_items: (window.collectServicePriceItems ? window.collectServicePriceItems() : []),
                 _token: '{{ csrf_token() }}'
             })
